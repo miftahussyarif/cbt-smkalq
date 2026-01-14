@@ -1327,21 +1327,35 @@ $r = mysql_fetch_array($sql);
 
         var infoText1 = document.getElementById('waktuInfo1');
         var infoText2 = document.getElementById('waktuInfo2');
+        var infoTextLanjut = document.getElementById('waktuInfoLanjut');
+        var infoTextR = document.getElementById('waktuInfoR');
+
         var checkContainer1 = document.getElementById('checkboxContainer1');
         var checkContainer2 = document.getElementById('checkboxContainer2');
+        var checkContainerLanjut = document.getElementById('checkboxContainerLanjut');
 
         if (menitTerpakai < minWaktuMenit) {
             var pesan = 'Anda belum bisa mengakhiri tes. Minimal pengerjaan ' + minWaktuMenit + ' menit.<br>Waktu pengerjaan Anda: ' + menitTerpakai + ' menit. Tunggu ' + sisaMenit + ' menit lagi.';
             if (infoText1) infoText1.innerHTML = pesan;
             if (infoText2) infoText2.innerHTML = pesan;
+            if (infoTextLanjut) infoTextLanjut.innerHTML = pesan;
+            if (infoTextR) infoTextR.innerHTML = pesan;
+
             if (checkContainer1) checkContainer1.style.display = 'none';
             if (checkContainer2) checkContainer2.style.display = 'none';
+            if (checkContainerLanjut) checkContainerLanjut.style.display = 'none';
         } else {
             var pesan = 'Waktu pengerjaan Anda: ' + menitTerpakai + ' menit.<br>Silahkan centang kotak di bawah dan klik tombol SELESAI untuk mengakhiri test.';
+            var pesanR = 'Waktu pengerjaan Anda: ' + menitTerpakai + ' menit.<br>Pastikan semua jawaban sudah terisi dan tidak ada yang RAGU-RAGU.';
+
             if (infoText1) infoText1.innerHTML = pesan;
             if (infoText2) infoText2.innerHTML = pesan;
+            if (infoTextLanjut) infoTextLanjut.innerHTML = pesan;
+            if (infoTextR) infoTextR.innerHTML = pesanR;
+
             if (checkContainer1) checkContainer1.style.display = 'block';
             if (checkContainer2) checkContainer2.style.display = 'block';
+            if (checkContainerLanjut) checkContainerLanjut.style.display = 'block';
         }
     }
 
@@ -1369,6 +1383,18 @@ $r = mysql_fetch_array($sql);
         }
     }
 
+    function toggleSelesaiBtnLanjut() {
+        var checkbox = document.getElementById('confirmCheckLanjut');
+        var btn = document.getElementById('btnLanjut');
+        var menitTerpakai = getWaktuTerpakaiMenit();
+
+        if (checkbox.checked && menitTerpakai >= minWaktuMenit) {
+            btn.disabled = false;
+        } else {
+            btn.disabled = true;
+        }
+    }
+
     // Reset checkbox dan button saat modal dibuka
     $('#modal-form').on('show.bs.modal', function () {
         document.getElementById('confirmCheck1').checked = false;
@@ -1384,8 +1410,15 @@ $r = mysql_fetch_array($sql);
         updateModalStatus();
     });
 
-    // Initialize status saat halaman load
-    $(document).ready(function () {
+    $('#myModal2').on('show.bs.modal', function () {
+        var checkLanjut = document.getElementById('confirmCheckLanjut');
+        var btnLanjut = document.getElementById('btnLanjut');
+        if (checkLanjut) checkLanjut.checked = false;
+        if (btnLanjut) btnLanjut.disabled = true;
+        updateModalStatus();
+    });
+
+    $('#myModalR').on('show.bs.modal', function () {
         updateModalStatus();
     });
 
@@ -1787,6 +1820,7 @@ $r = mysql_fetch_array($sql);
         </div>
     </div>
 </div>
+
 
 <!-- Modal Peringatan Waktu Minimum -->
 <div class="modal fade" id="myModalWaktu" role="dialog">

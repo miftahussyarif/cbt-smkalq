@@ -771,7 +771,7 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
             document.getElementById("D").checked = true;
         }
         <?php if ($sopil > 4) { ?>
-                      else if (e.which == 69) {
+                                  else if (e.which == 69) {
                 var tekan = 'E';
                 document.getElementById("E").checked = true;
             }
@@ -1305,7 +1305,7 @@ if ($result) {
                         }
 
                         /*   .jp-progress{ display:block}
-                                   .jp-duration{ display:block}  */
+                                                           .jp-duration{ display:block}  */
                         .jp-progress {
                             display: none
                         }
@@ -1483,7 +1483,7 @@ if ($result) {
                         }
 
                         /*   .jp-progress{ display:block}
-                                   .jp-duration{ display:block}  */
+                                                           .jp-duration{ display:block}  */
                         .jp-progress {
                             display: none
                         }
@@ -2309,13 +2309,13 @@ if ($result) {
                                     Anda tidak akan bisa kembali ke soal jika sudah menekan tombol selesai.
                                 </p>
                             </div>
-                            <div class="assent-checkbox">
-                                <input type="checkbox" data-target="#btnLanjut" id="0-ascb"
-                                    onClick="document.getElementById('btnLanjut').disabled=false">
-                                <label class="assentcb-label" for="0-ascb">
-                                    Centang, kemudian tekan tombol selesai. <br>Jika anda Yakin untuk Mengakhiri Tes<br>
+                            <div id="checkboxContainerLanjut" style="margin-top:10px;">
+                                <label class="assentcb-label">
+                                    <input type="checkbox" id="confirmCheckLanjut" onchange="toggleSelesaiBtnLanjut()">
+                                    Saya yakin ingin mengakhiri tes ini
                                 </label>
                             </div>
+                            <span id="waktuInfoLanjut"></span>
                         </div>
                     </div>
                 </div>
@@ -2353,7 +2353,7 @@ if ($result) {
                                 <p>
                                     Terdapat soal yang bertanda RAGU-RAGU <br>
                                     Selesaikan lebih dulu Soal RAGU-RAGU.<br>
-                                    Klik Tombol LANJUT
+                                    <span id="waktuInfoR"></span>
                                 </p>
                             </div>
 
