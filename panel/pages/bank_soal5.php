@@ -452,16 +452,16 @@ $kuncijwb = "$s[XKunciJawaban]";
 <br>
 <div class="col-sm-12"> <span>&nbsp;&nbsp;Gambar Jawaban <?php echo $i; ?> </span><span>
 <?php 
-$GJ = str_replace("  ","",$s['XGambarJawab'.$i]);
+$GJ = trim(str_replace("  ","",$s['XGambarJawab'.$i]));
 
-if(!file_exists("../../pictures/$GJ")){
-$gbrpic = "<img src='images/no_file.png'>";} 
-else { 
-	if($GJ==''){
-	$gbrpic = "<img src='images/no_pic.png'>";} else {
-	$gbrpic = "<img src='../../pictures/$GJ' width='130' style='margin-top:10'>";
-	}
+if($GJ==''){
+    $gbrpic = "<img src='images/no_pic.png'>";
+} elseif(!file_exists("../../pictures/$GJ")){
+    $gbrpic = "<img src='images/no_file.png'>";
+} else { 
+    $gbrpic = "<img src='../../pictures/$GJ' width='130' style='margin-top:10'>";
 } 
+
 
 
 ?>
