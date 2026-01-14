@@ -77,6 +77,7 @@ if(isset($_REQUEST['token'])){
 		while($s = mysql_fetch_array($sql)){
 		if($s['XStatusUjian']=='1'){$xsta = "Online";}
 		elseif($s['XStatusUjian']=='9'){$xsta = "Selesai";}
+		else {$xsta = "Belum Login";}
 		echo "
 										<tr>
 											<td>$s[yoi]</td>
@@ -175,7 +176,7 @@ if(isset($_REQUEST['token'])){
 					//alert(nilaix);
 					//document.getElementById("nilai").value = nilaix;
 									
-                    var data = 'nama=' + nilaix + '& token=' + tokex;
+                    var data = 'nama=' + nilaix + '&token=' + tokex;
                     $jnoc.ajax({
                         type: 'POST',
                         url: "reset.php",
@@ -196,7 +197,7 @@ if(isset($_REQUEST['token'])){
 					//alert(nilaix);
 					//document.getElementById("nilai").value = nilaix;
 									
-                    var data = 'nama=' + nilaix + '& token=' + tokex;
+                    var data = 'nama=' + nilaix + '&token=' + tokex;
 					
 					alert();
 					

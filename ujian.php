@@ -578,6 +578,36 @@ if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login
         padding-bottom: 10px;
         float: left;
     }
+
+    #cbt-lock-banner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 10000;
+        background-color: #b30000;
+        color: #fff;
+        text-align: center;
+        padding: 10px;
+        font-weight: bold;
+        display: none;
+    }
+
+    body.cbt-locked #cbt-lock-banner {
+        display: block;
+    }
+
+    body.cbt-locked #picture,
+    body.cbt-locked #slideMenu,
+    body.cbt-locked #fontlembarsoal {
+        pointer-events: none;
+        opacity: 0.6;
+    }
+
+    body.cbt-locked .get_pic,
+    body.cbt-locked .get1_pic {
+        pointer-events: none;
+    }
 </style>
 
 <script type="text/javascript" src="js/jquery.min.js"></script>
@@ -598,6 +628,9 @@ if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login
 </script>
 <script>
     function toggle_select(id) {
+        if (window.__cbtLocked) {
+            return false;
+        }
         var anu = document.getElementById(id);
         var X = document.getElementById(id);
         if (X.checked == true) {
@@ -1129,6 +1162,8 @@ $r = mysql_fetch_array($sql);
         </div>
     </header>
 
+    <div id="cbt-lock-banner">User terkunci oleh pengawas. Anda tidak dapat menjawab atau berpindah soal.</div>
+
     <li class="header">
         <div class="main">
 
@@ -1176,6 +1211,184 @@ $r = mysql_fetch_array($sql);
 
     </script>
 
+    <script>
+        (function () {
+            var monitorUrl = 'monitor_event.php';
+            var statusUrl = 'monitor_status.php';
+            var lastEvent = '';
+            var lastSentAt = 0;
+            window.__cbtLocked = false;
+            var hideTimer = null;
+            var unloadEventSent = false;
+
+            function sendEvent(evt, extraData) {
+                var now = Date.now();
+                if (!(extraData && extraData.force) && evt === lastEvent && (now - lastSentAt) < 3000) {
+                    return;
+                }
+                lastEvent = evt;
+                lastSentAt = now;
+                $.ajax({
+                    url: monitorUrl,
+                    type: 'POST',
+                    data: $.extend({ event: evt }, extraData || {})
+                });
+            }
+
+            function sendBeaconEvent(evt, extraData) {
+                if (unloadEventSent) {
+                    return;
+                }
+                unloadEventSent = true;
+                if (!navigator.sendBeacon) {
+                    sendEvent(evt, extraData);
+                    return;
+                }
+                var form = new FormData();
+                form.append('event', evt);
+                if (extraData) {
+                    Object.keys(extraData).forEach(function (key) {
+                        form.append(key, extraData[key]);
+                    });
+                }
+                // Use beacon on unload to ensure the lock event is sent.
+                navigator.sendBeacon(monitorUrl, form);
+            }
+
+            function applyLockState(isLocked) {
+                if (isLocked === window.__cbtLocked) {
+                    return;
+                }
+                window.__cbtLocked = isLocked;
+                if (isLocked) {
+                    $('body').addClass('cbt-locked');
+                    $('#picture :input').each(function () {
+                        var $el = $(this);
+                        if (!$el.prop('disabled')) {
+                            $el.attr('data-cbt-lock-disabled', '1');
+                            $el.prop('disabled', true);
+                        }
+                    });
+                } else {
+                    $('body').removeClass('cbt-locked');
+                    $('#picture :input[data-cbt-lock-disabled="1"]').each(function () {
+                        var $el = $(this);
+                        $el.prop('disabled', false);
+                        $el.removeAttr('data-cbt-lock-disabled');
+                    });
+                }
+            }
+
+            function checkLock() {
+                $.getJSON(statusUrl, function (resp) {
+                    if (!resp || resp.ok === false) {
+                        return;
+                    }
+                    applyLockState(resp.locked);
+                });
+            }
+
+            function clearHideTimer() {
+                if (hideTimer) {
+                    clearTimeout(hideTimer);
+                    hideTimer = null;
+                }
+            }
+
+            function startHideTimer() {
+                clearHideTimer();
+                hideTimer = setTimeout(function () {
+                    if (document.hidden) {
+                        sendEvent('tab_hidden', { auto_lock: 1 });
+                    }
+                }, 5000);
+            }
+
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) {
+                    startHideTimer();
+                } else {
+                    clearHideTimer();
+                    sendEvent('aman');
+                }
+            });
+            window.addEventListener('blur', function () {
+                startHideTimer();
+            });
+            window.addEventListener('focus', function () {
+                clearHideTimer();
+                sendEvent('aman');
+            });
+            window.addEventListener('pagehide', function () {
+                sendBeaconEvent('tab_close', { auto_lock: 1, reason: 'pagehide', force: 1 });
+            });
+            window.addEventListener('beforeunload', function () {
+                sendBeaconEvent('tab_close', { auto_lock: 1, reason: 'beforeunload', force: 1 });
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'PrintScreen' || e.keyCode === 44) {
+                    sendEvent('printscreen');
+                }
+            });
+
+            var rtoSince = null;
+            function handleRto() {
+                if (window.__cbtLocked) {
+                    return;
+                }
+                var now = Date.now();
+                if (rtoSince === null) {
+                    rtoSince = now;
+                }
+                if (now - rtoSince >= 10000) {
+                    sendEvent('rto', { auto_lock: 1, reason: 'rto', force: 1 });
+                    applyLockState(true);
+                    rtoSince = null;
+                }
+            }
+
+            function clearRto() {
+                rtoSince = null;
+            }
+
+            function pingInternet() {
+                if (window.__cbtLocked) {
+                    return;
+                }
+                $.ajax({
+                    url: 'monitor_ping.php',
+                    type: 'GET',
+                    dataType: 'json',
+                    timeout: 4000
+                }).done(function (resp) {
+                    if (!resp || resp.ok === false) {
+                        handleRto();
+                        return;
+                    }
+                    if (resp.rto) {
+                        handleRto();
+                    } else {
+                        clearRto();
+                    }
+                }).fail(function () {
+                    handleRto();
+                });
+            }
+
+            $(document).ready(function () {
+                sendEvent('aman');
+                checkLock();
+                setInterval(checkLock, 5000);
+                setInterval(function () {
+                    if (!document.hidden) {
+                        sendEvent('aman');
+                    }
+                }, 30000);
+                setInterval(pingInternet, 5000);
+            });
+        })();
+    </script>
+
     <!-- load jquery -->
     <script type="text/javascript">
         $(document).ready(function () {
@@ -1186,6 +1399,10 @@ $r = mysql_fetch_array($sql);
             });
 
             $("#picture").on("click", ".get_pic", function (e) {
+                if (window.__cbtLocked) {
+                    e.preventDefault();
+                    return false;
+                }
                 var picture_id = $(this).attr('data-id');
                 $("#picture").html("<div style=\"margin:50px auto;width:50px;\"><img src=\"loader.gif\" /></div>");
                 $("#soal").html(picture_id);
@@ -1294,7 +1511,7 @@ $r = mysql_fetch_array($sql);
 
 <script>
     // Minimum waktu pengerjaan dalam menit
-    var minWaktuMenit = 60;
+    var minWaktuMenit = 30;
 
     // Waktu total ujian dalam detik (dari PHP)
     var totalWaktuDetik = <?php
@@ -1424,7 +1641,7 @@ $r = mysql_fetch_array($sql);
 
     // Fungsi untuk mengecek waktu minimum sebelum menampilkan modal selesai
     function cekWaktuMinimum(targetModal) {
-        var minWaktuMenit = 60;
+        var minWaktuMenit = 30;
         var waktuTerpakaiSekarang = waktuTerpakai;
         var menitTerpakai = Math.floor(waktuTerpakaiSekarang / 60);
         var sisaMenit = minWaktuMenit - menitTerpakai;
@@ -1838,7 +2055,7 @@ $r = mysql_fetch_array($sql);
                         <div class="col-xs-9">
                             <div class="wysiwyg-content">
                                 <p>
-                                    <strong>Minimum pengerjaan soal adalah 60 menit, jika anda keluar maka jawaban
+                                    <strong>Minimum pengerjaan soal adalah 30 menit, jika anda keluar maka jawaban
                                         hilang.</strong><br><br>
                                     <span id="waktuInfoGetsoal"></span>
                                 </p>

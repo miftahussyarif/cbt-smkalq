@@ -750,6 +750,9 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
 
 <script>
     $(document).keydown(function (e) {
+        if (window.__cbtLocked) {
+            return;
+        }
         var soale = $('#soale').val();
         var urlString = 'url(images/pilih.png)';
 
@@ -1693,8 +1696,11 @@ if ($result) {
                         var $jnoc = jQuery.noConflict();
                         $jnoc(document).ready(function () {
                             $jnoc("#info").hide();
-                            $jnoc(".masuk").mouseleave(function () {
-                                //alert("keluar" + <?php echo $current_picture; ?>);	
+                        $jnoc(".masuk").mouseleave(function () {
+                            if (window.__cbtLocked) {
+                                return;
+                            }
+                            //alert("keluar" + <?php echo $current_picture; ?>);	
                                 var putar = $('#anu').val();
                                 var A = $('#rules').val();
                                 var soale = $jnoc('#soale').val();
@@ -1740,6 +1746,9 @@ if ($result) {
                     <script type="text/javascript">
                         $('document').ready(function () {
                             $('#A').click(function () {
+                                if (window.__cbtLocked) {
+                                    return false;
+                                }
                                 //alert();
                                 //$("#tombil").removeClass("get_pic");
                                 //document.getElementById("kotakz<?php echo $current_picture; ?>").style.backgroundColor = "lightblue";				
@@ -1757,6 +1766,9 @@ if ($result) {
                                 });
                             });
                             $('#B').click(function () {
+                                if (window.__cbtLocked) {
+                                    return false;
+                                }
                                 var putar = $('#anu').val();
                                 var B = $('#B').val();
                                 var soale = $('#soale').val();
@@ -1771,6 +1783,9 @@ if ($result) {
                                 });
                             });
                             $('#C').click(function () {
+                                if (window.__cbtLocked) {
+                                    return false;
+                                }
                                 var putar = $('#anu').val();
                                 var C = $('#C').val();
                                 var soale = $('#soale').val();
@@ -1785,6 +1800,9 @@ if ($result) {
                                 });
                             });
                             $('#D').click(function () {
+                                if (window.__cbtLocked) {
+                                    return false;
+                                }
                                 var putar = $('#anu').val();
                                 var D = $('#D').val();
                                 var soale = $('#soale').val();
@@ -1799,6 +1817,9 @@ if ($result) {
                                 });
                             });
                             $('#E').click(function () {
+                                if (window.__cbtLocked) {
+                                    return false;
+                                }
                                 var putar = $('#anu').val();
                                 var E = $('#E').val();
                                 var soale = $('#soale').val();

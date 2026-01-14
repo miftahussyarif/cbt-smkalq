@@ -163,6 +163,8 @@ if (!isset($_REQUEST['modul']) || $_REQUEST['modul'] == '') {
     $bread = "Upload Foto Peserta";
 } elseif ($_REQUEST['modul'] == "status_tes") {
     $bread = "Status Tes";
+} elseif ($_REQUEST['modul'] == "pengawasan") {
+    $bread = "Pengawasan";
 } elseif ($_REQUEST['modul'] == "daftar_soal") {
     $bread = "Bank Soal";
 } elseif ($_REQUEST['modul'] == "upl_soal") {
@@ -276,6 +278,8 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
 
     <li>
                                 <a href="?modul=aktifkan_jadwaltes"><i class="fa fa-refresh fa-fw"></i> Reset Login Peserta</a>                        </li>
+    <li>
+                                <a href="?modul=pengawasan"><i class="fa fa-eye fa-fw"></i> Pengawasan</a>                        </li>
 <?php } ?> 
 <?php
 if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
@@ -425,6 +429,8 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
                   include "sinkron.php";
               } elseif ($_REQUEST['modul'] == "berita_acara") {
                   include "berita_acara.php";
+              } elseif ($_REQUEST['modul'] == "pengawasan") {
+                  include "pengawasan.php";
               }
               /*
               elseif($_REQUEST['modul']=="backup"){

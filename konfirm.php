@@ -55,29 +55,31 @@ $xjam1 = date("H:i:s");
 //  setcookie('PESERTA',$user);
 
 
-//jika ada ujian yang belum waktunya
-$sqlcekujian = mysql_query("
-SELECT FROM `cbt_ujian` where (XKodeKelas = '$xkelz' or XKodeKelas = 'ALL') and (XKodeJurusan = '$xjurz' or XKodeJurusan = 'ALL') and XTglUjian = '$tglujian' and XJamUjian <= '$xjam1' and XStatusUjian = '1'");
-
-
 $sqluser = mysql_query("
 SELECT u.*,m.XNamaMapel FROM `cbt_ujian` u LEFT JOIN cbt_paketsoal p on p.XKodeKelas = u.XKodeKelas and p.XKodeMapel = u.XKodeMapel
 left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel 
-WHERE (u.XKodeKelas = '$xkelz' or u.XKodeKelas = 'ALL') and (u.XKodeJurusan = '$xjurz' or u.XKodeJurusan = 'ALL') and u.XTglUjian = '$tglujian' and u.XJamUjian <= '$xjam1'
-and u.XStatusUjian = '1'");
+WHERE (u.XKodeKelas = '$xkelz' or u.XKodeKelas = 'ALL') and (u.XKodeJurusan = '$xjurz' or u.XKodeJurusan = 'ALL') and u.XSesi = '$xsesi' and u.XTglUjian = '$tglujian' and u.XJamUjian <= '$xjam1'
+and u.XStatusUjian = '1' ORDER BY u.XJamUjian DESC LIMIT 1");
 
+if (mysql_num_rows($sqluser) < 1) {
+    $sqluser = mysql_query("
+    SELECT u.*,m.XNamaMapel FROM `cbt_ujian` u LEFT JOIN cbt_paketsoal p on p.XKodeKelas = u.XKodeKelas and p.XKodeMapel = u.XKodeMapel
+    left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel 
+    WHERE (u.XKodeKelas = '$xkelz' or u.XKodeKelas = 'ALL') and (u.XKodeJurusan = '$xjurz' or u.XKodeJurusan = 'ALL') and u.XSesi = '$xsesi' and u.XTglUjian = '$tglujian' and u.XJamUjian > '$xjam1'
+    and u.XStatusUjian = '1' ORDER BY u.XJamUjian ASC LIMIT 1");
+}
 
 $s = mysql_fetch_array($sqluser);
-$xkodesoal = $s['XKodeSoal'];
-$xkodekelas = $s['XKodeKelas'];
-$xtglujian = $s['XTglUjian'];
-$xkodemapel = $s['XKodeMapel'];
-$xjumlahsoal = $s['XJumSoal'];
-$xtokenujian = $s['XTokenUjian'];
-$xlamaujian = $s['XLamaUjian'];
-$xjamujian = $s['XJamUjian'];
-$xbatasmasuk = $s['XBatasMasuk'];
-$xnamamapel = $s['XNamaMapel'];
+$xkodesoal = isset($s['XKodeSoal']) ? $s['XKodeSoal'] : '';
+$xkodekelas = isset($s['XKodeKelas']) ? $s['XKodeKelas'] : '';
+$xtglujian = isset($s['XTglUjian']) ? $s['XTglUjian'] : '';
+$xkodemapel = isset($s['XKodeMapel']) ? $s['XKodeMapel'] : '';
+$xjumlahsoal = isset($s['XJumSoal']) ? $s['XJumSoal'] : '';
+$xtokenujian = isset($s['XTokenUjian']) ? $s['XTokenUjian'] : '';
+$xlamaujian = isset($s['XLamaUjian']) ? $s['XLamaUjian'] : '';
+$xjamujian = isset($s['XJamUjian']) ? $s['XJamUjian'] : '';
+$xbatasmasuk = isset($s['XBatasMasuk']) ? $s['XBatasMasuk'] : '';
+$xnamamapel = isset($s['XNamaMapel']) ? $s['XNamaMapel'] : '';
 
 $sqlada0 = mysql_query("SELECT * FROM  `cbt_siswa_ujian` WHERE XNomerUjian = '$txtuser' and XTokenUjian = '$xtokenujian'");
 $ad0 = mysql_fetch_array($sqlada0);
@@ -317,8 +319,9 @@ img {
 
                 ?>
                 <?php
-                $sqlcekujian = mysql_num_rows(mysql_query("SELECT * FROM cbt_ujian where(XKodeKelas = '$xkelz' or XKodeKelas = 'ALL') and (XKodeJurusan = '$xjurz' or XKodeJurusan = 'ALL') and XStatusUjian = '1' and XSesi =  '$xsesi'"));
-                if ($sqlcekujian > 0) { ?>
+                $sqlcekujian = mysql_num_rows(mysql_query("SELECT * FROM cbt_ujian where(XKodeKelas = '$xkelz' or XKodeKelas = 'ALL') and (XKodeJurusan = '$xjurz' or XKodeJurusan = 'ALL') and XStatusUjian = '1' and XSesi =  '$xsesi' and XTglUjian = '$tglujian' and XJamUjian <= '$xjam1'"));
+                $sqlcekujian_future = mysql_num_rows(mysql_query("SELECT * FROM cbt_ujian where(XKodeKelas = '$xkelz' or XKodeKelas = 'ALL') and (XKodeJurusan = '$xjurz' or XKodeJurusan = 'ALL') and XStatusUjian = '1' and XSesi =  '$xsesi' and XTglUjian = '$tglujian' and XJamUjian > '$xjam1'"));
+                if ($sqlcekujian > 0 || $sqlcekujian_future > 0) { ?>
 
                     <div class="list-group-item">
                         <label class="list-group-item-heading">Mata Pelajaran </label>
@@ -354,10 +357,14 @@ img {
                             <div class="list-group-item-text">
                                 <?php if ($jumsis == '9') { ?>
                                     <p class="list-group-item-text">Status Tes sudah SELESAI</p>
-                                <?php } elseif ($xjam1 < $xjamujian || $tglujian !== $xtglujian) { ?>
+                                <?php } elseif ($tglujian !== $xtglujian) { ?>
                                     <p class="list-group-item-text">Tidak Ada Jadwal Ujian</p>
-                                <?php } elseif ($xjam1 >= $xjamujian && $xjam1 > $xbatasmasuk) { ?>
+                                <?php } elseif ($xjam1 < $xjamujian) { ?>
+                                    <p class="list-group-item-text">Belum Waktunya</p>
+                                <?php } elseif ($xjam1 > $xbatasmasuk) { ?>
                                     <p class="list-group-item-text">Terlambat Untuk Mengikuti Ujian</p>
+                                <?php } else { ?>
+                                    <p class="list-group-item-text">Tidak Ada Jadwal Ujian</p>
                                 <?php } ?>
                             </div>
                         </div>

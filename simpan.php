@@ -8,6 +8,7 @@
 <body>
 
 <?php include "config/server.php";
+include "config/pengawasan.php";
 mysql_query("SET NAMES utf8");
 if(isset($_COOKIE['PESERTA'])){
 $user = $_COOKIE['PESERTA'];}
@@ -20,6 +21,14 @@ $user = $_COOKIE['PESERTA'];}
 //  $xtokenujian = "ZQIFG"; // $s['XTokenUjian'];
     $xkodesoal = $s['XKodeSoal'];
     $xtokenujian = $s['XTokenUjian'];
+
+cbt_ensure_pengawasan_table();
+$ceklock = mysql_num_rows(mysql_query("SELECT XIsLocked FROM cbt_pengawasan WHERE XNomerUjian = '$user' AND XTokenUjian = '$xtokenujian' AND XKodeSoal = '$xkodesoal' AND XIsLocked = '1'"));
+if ($ceklock > 0) {
+    header('HTTP/1.1 403 Forbidden');
+    echo "LOCKED";
+    exit;
+}
 
   
   

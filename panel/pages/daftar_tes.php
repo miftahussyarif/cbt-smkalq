@@ -64,11 +64,15 @@
 </style>
 <?php 
 $tgx = 29;
-$blx = 09;
+$blx = 9;
 $thx = 2016;
 
 $tglx = date("Y/m/d");
 $jamx = date("H:i:s");
+$view_status = isset($_GET['status']) ? $_GET['status'] : 'aktif';
+if ($view_status !== 'selesai') {
+    $view_status = 'aktif';
+}
 ?>
 <script src="date/jquery.js"></script>
 <script src="jquery.datetimepicker.full.js"></script>
@@ -119,6 +123,18 @@ $('#datetimepicker_dark').datetimepicker({theme:'dark'})
         }); 
 </script>
 <body>
+            <div class="row" style="margin-bottom:10px;">
+                <div class="col-lg-12">
+                    <ul class="nav nav-tabs">
+                        <li role="presentation" class="<?php echo $view_status == 'aktif' ? 'active' : ''; ?>">
+                            <a href="?modul=aktifkan_jadwaltes">Tes Aktif</a>
+                        </li>
+                        <li role="presentation" class="<?php echo $view_status == 'selesai' ? 'active' : ''; ?>">
+                            <a href="?modul=aktifkan_jadwaltes&status=selesai">Tes Selesai</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-lg-12">
                     <h3 class="page-header">Jadwal Pelaksanaan Tes</h3>
@@ -130,13 +146,20 @@ $('#datetimepicker_dark').datetimepicker({theme:'dark'})
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                           <table width="100%"><tr><td>Paket Tes sedang Aktif</td><td align="right">
+                           <table width="100%"><tr><td>
+                                   <?php if ($view_status == 'selesai') { ?>
+                                       Paket Tes Selesai
+                                   <?php } else { ?>
+                                       Paket Tes sedang Aktif
+                                   <?php } ?>
+                               </td><td align="right">
                                         
                                         </td></tr>
 							</table>
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
+                        <?php if ($view_status == 'aktif') { ?>
                         		<table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example">
                                 <thead>
                                     <tr>
@@ -429,6 +452,52 @@ function confirmDialog(message, onConfirm){
                             <div class="well">
                             <p>Untuk Reset Status Peserta : Tekan tombol token untuk menampilkan daftar siswa yang akan di reset</p>
                         </div>
+                        <?php } else { ?>
+                            <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-finished">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">No.</th>
+                                        <th width="5%">Ujian</th>
+                                        <th width="5%">Soal</th>
+                                        <th width="20%">Mata Pelajaran</th>
+                                        <th width="5%">Kelas</th>
+                                        <th width="5%">Sesi</th>
+                                        <th width="12%">Token</th>
+                                        <th width="12%">Waktu</th>
+                                        <th width="5%">Durasi</th>
+                                        <th width="6%">Status</th>
+                                        <th width="10%">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+<?php 
+$sql = mysql_query("select u.*,m.*,u.Urut as Urutan,u.XKodeKelas as kokel from cbt_ujian u left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel 
+left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal where u.XStatusUjian='9' order by u.XTglUjian desc, u.XJamUjian desc");
+$no = 1;
+while($s = mysql_fetch_array($sql)){ 
+?>
+                                    <tr class="odd gradeX">
+                                        <td><?php echo $no; ?></td>
+                                        <td><?php echo $s['XKodeUjian']; ?></td>
+                                        <td><?php echo $s['XKodeSoal']; ?></td>
+                                        <td><?php echo $s['XNamaMapel']; ?></td>
+                                        <td><?php echo $s['kokel']." | ".$s['XKodeJurusan']."."; ?></td>
+                                        <td><?php echo $s['XSesi']; ?></td>
+                                        <td><?php echo $s['XTokenUjian']; ?></td>
+                                        <td align="center"><?php echo $s['XTglUjian']." ".$s['XJamUjian'] ; ?></td>
+                                        <td align="center"><?php echo $s['XLamaUjian']; ?></td>
+                                        <td><span class="label label-default">Selesai</span></td>
+                                        <td align="center">
+                                            <button type="button" class="btn btn-danger btn-xs btn-hapus-tes" data-ujian="<?php echo $s['Urutan']; ?>">Hapus Data</button>
+                                        </td>
+                                    </tr>
+<?php $no++; } ?>
+                                </tbody>
+                            </table>
+                            <div class="well">
+                                <p>Hapus data tes selesai akan menghapus jawaban, nilai, peserta aktif, dan data terkait ujian tanpa menghapus jadwal tes.</p>
+                            </div>
+                        <?php } ?>
                         <!-- /.panel-body -->
                     </div>
                     <!-- /.panel -->
@@ -459,9 +528,16 @@ function confirmDialog(message, onConfirm){
     <!-- Page-Level Demo Scripts - Tables - Use for reference -->
     <script>
     $(document).ready(function() {
-        $('#dataTables-example').DataTable({
-            responsive: true
-        });
+        if ($('#dataTables-example').length) {
+            $('#dataTables-example').DataTable({
+                responsive: true
+            });
+        }
+        if ($('#dataTables-finished').length) {
+            $('#dataTables-finished').DataTable({
+                responsive: true
+            });
+        }
     
 	
 	
@@ -484,6 +560,24 @@ function confirmDialog(message, onConfirm){
         table.row('.selected').remove().draw( false );
     } );
 } );</script>
+    <script>
+        $(document).ready(function () {
+            $('.btn-hapus-tes').on('click', function () {
+                var txt_ujian = $(this).data('ujian');
+                if (!confirm('Hapus data hasil tes ini? Data jawaban, nilai, peserta, dan data terkait akan dihapus.')) {
+                    return;
+                }
+                $.ajax({
+                    type: "POST",
+                    url: "hapus_tes_selesai.php",
+                    data: "aksi=hapus&txt_ujian=" + txt_ujian,
+                    success: function () {
+                        location.reload();
+                    }
+                });
+            });
+        });
+    </script>
     
  
 <!-- Modal -->
