@@ -1857,3 +1857,37 @@ $r = mysql_fetch_array($sql);
         </div>
     </div>
 </div>
+
+<!-- Script untuk menonaktifkan klik kanan dan Ctrl+C/Ctrl+V -->
+<script>
+    // Disable right-click context menu
+    document.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        return false;
+    });
+
+    // Disable Ctrl+C, Ctrl+V, Ctrl+X, and other copy/paste shortcuts
+    document.addEventListener('keydown', function (e) {
+        // Check if Ctrl key is pressed
+        if (e.ctrlKey) {
+            // Block Ctrl+C (copy), Ctrl+V (paste), Ctrl+X (cut), Ctrl+A (select all)
+            if (e.key === 'c' || e.key === 'C' ||
+                e.key === 'v' || e.key === 'V' ||
+                e.key === 'x' || e.key === 'X' ||
+                e.key === 'a' || e.key === 'A') {
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
+
+    // Disable text selection on double click (optional extra protection)
+    document.addEventListener('selectstart', function (e) {
+        // Allow selection in input fields and textareas
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            return true;
+        }
+        e.preventDefault();
+        return false;
+    });
+</script>
