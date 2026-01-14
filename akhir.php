@@ -99,7 +99,7 @@ if ($xjumsoal > 0) {
 		object-fit: cover;
 	}
 
-	.right {
+	.right1 {
 		float: right;
 		width: 30%;
 		background-color: #333333;
@@ -133,13 +133,6 @@ if ($xjumsoal > 0) {
 
 	}
 
-	/*
-img {
-	max-width: 100%;
-	height: auto;
-}
-*/
-
 	.visible {
 		display: block !important;
 	}
@@ -163,7 +156,7 @@ img {
 		/* jika screen maks. 780 right turun */
 		/*    .left, */
 		.left,
-		.right {
+		.right1 {
 			float: none;
 			width: auto;
 			margin-top: 0px;
@@ -192,7 +185,7 @@ img {
 			height: 91px;
 		}
 
-		.right {
+		.right1 {
 			float: none;
 			width: auto;
 			margin-top: 0px;
@@ -232,7 +225,7 @@ $r = mysql_fetch_array($sql);
 			<div class="left" style="background-color:<?php echo "$r[XWarna]"; ?>"><a href=" "><img
 						src="images/<?php echo "$r[XBanner]"; ?>" style=" margin-left:0px;"></a>
 			</div>
-			<div class="right">
+			<div class="right1">
 				<table width="100%" border="0" style="margin-top:10px">
 					<tr>
 						<td rowspan="3" width="90px" align="center"><img src="images/avatar.gif"
@@ -247,9 +240,6 @@ $r = mysql_fetch_array($sql);
 					</tr>
 				</table>
 			</div>
-
-		</div>
-		</div>
 		</div>
 	</header>
 

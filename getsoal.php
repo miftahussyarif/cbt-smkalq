@@ -771,7 +771,7 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
             document.getElementById("D").checked = true;
         }
         <?php if ($sopil > 4) { ?>
-              else if (e.which == 69) {
+                  else if (e.which == 69) {
                 var tekan = 'E';
                 document.getElementById("E").checked = true;
             }
@@ -1305,7 +1305,7 @@ if ($result) {
                         }
 
                         /*   .jp-progress{ display:block}
-                   .jp-duration{ display:block}  */
+                           .jp-duration{ display:block}  */
                         .jp-progress {
                             display: none
                         }
@@ -1483,7 +1483,7 @@ if ($result) {
                         }
 
                         /*   .jp-progress{ display:block}
-                   .jp-duration{ display:block}  */
+                           .jp-duration{ display:block}  */
                         .jp-progress {
                             display: none
                         }
@@ -2427,7 +2427,7 @@ if ($result) {
     <div class="modal-dialog">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h1 class="panel-title page-label">Peringatan</h1>
+                <h1 class="panel-title page-label">Warning!</h1>
             </div>
             <div class="panel-body">
                 <div class="inner-content">
@@ -2438,8 +2438,8 @@ if ($result) {
                         <div class="col-xs-9">
                             <div class="wysiwyg-content">
                                 <p>
-                                    <strong>Anda belum bisa mengakhiri tes.</strong><br><br>
-                                    Minimal waktu pengerjaan adalah <strong>60 menit</strong>.<br>
+                                    <strong>Minimum pengerjaan soal adalah 60 menit, jika anda keluar maka jawaban
+                                        hilang.</strong><br><br>
                                     <span id="waktuInfoGetsoal"></span>
                                 </p>
                             </div>
@@ -2450,8 +2450,7 @@ if ($result) {
             <div class="panel-footer">
                 <div class="row" style="background-color:#fff">
                     <div class="col-xs-6 col-center" style="margin-left:25%">
-                        <button type="button" class="btn btn-primary btn-block" data-dismiss="modal">KEMBALI KE
-                            SOAL</button>
+                        <button type="button" class="btn btn-primary btn-block" data-dismiss="modal">Tutup</button>
                     </div>
                 </div>
             </div>
