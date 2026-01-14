@@ -771,7 +771,7 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
             document.getElementById("D").checked = true;
         }
         <?php if ($sopil > 4) { ?>
-                  else if (e.which == 69) {
+                      else if (e.which == 69) {
                 var tekan = 'E';
                 document.getElementById("E").checked = true;
             }
@@ -1305,7 +1305,7 @@ if ($result) {
                         }
 
                         /*   .jp-progress{ display:block}
-                           .jp-duration{ display:block}  */
+                                   .jp-duration{ display:block}  */
                         .jp-progress {
                             display: none
                         }
@@ -1483,7 +1483,7 @@ if ($result) {
                         }
 
                         /*   .jp-progress{ display:block}
-                           .jp-duration{ display:block}  */
+                                   .jp-duration{ display:block}  */
                         .jp-progress {
                             display: none
                         }
@@ -2421,69 +2421,3 @@ if ($result) {
         </div>
     </div>
 </div>
-
-<!-- Modal Peringatan Waktu Minimum -->
-<div class="modal fade" id="myModalWaktu" role="dialog">
-    <div class="modal-dialog">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h1 class="panel-title page-label">Warning!</h1>
-            </div>
-            <div class="panel-body">
-                <div class="inner-content">
-                    <div class="row" style="background-color:#fff">
-                        <div class="col-xs-3">
-                            <span><img src="images/alert.png" width="100px"></span>
-                        </div>
-                        <div class="col-xs-9">
-                            <div class="wysiwyg-content">
-                                <p>
-                                    <strong>Minimum pengerjaan soal adalah 60 menit, jika anda keluar maka jawaban
-                                        hilang.</strong><br><br>
-                                    <span id="waktuInfoGetsoal"></span>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="panel-footer">
-                <div class="row" style="background-color:#fff">
-                    <div class="col-xs-6 col-center" style="margin-left:25%">
-                        <button type="button" class="btn btn-primary btn-block" data-dismiss="modal">Tutup</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    // Fungsi untuk mengecek waktu minimum sebelum menampilkan modal selesai
-    function cekWaktuMinimum(targetModal) {
-        var minWaktuMenit = 60;
-
-        // Ambil waktu terpakai dari parent window (ujian.php)
-        var waktuTerpakai = 0;
-        if (typeof window.parent.waktuTerpakai !== 'undefined') {
-            waktuTerpakai = window.parent.waktuTerpakai;
-        } else if (typeof window.parent.getWaktuTerpakaiMenit === 'function') {
-            waktuTerpakai = window.parent.getWaktuTerpakaiMenit() * 60;
-        }
-
-        var menitTerpakai = Math.floor(waktuTerpakai / 60);
-        var sisaMenit = minWaktuMenit - menitTerpakai;
-
-        if (menitTerpakai < minWaktuMenit) {
-            // Tampilkan modal peringatan waktu
-            var infoText = document.getElementById('waktuInfoGetsoal');
-            if (infoText) {
-                infoText.innerHTML = 'Waktu pengerjaan Anda: <strong>' + menitTerpakai + ' menit</strong>.<br>Tunggu <strong>' + sisaMenit + ' menit</strong> lagi.';
-            }
-            $('#myModalWaktu').modal('show');
-        } else {
-            // Tampilkan modal konfirmasi selesai yang diminta
-            $(targetModal).modal('show');
-        }
-    }
-</script>
