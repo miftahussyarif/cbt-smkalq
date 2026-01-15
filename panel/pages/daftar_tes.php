@@ -197,28 +197,6 @@ $tglsekarang = date("Y-m-d");
 $tglujian = "$s[XTglUjian]";	
 		
 								?>
-<script>    
-$(document).ready(function(){
-	
- $("#selesai<?php echo $s['Urutan']; ?>").click(function(){
- 
- var txt_ujian = $("#txt_ujian<?php echo $s['Urutan']; ?>").val();
- // alert(txt_ujian);
- $.ajax({
-     type:"POST",
-     url:"selesaites.php",    
-     data: "aksi=selesai&txt_ujian=" + txt_ujian,
-	 success: function(data){
-	 //alert();
-	 location.reload();
-		//tampildata();
-	 }
-	 });
-	 });
-	
-
-});
-</script>                               
                                     <tr class="odd gradeX">
                                         <td><input type="hidden" value="<?php echo $s['Urutan']; ?>" id="txt_mapel<?php echo $s['Urutan']; ?>"><?php echo $s['Urutan']; ?>
                                         <input type="hidden" value="<?php echo $s['Urutan']; ?>" id="txt_ujian<?php echo $s['Urutan']; ?>">
@@ -239,13 +217,14 @@ $(document).ready(function(){
                                         </td>
                                         <td>													
                                         <?php if(($s['XStatusUjian']=="0"||$s['XStatusUjian']=="9")||($tglsekarang>$tglujian||$sekarang > $jamhabis)){ ?>
-                                        <input type="button" id="selesai<?php echo $s['Urutan']; ?>" class="btn btn-default" value="Selesai"  <?php echo $katapakai; ?>>
+                                        <button type="button" class="btn btn-default btn-akhir-tes" data-ujian="<?php echo $s['Urutan']; ?>" <?php echo $katapakai; ?>>Selesai</button>
                                         <?php } 
 										elseif($tglsekarang==$tglujian&&$sekarang < $time1){
 										?>
-                                        <input type="button" id="selesai<?php echo $s['Urutan']; ?>" class="btn btn-default" value="Segera"  <?php echo $katapakai; ?>>
+                                        <button type="button" class="btn btn-default btn-akhir-tes" data-ujian="<?php echo $s['Urutan']; ?>" <?php echo $katapakai; ?>>Segera</button>
 										<?php } else { ?>
-                                        <input type="button" id="selesai<?php echo $s['Urutan']; ?>" class="btn btn-info" value="Aktif" >                                        <?php } ?>
+                                        <button type="button" class="btn btn-info btn-akhir-tes" data-ujian="<?php echo $s['Urutan']; ?>">Aktif</button>
+                                        <?php } ?>
                                         </td>     
                                                                                                               
                                     </tr>
@@ -562,7 +541,7 @@ while($s = mysql_fetch_array($sql)){
 } );</script>
     <script>
         $(document).ready(function () {
-            $('.btn-hapus-tes').on('click', function () {
+            $(document).on('click', '.btn-hapus-tes', function () {
                 var txt_ujian = $(this).data('ujian');
                 if (!confirm('Hapus data hasil tes ini? Data jawaban, nilai, peserta, dan data terkait akan dihapus.')) {
                     return;
@@ -571,6 +550,24 @@ while($s = mysql_fetch_array($sql)){
                     type: "POST",
                     url: "hapus_tes_selesai.php",
                     data: "aksi=hapus&txt_ujian=" + txt_ujian,
+                    success: function () {
+                        location.reload();
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $(document).on('click', '.btn-akhir-tes', function () {
+                var txt_ujian = $(this).data('ujian');
+                if (!txt_ujian) {
+                    return;
+                }
+                $.ajax({
+                    type: "POST",
+                    url: "selesaites.php",
+                    data: "aksi=selesai&txt_ujian=" + txt_ujian,
                     success: function () {
                         location.reload();
                     }

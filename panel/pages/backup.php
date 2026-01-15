@@ -84,6 +84,45 @@ if (!isset($_COOKIE['beeuser'])) {
     }
     ?>
     <?php include "../../config/server.php"; ?>
+    <?php
+    $backupDir = '/opt/lampp/backup';
+    $backupSiswa = array();
+    $backupUjian = array();
+    $backupSemua = array();
+
+    function list_backup_files($pattern, $limit = 2)
+    {
+        $files = glob($pattern);
+        if (!$files) {
+            return array();
+        }
+        usort($files, function ($a, $b) {
+            return filemtime($b) - filemtime($a);
+        });
+        return array_slice($files, 0, $limit);
+    }
+
+    if (is_dir($backupDir)) {
+        $backupSiswa = list_backup_files($backupDir . '/dbee-siswa_*.sql');
+        $backupUjian = list_backup_files($backupDir . '/dbee-ujian_*.sql');
+        $backupSemua = list_backup_files($backupDir . '/dbee_*.sql');
+    }
+
+    function render_backup_list($files)
+    {
+        if (!$files || count($files) === 0) {
+            return "<div><em>Belum ada backup.</em></div>";
+        }
+        $out = "";
+        foreach ($files as $file) {
+            $basename = basename($file);
+            $waktu = date('Y-m-d H:i', filemtime($file));
+            $out .= "<div style='margin-bottom:6px;'>$basename<br><small>$waktu</small> ";
+            $out .= "<a class='btn btn-info btn-xs' style='margin-left:6px;' href='pages/download_backup.php?file=$basename'>Download</a></div>";
+        }
+        return $out;
+    }
+    ?>
     <div class="row">
         <div class="col-lg-12">
             <h3 class="page-header">Backup Database</h3>
@@ -119,7 +158,8 @@ if (!isset($_COOKIE['beeuser'])) {
                         <thead>
                             <tr>
                                 <th width="10%">No.</th>
-                                <th width="60%">Jenis Data</th>
+                                <th width="35%">Jenis Data</th>
+                                <th width="30%">Backup Terakhir</th>
                                 <th width="15%">Backup </th>
                                 <th width="15%">Hapus </th>
 
@@ -131,6 +171,7 @@ if (!isset($_COOKIE['beeuser'])) {
                                 <td>1<input type="hidden" value="<?php echo $s['Urutan']; ?>"
                                         id="txt_mapel<?php echo $s['Urutan']; ?>"></td>
                                 <td>Backup Mapel, Kelas, Siswa </td>
+                                <td><?php echo render_backup_list($backupSiswa); ?></td>
                                 <td align="center"><a href="?modul=backup&datax=siswa&aksi=1">
                                         <button type="button" class="btn btn-success btn-sm"><i
                                                 class="fa fa-edit"></i></button></a></td>
@@ -142,6 +183,7 @@ if (!isset($_COOKIE['beeuser'])) {
                                 <td>2<input type="hidden" value="<?php echo $s['Urutan']; ?>"
                                         id="txt_mapel<?php echo $s['Urutan']; ?>"></td>
                                 <td>Backup Soal dan Jawaban</td>
+                                <td><?php echo render_backup_list($backupUjian); ?></td>
                                 <td align="center"><a href="?modul=backup&datax=ujian&aksi=1">
                                         <button type="button" class="btn btn-success btn-sm"><i
                                                 class="fa fa-edit"></i></button></a></td>
@@ -154,6 +196,7 @@ if (!isset($_COOKIE['beeuser'])) {
                                 <td>3<input type="hidden" value="<?php echo $s['Urutan']; ?>"
                                         id="txt_mapel<?php echo $s['Urutan']; ?>"></td>
                                 <td>Backup Database</td>
+                                <td><?php echo render_backup_list($backupSemua); ?></td>
                                 <td align="center"><a href="?modul=backup&datax=semua&aksi=1">
                                         <button type="button" class="btn btn-success btn-sm"><i
                                                 class="fa fa-edit"></i></button></a></td>

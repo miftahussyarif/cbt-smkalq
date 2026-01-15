@@ -212,9 +212,6 @@ if (isset($bread)) {
 
                 <div class="sidebar-nav navbar-collapse">
                     <ul class="nav" id="side-menu">
-                        <li>
-                            <a href="#" data-toggle='modal' data-target='#myInfo'><i class="fa fa-exclamation-circle fa-fw"></i> Info & Tutorial</a>                        </li> 
-
 <?php
 if ($_COOKIE['beelogin'] == "admin") { ?>
                             <li>

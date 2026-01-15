@@ -482,7 +482,7 @@ $val = mysql_query('select 1 from `cbt_admin` LIMIT 1');
                     <span>Panel Admin</span>
                 </div>
                 <h1>Halo, selamat datang!</h1>
-                <p>Masuk ke panel admin/guru untuk mengelola ujian, bank soal, dan peserta.</p>
+                <p>Masuk ke panel admin/guru/pengawas untuk mengelola ujian, bank soal, dan peserta.</p>
             </div>
             <div class="aside-footer">
                 <a class="btn-ghost" href="https://instagram.com/em_miftahussyarif" target="_blank"

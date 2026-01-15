@@ -83,3 +83,13 @@ Untuk memastikan fitur upload dan backup berfungsi, permission folder telah diko
 - **Styling**: Menghapus background warna biru yang tidak sesuai dan merapikan perataan form menjadi rata kiri (`text-align: left`).
 - **Fix Syntax**: Memperbaiki syntax error di `atur_tes.php` (masalah octal number dan loop structure).
 
+### D. Role Pengawas & Akses Panel
+- **Role Baru**: Menambahkan tipe user `pengawas` dengan akses terbatas (status tes, status peserta, reset login peserta, dan halaman pengawasan).
+- **Menu Sidebar**: Menyesuaikan menu berdasarkan role agar akses lebih aman dan fokus.
+
+### E. Backup Database
+- **Daftar Backup**: Menampilkan maksimal 2 backup terakhir untuk tiap jenis data di menu `Backup Database`.
+- **Download Backup**: Menambahkan tombol download agar file backup bisa dipindahkan ke komputer lain.
+
+### F. Stabilitas Panel di Mobile
+- **Status Tes**: Tombol "Akhiri Tes" tetap berfungsi di tablet/smartphone (event handler disesuaikan untuk tampilan responsif).
