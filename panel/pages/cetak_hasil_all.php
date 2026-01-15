@@ -1,6 +1,12 @@
 <?php
 	if(!isset($_COOKIE['beeuser'])){
 	header("Location: login.php");}
+	$kodeUjian = isset($_REQUEST['tes3']) ? $_REQUEST['tes3'] : 'A';
+	$kodeUjian = trim($kodeUjian);
+	$allowedUjian = array('A', 'UH', 'UTS', 'UAS');
+	if (!in_array($kodeUjian, $allowedUjian, true)) {
+		$kodeUjian = 'A';
+	}
 ?>
 <html>
 <head>
@@ -17,10 +23,22 @@ $(document).ready(function() {
 </script> 
 </head>
 <body>
-<iframe src="<?php echo "cetaknilai.php?kelas=$_REQUEST[iki3]&jur=$_REQUEST[jur3]&mapz=$_REQUEST[map3]"; ?>" style="display:none;" name="frame"></iframe>
+<iframe src="<?php echo "cetaknilai.php?kelas=$_REQUEST[iki3]&jur=$_REQUEST[jur3]&mapz=$_REQUEST[map3]&tes3=$kodeUjian"; ?>" style="display:none;" name="frame"></iframe>
 <button type="button" class="btn btn-default btn-sm" onClick="frames['frame'].print()" style="margin-top:10px; margin-bottom:5px"><i class="glyphicon glyphicon-print"></i> Cetak 
 </button>
-<?php echo "Cetak Hasil Try Out Kelas : '$_REQUEST[iki3]', Jurusan : '$_REQUEST[jur3]'"; ?>
+<?php
+if ($kodeUjian == 'A') {
+	echo "Cetak Hasil Semua Ujian Kelas : '$_REQUEST[iki3]', Jurusan : '$_REQUEST[jur3]'";
+} else {
+	$labelUjian = $kodeUjian;
+	$sqk = mysql_query("select * from cbt_tes where XKodeUjian = '$kodeUjian'");
+	$rs = mysql_fetch_array($sqk);
+	if ($rs && $rs['XNamaUjian'] != '') {
+		$labelUjian = $rs['XNamaUjian'];
+	}
+	echo "Cetak Hasil Ujian $labelUjian Kelas : '$_REQUEST[iki3]', Jurusan : '$_REQUEST[jur3]'";
+}
+?>
 
 <?php
 
@@ -47,11 +65,11 @@ for($i=1;$i<=$n;$i++){ ?>
     <table border="0" width="100%">
     <tr>
     							<?php 
-								$sqk = mysql_query("select * from cbt_tes where XKodeUjian = '$_REQUEST[tes3]'");
+								$sqk = mysql_query("select * from cbt_tes where XKodeUjian = '$kodeUjian'");
 								$rs = mysql_fetch_array($sqk);
                              	$rs1 = strtoupper("$rs[XNamaUjian]");
 								
-								if($_REQUEST['tes3']=='A'){$namaujian = "HASIL SEMUA UJIAN ";} else {$namaujian = "HASIL UJIAN $rs1";}
+								if($kodeUjian=='A'){$namaujian = "HASIL SEMUA UJIAN ";} else {$namaujian = "HASIL UJIAN $rs1";}
 								?>                                
 
     <td rowspan="4" width="150"><img src="../../images/<?php echo "$logsek"; ?>" width="100"></td>
@@ -231,6 +249,26 @@ if(!isset($NA2)){ $NA2 = 0;}
 	$TotAkhire = number_format($TotAkhir, 2, ',', '.');
 	}
 	if($totUH1==''){$TotAkhir = "";}
+
+	if($kodeUjian != 'A'){
+		if($kodeUjian != 'UH'){
+			$totUH1 = "";
+			$totUG1 = "";
+			$totUH2 = "";
+			$totUG2 = "";
+		}
+		if($kodeUjian != 'UTS'){
+			$totUTS1 = "";
+			$totUTS2 = "";
+		}
+		if($kodeUjian != 'UAS'){
+			$totUAS1 = "";
+			$totUAS2 = "";
+		}
+		$totNA1 = "";
+		$totNA2 = "";
+		$TotAkhire = "";
+	}
 
 	$tampilKKM = number_format($NilaiKKM, 2, ',', '.');
 	if($TotAkhir>=$NilaiKKM2){$lulus = "LULUS";} else {$lulus = "REMIDI";}

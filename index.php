@@ -787,7 +787,7 @@ if($_COOKIE['beelogin']=='guru'||$_COOKIE['beelogin']=='admin') {?>
 </div>
 
 <!-- margin : atas-kiri-bawah-kanan !-->
-<div id="headtop"  style="width:98%; margin:0px 15px 15px 15px; height:60px; background-color:#fffefb; border-bottom-color:#e4e4e2; font-size:14px; padding:15px; text-align:center">CBT SMK AL QODIRIYAH | By Miftahus Syareef</div>
+<div id="headtop"  style="width:98%; margin:0px 15px 15px 15px; height:60px; background-color:#fffefb; border-bottom-color:#e4e4e2; font-size:14px; padding:15px; text-align:center">CBT SMK AL QODIRIYAH 2026 | Developed by. Miftahussyarif</div>
 
 </body>
 

@@ -1341,8 +1341,7 @@ $r = mysql_fetch_array($sql);
                     rtoSince = now;
                 }
                 if (now - rtoSince >= 10000) {
-                    sendEvent('rto', { auto_lock: 1, reason: 'rto', force: 1 });
-                    applyLockState(true);
+                    sendEvent('rto', { reason: 'rto', force: 1 });
                     rtoSince = null;
                 }
             }
@@ -1527,16 +1526,23 @@ $r = mysql_fetch_array($sql);
 
     // Waktu yang sudah dipakai saat halaman load
     var waktuTerpakai = totalWaktuDetik - sisaWaktuAwal;
+    var waktuTerpakaiAwal = waktuTerpakai;
+    var waktuMulaiClient = Date.now();
+
+    function getWaktuTerpakaiDetik() {
+        var selisihDetik = Math.floor((Date.now() - waktuMulaiClient) / 1000);
+        return waktuTerpakaiAwal + selisihDetik;
+    }
+
+    function getWaktuTerpakaiMenit() {
+        return Math.floor(getWaktuTerpakaiDetik() / 60);
+    }
 
     // Update waktu terpakai setiap detik
     setInterval(function () {
-        waktuTerpakai++;
+        waktuTerpakai = getWaktuTerpakaiDetik();
         updateModalStatus();
     }, 1000);
-
-    function getWaktuTerpakaiMenit() {
-        return Math.floor(waktuTerpakai / 60);
-    }
 
     function updateModalStatus() {
         var menitTerpakai = getWaktuTerpakaiMenit();
@@ -1641,9 +1647,7 @@ $r = mysql_fetch_array($sql);
 
     // Fungsi untuk mengecek waktu minimum sebelum menampilkan modal selesai
     function cekWaktuMinimum(targetModal) {
-        var minWaktuMenit = 30;
-        var waktuTerpakaiSekarang = waktuTerpakai;
-        var menitTerpakai = Math.floor(waktuTerpakaiSekarang / 60);
+        var menitTerpakai = getWaktuTerpakaiMenit();
         var sisaMenit = minWaktuMenit - menitTerpakai;
 
         if (menitTerpakai < minWaktuMenit) {

@@ -332,7 +332,7 @@ img {
         </div>
         <footer>
             <div class="container" style=" font-size:12px">
-                <p><?php echo strtoupper("$r[XSekolah]"); ?> | Developed by Miftahus Syareef</p>
+                <p>CBT SMK AL QODIRIYAH 2026 | Developed by. Miftahussyarif</p>
             </div>
         </footer>
 

@@ -385,7 +385,7 @@ if (isset($xkodesoalz)) {
         <br>
         <footer style=" width:100%;bottom:0px; position:absolute; margin-top:50px">
             <div class="container" style=" font-size:12px">
-                <p><?php echo strtoupper("$r[XSekolah]"); ?> | Developed by Miftahus Syareef</p>
+                <p>CBT SMK AL QODIRIYAH 2026 | Developed by. Miftahussyarif</p>
             </div>
         </footer>
         <script src="js/jquery.cookie.js"></script>

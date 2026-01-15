@@ -75,6 +75,14 @@ $val_pilganda = $s['XPilGanda'];
 $val_esai = $s['XEsai'];
 
 	$sqlubah = mysql_num_rows(mysql_query("select * from cbt_ujian where XKodeSoal = '$_REQUEST[txt_kodesoal]' and  XKodeUjian = '$_REQUEST[txt_ujian]' and XSemester = '$_REQUEST[txt_semester]' and XKodeKelas = '$s[XKodeKelas]' and XKodeJurusan = '$s[XKodeJurusan]' and XKodeMapel = '$s[XKodeMapel]' and XSetId = '$_COOKIE[beetahun]' "));
+
+	$cekNilai = mysql_num_rows(mysql_query("select 1 from cbt_nilai where XKodeKelas = '$s[XKodeKelas]' and XKodeMapel = '$s[XKodeMapel]' and XKodeUjian = '$_REQUEST[txt_ujian]' and XSemester = '$_REQUEST[txt_semester]' and XSetId = '$_COOKIE[beetahun]' limit 1"));
+	if($cekNilai>0){
+		echo "<div class='alert alert-danger alert-dismissable' id='ndelik'>
+		Data hasil ujian lama untuk Mapel <b>$s[XKodeMapel]</b> Kelas <b>$s[XKodeKelas]</b> Jenis Ujian <b>$_REQUEST[txt_ujian]</b> masih ada. 
+		Hapus dulu melalui menu <b>Status Tes</b> (tab Selesai) dengan tombol <b>Hapus Data</b>.</div>";
+		continue;
+	}
 	
 	/*
 	if($sqlubah>0){

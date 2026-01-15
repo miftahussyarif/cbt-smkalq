@@ -5,6 +5,12 @@
 <?php 
 require('fpdf/fpdf.php'); 
 include "../../config/server.php";
+$kodeUjian = isset($_REQUEST['tes3']) ? $_REQUEST['tes3'] : 'A';
+$kodeUjian = trim($kodeUjian);
+$allowedUjian = array('A', 'UH', 'UTS', 'UAS');
+if (!in_array($kodeUjian, $allowedUjian, true)) {
+	$kodeUjian = 'A';
+}
 // pendefinisian folder font pada FPDF
 // seperti sebelunya, kita membuat class anakan dari class FPDF
  class PDF extends FPDF{
@@ -223,11 +229,30 @@ if(!isset($NA2)){ $NA2 = 0;}
 
 	if($NA2==""){$TotAkhir = ($NA1+$NA2);} else {$TotAkhir = ($NA1+$NA2)/2;}
 	
-$TotAkhire = number_format($TotAkhir, 2, ',', '.');
+	$TotAkhire = number_format($TotAkhir, 2, ',', '.');
 
 //if($totUH1==''){$TotAkhir = "";}
 
 //$tampilKKM = number_format($NilaiKKM, 2, ',', '.');
+	if($kodeUjian != 'A'){
+		if($kodeUjian != 'UH'){
+			$totUH1 = "";
+			$totUG1 = "";
+			$totUH2 = "";
+			$totUG2 = "";
+		}
+		if($kodeUjian != 'UTS'){
+			$totUTS1 = "";
+			$totUTS2 = "";
+		}
+		if($kodeUjian != 'UAS'){
+			$totUAS1 = "";
+			$totUAS2 = "";
+		}
+		$totNA1 = "";
+		$totNA2 = "";
+		$TotAkhire = "";
+	}
 	
   $cell[$i][0]=$d[0];
   $cell[$i][1]=$d[2];
