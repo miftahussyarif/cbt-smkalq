@@ -4,7 +4,7 @@ include "../../config/pengawasan.php";
 
 cbt_ensure_pengawasan_table();
 
-if (!isset($_COOKIE['beelogin']) || ($_COOKIE['beelogin'] != 'admin' && $_COOKIE['beelogin'] != 'guru')) {
+if (!isset($_COOKIE['beelogin']) || ($_COOKIE['beelogin'] != 'admin' && $_COOKIE['beelogin'] != 'guru' && $_COOKIE['beelogin'] != 'pengawas')) {
     echo "<div class=\"alert alert-danger\">Akses ditolak.</div>";
     return;
 }

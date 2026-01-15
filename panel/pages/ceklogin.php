@@ -6,7 +6,13 @@ if(isset($_POST['userz'], $_POST['passz'])) {
 		$passz = mysql_real_escape_string($_REQUEST['passz']);
 		$passz = md5($passz);
 		$loginz = mysql_real_escape_string($_REQUEST['login']);
-		if($loginz == "admin"){$peran = "1";} else {$peran="0";}
+		if ($loginz == "admin") {
+			$peran = "1";
+		} elseif ($loginz == "pengawas") {
+			$peran = "2";
+		} else {
+			$peran = "0";
+		}
 		$sqladmin = mysql_num_rows(mysql_query("select * from cbt_user where Username = '$userz' and Password = '$passz' and login = '$peran'"));
 		if($sqladmin>0){
 					//if(!isset($_COOKIE['beeuser'], $_COOKIE['beelogin'])){

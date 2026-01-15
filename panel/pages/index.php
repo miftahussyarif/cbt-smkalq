@@ -104,12 +104,14 @@ $status_server = 1;
                    </td><td><font color="#cfcdcd">&nbsp;<?php
                    if ($_COOKIE['beelogin'] == 'guru') {
                        echo "Login sebagai : Guru";
+                   } elseif ($_COOKIE['beelogin'] == 'pengawas') {
+                       echo "Login sebagai : Pengawas";
                    } else {
                        echo "CBT Administrator :";
                    }
                    ?> </label><br>
                    <label style="text-align:right; color:#fff; font-size:18px; margin-top:12x; margin-right:20px">&nbsp;<?php
-                   if ($_COOKIE['beelogin'] == 'guru') {
+                   if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'pengawas') {
                        echo strtoupper($_COOKIE['beeuser']);
                    } else {
                        echo "$skul_adm";
@@ -139,6 +141,16 @@ $status_server = 1;
 </header>
 
 <?php
+$pengawasDenied = false;
+if (isset($_COOKIE['beelogin']) && $_COOKIE['beelogin'] == 'pengawas') {
+    $modulPengawas = isset($_REQUEST['modul']) ? $_REQUEST['modul'] : '';
+    $allowedPengawas = array('', 'aktifkan_jadwaltes', 'daftar_peserta', 'reset_peserta', 'pengawasan');
+    if (!in_array($modulPengawas, $allowedPengawas, true)) {
+        $pengawasDenied = true;
+        unset($_REQUEST['modul']);
+    }
+}
+
 if (!isset($_REQUEST['modul']) || $_REQUEST['modul'] == '') {
     $bread = "Beranda";
 } elseif ($_REQUEST['modul'] == "info_skul") {
@@ -163,6 +175,12 @@ if (!isset($_REQUEST['modul']) || $_REQUEST['modul'] == '') {
     $bread = "Upload Foto Peserta";
 } elseif ($_REQUEST['modul'] == "status_tes") {
     $bread = "Status Tes";
+} elseif ($_REQUEST['modul'] == "aktifkan_jadwaltes") {
+    $bread = "Status Tes";
+} elseif ($_REQUEST['modul'] == "daftar_peserta") {
+    $bread = "Status Peserta";
+} elseif ($_REQUEST['modul'] == "reset_peserta") {
+    $bread = "Reset Login Peserta";
 } elseif ($_REQUEST['modul'] == "pengawasan") {
     $bread = "Pengawasan";
 } elseif ($_REQUEST['modul'] == "daftar_soal") {
@@ -216,12 +234,14 @@ if ($_COOKIE['beelogin'] == "admin") { ?>
                                 <a href="#"><i class="fa fa-gears fa-fw"></i> Sistem <span class="fa arrow"></span></a>
                                 <ul class="nav nav-second-level">
                                     <li>
-                                        <a href="?modul=upl_kelas"><i class="fa fa-list-alt "></i> Daftar Kelas</a>                                </li>
+                                        <a href="?modul=daftar_kelas"><i class="fa fa-list-alt "></i> Daftar Kelas</a>                                </li>
                                     <li>
-                                        <a href="?modul=upl_mapel"><i class="fa fa-flask "></i> Mata Pelajaran</a>                                </li>
+                                        <a href="?modul=daftar_mapel"><i class="fa fa-flask "></i> Mata Pelajaran</a>                                </li>
+                                    <li>
+                                        <a href="?modul=jenis_ujian"><i class="fa fa-tags"></i> Jenis Ujian</a>                                </li>
 
                                     <li>
-                                        <a href="?modul=upl_siswa"><i class="fa fa-group"></i> Daftar Siswa</a>                                </li> 
+                                        <a href="?modul=daftar_siswa"><i class="fa fa-group"></i> Daftar Siswa</a>                                </li> 
                                 </ul>
                                 <!-- /.nav-second-level -->
                           </li>
@@ -258,6 +278,8 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
 
                                     <li>
                                         <a href="#" data-toggle="modal" data-target="#myCetakHasil"><i class="fa fa-file-text-o fa-fw"></i> Daftar Nilai</a>                                </li>
+                                    <li><a href="#" data-toggle="modal" data-target="#myCetakSingle"><i class="fa fa-file-text-o fa-fw"></i> Nilai Tunggal</a>
+                                    </li>
                                     <li>
                                         <a href="#" data-toggle="modal" data-target="#myCetakTO"><i class="fa fa-file-text-o fa-fw"></i> Hasil Try Out</a>                                </li>
                                 </ul>
@@ -282,6 +304,17 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
                                 <a href="?modul=pengawasan"><i class="fa fa-eye fa-fw"></i> Pengawasan</a>                        </li>
 <?php } ?> 
 <?php
+if ($_COOKIE['beelogin'] == 'pengawas') { ?>
+                            <li>
+                                <a href="?modul=aktifkan_jadwaltes"><i class="fa fa-edit fa-fw"></i> Status Tes</a>                        </li>
+                            <li>
+                                <a href="?modul=daftar_peserta"><i class="fa fa-user fa-fw"></i> Status Peserta</a>                        </li>
+                            <li>
+                                <a href="?modul=aktifkan_jadwaltes"><i class="fa fa-refresh fa-fw"></i> Reset Login Peserta</a>                        </li>
+                            <li>
+                                <a href="?modul=pengawasan"><i class="fa fa-eye fa-fw"></i> Pengawasan</a>                        </li>
+<?php } ?> 
+<?php
 if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
                             <li>
                                 <a href="?modul=analisasoal"><i class="fa fa-bar-chart-o fa-fw"></i> Analisa</a>
@@ -297,12 +330,9 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
                             <!-- /.nav-second-level -->
                             </li>                        
                         
- 
-    <li>
-                                <a href="logout.php"><i class="fa fa-sign-out fa-fw"></i> Log Out</a>                        </li> 
-
-                
 <?php } ?>                                         
+                            <li>
+                                <a href="logout.php"><i class="fa fa-sign-out fa-fw"></i> Log Out</a>                        </li> 
                     </ul>
             <!-- /.navbar-static-side -->
         </nav>
@@ -312,6 +342,11 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
 
 
             <div id="page-wrapper">
+              <?php
+              if ($pengawasDenied) {
+                  echo "<div class=\"alert alert-danger\" style=\"margin:15px;\">Akses ditolak.</div>";
+              }
+              ?>
               <?php
               if (isset($_REQUEST['modul']) == "") {
                   include "none.php";
@@ -331,6 +366,8 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
                   include "daftar_kelas.php";
               } elseif ($_REQUEST['modul'] == "daftar_mapel") {
                   include "daftar_mapel.php";
+              } elseif ($_REQUEST['modul'] == "jenis_ujian") {
+                  include "jenis_ujian.php";
               } elseif ($_REQUEST['modul'] == "daftar_siswa") {
                   include "daftar_siswa.php";
               } elseif ($_REQUEST['modul'] == "daftar_soal") {
@@ -399,6 +436,8 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
                   include "cetak_berita.php";
               } elseif ($_REQUEST['modul'] == "cetak_hasil") {
                   include "cetak_hasil_all.php";
+              } elseif ($_REQUEST['modul'] == "cetak_hasil_single") {
+                  include "cetak_hasil_single.php";
               } elseif ($_REQUEST['modul'] == "cetak_TO") {
                   include "cetak_hasil_TO.php";
               } elseif ($_REQUEST['modul'] == "hasil_peserta") {
@@ -622,11 +661,11 @@ while ($rs = mysql_fetch_array($sqk)) {
 <tr height="30px"><td>Jenis Tes</td><td>:                                 
                                 <select id="tes3"  name="tes3">
 <?php
-$sqk = mysql_query("select * from cbt_tes");
+$sqk = mysql_query("select * from cbt_tes where XKodeUjian in ('UH','UTS','UAS') order by Urut");
 echo "<option value='A' selected>Semua</option>";
-//while($rs = mysql_fetch_array($sqk)){
-//echo "<option value=$rs[XKodeUjian]>$rs[XNamaUjian]</option>";
-//} 
+while($rs = mysql_fetch_array($sqk)){
+echo "<option value='$rs[XKodeUjian]'>$rs[XNamaUjian]</option>";
+} 
 ?>                                
                                 </select>
 </td></tr>        
@@ -667,6 +706,85 @@ while ($rs = mysql_fetch_array($sqk)) {
                                 </select>
 </td></tr> 
                                 </table>                               
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    <div class="row">
+                        <div class="col-xs-offset-7 col-xs-6">
+                           <button type="submit" class="btn btn-default btn-sm">
+                           <i class="glyphicon glyphicon-print"></i> Tampilkan</button>
+                           <button type="submit" class="btn btn-default btn-sm" data-dismiss="modal">
+                           <i class="glyphicon glyphicon-minus-sign"></i> Tutup</button>
+                        </div>
+                    </div>
+                </div></form>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Modal -->
+<div class="modal fade" id="myCetakSingle" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="panel-default">
+                <div class="panel-heading">
+                    <h1 class="panel-title page-label"><i class="glyphicon glyphicon-print"></i> | Nilai Tunggal</h1>
+                </div><form action="?modul=cetak_hasil_single" method="post">
+                <div class="panel-body">
+                    <div class="inner-content">
+                        <div class="wysiwyg-content">
+                            <p><table width="100%">
+<tr height="30px"><td>Jenis Tes</td><td>:
+                                <select id="tes_single"  name="tes_single">
+<?php
+$sqk = mysql_query("select * from cbt_tes order by Urut");
+while($rs = mysql_fetch_array($sqk)){
+echo "<option value='$rs[XKodeUjian]'>$rs[XNamaUjian]</option>";
+}
+?>
+                                </select>
+</td></tr>
+                                <tr><td width="30%">Semester</td><td>:
+                                <select id="sem_single"  name="sem_single">
+<?php
+echo "<option value=1>Ganjil</option>";
+echo "<option value=2>Genap</option>";
+?>
+                                </select>
+                                </td></tr>
+
+                                <tr height="30px"><td>Jurusan </td><td>:
+                                <select id="jur_single"  name="jur_single">
+<?php
+$sqk = mysql_query("select * from cbt_kelas group by XKodeJurusan");
+while ($rs = mysql_fetch_array($sqk)) {
+    echo "<option value='$rs[XKodeJurusan]'>$rs[XKodeJurusan]</option>";
+} ?>
+                                </select>
+</td></tr>
+                                <tr><td width="30%">Kelas </td><td>:
+                                <select id="iki_single"  name="iki_single">
+<?php
+$sqk = mysql_query("select * from cbt_kelas group by XKodeKelas");
+while ($rs = mysql_fetch_array($sqk)) {
+    echo "<option value='$rs[XKodeKelas]'>$rs[XKodeKelas]</option>";
+} ?>
+                                </select>
+                                </td></tr>
+                                <tr height="30px"><td>Mata Pelajaran </td><td>:
+                                <select id="map_single"  name="map_single">
+<?php
+$sqk = mysql_query("select * from cbt_mapel");
+while ($rs = mysql_fetch_array($sqk)) {
+    echo "<option value='$rs[XKodeMapel]'>$rs[XNamaMapel]</option>";
+} ?>
+                                </select>
+</td></tr>
+                                </table>
                             </p>
                         </div>
                     </div>
@@ -772,7 +890,7 @@ while ($rs = mysql_fetch_array($sqk)) {
 
 <!-- Sticky Footer -->
 <footer class="sticky-footer">
-    CBT SMK AL QODIRIYAH | By Miftahus Syareef
+    CBT SMK AL QODIRIYAH 2026 | Developed by. Miftahussyarif
 </footer>
 
 </body>

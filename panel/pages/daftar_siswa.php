@@ -92,6 +92,9 @@ if(isset($_REQUEST['tambah'])){
 <button type="button" class="btn btn-info btn-small" ><i class="fa fa-plus-circle"></i> 
 Tambah Siswa</button>
 <?php echo "</a>";?>                            
+                            <a href="?modul=upl_siswa" class="btn btn-success btn-small" style="margin-left:8px;">
+                                <i class="fa fa-upload"></i> Upload Siswa
+                            </a>
                             
                         </div>
                         <!-- /.panel-heading -->
@@ -418,7 +421,8 @@ Tambah Siswa</button>
     <script>
     $(document).ready(function() {
         $('#dataTables-example').DataTable({
-            responsive: true
+            responsive: true,
+            stateSave: true
         });
     
 	

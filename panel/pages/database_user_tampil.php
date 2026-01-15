@@ -23,6 +23,8 @@ $sql0 = mysql_query("select * from cbt_user order by Urut");
 	while ($xadm = mysql_fetch_array($sql0)) {
 		if ($xadm['login'] == "1") {
 			$rol = "Admin";
+		} elseif ($xadm['login'] == "2") {
+			$rol = "Pengawas";
 		} else {
 			$rol = "Guru";
 		}

@@ -89,6 +89,9 @@ $sqlcek = mysql_num_rows(mysql_query("select * from cbt_kelas where XKodeKelas =
 <button type="button" class="btn btn-info btn-small" ><i class="fa fa-plus-circle"></i> 
 Tambah Kelas</button>
 <?php echo "</a>";?>                            
+                            <a href="?modul=upl_kelas" class="btn btn-success btn-small" style="margin-left:8px;">
+                                <i class="fa fa-upload"></i> Upload Kelas
+                            </a>
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">

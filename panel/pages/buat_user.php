@@ -206,6 +206,7 @@ $("#simpan").click(function(){
         <select id="role">
             <option value="admin">Admin</option>
             <option value="guru">Guru</option>
+            <option value="pengawas">Pengawas</option>
         </select><br>
         <label>Nama </label>
         <input id="txt_nama" name="txt_nama" style="size:200px"><br>

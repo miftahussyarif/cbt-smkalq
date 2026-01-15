@@ -5,7 +5,7 @@ include "../../config/pengawasan.php";
 header('Content-Type: application/json');
 
 $role = isset($_COOKIE['beelogin']) ? $_COOKIE['beelogin'] : '';
-if (!isset($_COOKIE['beeuser']) || ($role !== '' && $role != 'admin' && $role != 'guru')) {
+if (!isset($_COOKIE['beeuser']) || ($role !== '' && $role != 'admin' && $role != 'guru' && $role != 'pengawas')) {
     echo json_encode(array('ok' => false, 'error' => 'unauthorized'));
     exit;
 }

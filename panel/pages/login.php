@@ -20,28 +20,20 @@
 <!-- Custom Fonts -->
 <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 <style>
-    .left {
-        float: left;
-        width: 55%;
+    :root {
+        --page-bg-1: #0c2f74;
+        --page-bg-2: #0e57aa;
+        --panel-bg: #f3f6ff;
+        --card-bg: #ffffff;
+        --accent: #23c0ff;
+        --accent-deep: #0a52c9;
+        --ink: #0d1c3f;
+        --muted: #5f6f90;
+        --shadow: 0 30px 80px rgba(7, 18, 50, 0.28);
     }
 
-    .right {
-        float: right;
-        width: 45%;
-        margin-top: 150px;
-        padding-left: 20px;
-        text-align: left;
-    }
-
-    .group:after {
-        content: "";
-        display: table;
-        clear: both;
-    }
-
-    img {
-        max-width: 100%;
-        height: auto;
+    * {
+        box-sizing: border-box;
     }
 
     html,
@@ -51,100 +43,267 @@
         padding: 0;
     }
 
-    .group {
+    body {
+        background: radial-gradient(900px 600px at 10% 20%, rgba(37, 147, 255, 0.65) 0%, rgba(37, 147, 255, 0) 60%),
+            radial-gradient(500px 400px at 80% 80%, rgba(23, 191, 255, 0.35) 0%, rgba(23, 191, 255, 0) 70%),
+            linear-gradient(135deg, var(--page-bg-1), var(--page-bg-2));
+        color: var(--ink);
+        font-family: "Trebuchet MS", "Candara", sans-serif;
+    }
+
+    .login-page {
         min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 16px;
     }
 
-    .left {
-        height: 100vh;
+    .login-shell {
+        width: min(980px, 100%);
+        display: grid;
+        grid-template-columns: minmax(260px, 45%) minmax(320px, 55%);
+        border-radius: 18px;
+        overflow: hidden;
+        background: var(--card-bg);
+        box-shadow: var(--shadow);
+        animation: shellIn 600ms ease;
     }
 
-    .left img.full-height {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        object-position: left;
-    }
-
-    @media screen and (max-width: 480px) {
-
-        .left,
-        .right {
-            float: none;
-            width: auto;
-            margin-top: 10px;
-        }
-
-        input[type=password]:focus {
-            background-color: #fff;
-            color: #999;
-            width: 100%;
-        }
-
-        input[type=password] {
-            padding: 12px 20px;
-            margin: 8px 0;
-            box-sizing: border-box;
-            border: 0;
-            border-bottom: 2px solid #939292;
-            background-color: #eae9e9;
-            color: white;
-            padding-right: 50px;
-            margin-right: 150;
-            width: 100%;
-        }
-
-        input[type=text] {
-            width: 100%;
-        }
-
-        input[type=text]:focus {
-            width: 80%;
-        }
-    }
-</style>
-<style>
-    input[type=text] {
-        padding: 12px 20px;
-        margin: 8px 0;
-        box-sizing: border-box;
-        border: 0;
-        border-bottom: 2px solid #939292;
-        background-color: #eae9e9;
-        color: #999;
-        width: 35%;
-    }
-
-    input[type=text]:focus {
-        background-color: #fff;
-        color: #999;
-        width: 35%;
-    }
-
-    input[type=password] {
-        padding: 12px 20px;
-        margin: 8px 0;
-        box-sizing: border-box;
-        border: 0;
-        border-bottom: 2px solid #939292;
-        background-color: #eae9e9;
-        color: white;
-        width: 45%;
-    }
-
-    input[type=password]:focus {
-        background-color: #fff;
-        color: #999;
-        width: 45%;
-    }
-
-    .switch-field {
-        font-family: "Lucida Grande", Tahoma, Verdana, sans-serif;
+    .login-aside {
+        position: relative;
+        padding: 40px 36px;
+        color: #f7fbff;
+        background: linear-gradient(145deg, #1480ff, #0a54c6 55%, #0a2c7f);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 24px;
         overflow: hidden;
     }
 
-    .switch-title {
-        margin-bottom: 6px;
+    .login-aside::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 40%),
+            repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0 2px, rgba(255, 255, 255, 0) 2px 14px);
+        opacity: 0.45;
+        pointer-events: none;
+    }
+
+    .login-aside::after {
+        content: "";
+        position: absolute;
+        width: 240px;
+        height: 240px;
+        right: -80px;
+        bottom: -80px;
+        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0) 65%);
+        opacity: 0.7;
+        filter: blur(2px);
+    }
+
+    .login-aside>* {
+        position: relative;
+        z-index: 1;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.85);
+        animation: fadeUp 600ms ease 60ms both;
+    }
+
+    .brand-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.15);
+    }
+
+    .logo-mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 13px;
+        padding: 6px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 999px;
+    }
+
+    .logo-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ffffff;
+    }
+
+    .welcome {
+        animation: fadeUp 600ms ease 120ms both;
+    }
+
+    .welcome h1 {
+        margin: 12px 0 8px;
+        font-size: 34px;
+        line-height: 1.05;
+    }
+
+    .welcome p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 14px;
+    }
+
+    .aside-footer {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        animation: fadeUp 600ms ease 220ms both;
+    }
+
+    .btn-ghost {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        color: #ffffff;
+        background: rgba(13, 41, 100, 0.2);
+        text-decoration: none;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        width: fit-content;
+    }
+
+    .btn-ghost:hover {
+        background: rgba(255, 255, 255, 0.18);
+    }
+
+    .aside-note {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.75);
+    }
+
+    .login-panel {
+        background: var(--panel-bg);
+        padding: 42px 46px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .panel-head {
+        animation: fadeUp 600ms ease 160ms both;
+    }
+
+    .panel-head .panel-kicker {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+    }
+
+    .panel-head h2 {
+        margin: 6px 0 6px;
+        font-size: 28px;
+    }
+
+    .panel-head p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    .alert-card {
+        display: none;
+        border-left: 4px solid #ff4f5a;
+        background: #ffe9ed;
+        color: #982b32;
+        border-radius: 10px;
+        padding: 12px 14px;
+    }
+
+    .alert-title {
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .alert-body {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        font-size: 13px;
+    }
+
+    .alert-card .btn-alert {
+        display: inline-flex;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #ff4f5a;
+        color: #fff;
+        text-decoration: none;
+        font-size: 12px;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        animation: fadeUp 600ms ease 220ms both;
+    }
+
+    .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-field label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        font-weight: 700;
+    }
+
+    .form-field input {
+        border: 1px solid #d8e1f2;
+        background: #fff;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 14px;
+        color: var(--ink);
+        box-shadow: 0 6px 16px rgba(6, 22, 56, 0.08);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .form-field input:focus {
+        outline: none;
+        border-color: #4ea1ff;
+        box-shadow: 0 10px 24px rgba(4, 46, 122, 0.15);
+        transform: translateY(-1px);
+    }
+
+    .switch-field {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        background: #fff;
+        border-radius: 999px;
+        padding: 4px;
+        border: 1px solid #d8e1f2;
+        width: fit-content;
     }
 
     .switch-field input {
@@ -152,55 +311,108 @@
     }
 
     .switch-field label {
-        float: left;
-    }
-
-    .switch-field label {
-        display: inline-block;
-        width: 60px;
-        background-color: #e4e4e4;
-        color: rgba(0, 0, 0, 0.6);
-        font-size: 14px;
-        font-weight: normal;
-        text-align: center;
-        text-shadow: none;
-        padding: 6px 14px;
-        border: 1px solid rgba(0, 0, 0, 0.2);
-        -webkit-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.1);
-        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px rgba(255, 255, 255, 0.1);
-        -webkit-transition: all 0.1s ease-in-out;
-        -moz-transition: all 0.1s ease-in-out;
-        -ms-transition: all 0.1s ease-in-out;
-        -o-transition: all 0.1s ease-in-out;
-        transition: all 0.1s ease-in-out;
-    }
-
-    .switch-field label:hover {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 88px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
         cursor: pointer;
+        transition: all 0.2s ease;
     }
 
     .switch-field input:checked+label {
-        background-color: #A5DC86;
-        -webkit-box-shadow: none;
-        box-shadow: none;
+        background: linear-gradient(120deg, #0b51c3, #24b6ff);
+        color: #fff;
+        box-shadow: 0 6px 16px rgba(10, 70, 160, 0.25);
     }
 
-    .switch-field label:first-of-type {
-        border-radius: 4px 0 0 4px;
+    .form-actions {
+        margin-top: 6px;
     }
 
-    .switch-field label:last-of-type {
-        border-radius: 0 4px 4px 0;
+    .btn-login {
+        width: 100%;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #fff;
+        background: linear-gradient(120deg, #0b2f86, #19a7ff);
+        box-shadow: 0 12px 26px rgba(7, 36, 102, 0.25);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    #ingat {
-        width: 84%;
-        height: 90px;
-        background-color: #FBECF0;
-        border: 0;
-        border-left: thick #FF0000 solid;
-        padding-left: 10;
-        padding-top: 15
+    .btn-login:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 16px 30px rgba(7, 36, 102, 0.3);
+    }
+
+    @keyframes shellIn {
+        from {
+            opacity: 0;
+            transform: translateY(12px) scale(0.98);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 900px) {
+        .login-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .login-aside {
+            min-height: 240px;
+        }
+
+        .login-panel {
+            padding: 32px;
+        }
+
+        .panel-head h2 {
+            font-size: 24px;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .login-aside {
+            padding: 28px;
+        }
+
+        .login-panel {
+            padding: 28px 22px;
+        }
+
+        .switch-field {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .switch-field label {
+            flex: 1;
+        }
     }
 </style>
 <script>
@@ -257,28 +469,37 @@ if (!$db_selected) {
 $val = mysql_query('select 1 from `cbt_admin` LIMIT 1');
 ?>
 
-<div class="group">
-    <div class="left">
-        <img src="images/bsmart2.jpg" alt="" class="full-height" />
-    </div>
-
-    <div id="kepala" style="margin-top:0px; color:#86898e; background-color:#e8edf0;"><br />
-        <h2>CBT SMK AL QODIRIYAH</h2>
-        <h3 style='margin-top:-5px'>Develop by | Muhammad Miftahus Syarif</h3><br />
-
-    </div>
-    <div class="right">
-        <div>
-            <h1>CBT SMK AL QODIRIYAH Login</h1>
-            <p style="color:#8b8a8a">Selamat datang di aplikasi CBT SMK AL QODIRIYAH.
-                <br>Silahkan masukkan Username dan Password
-            </p>
-            <div id="ingat" style=" display:none">
-                <p>
-                    <span style=" padding:20px; padding-top:20; font-size:16px">Peringatan</span>
-                </p>
-                <p>
-                    <span id="isine" style="color:#CC3300; margin-left:20px;">
+<div class="login-page">
+    <div class="login-shell">
+        <div class="login-aside">
+            <div class="brand">
+                <span class="brand-dot"></span>
+                <span>CBT SMK AL QODIRIYAH</span>
+            </div>
+            <div class="welcome">
+                <div class="logo-mark">
+                    <span class="logo-dot"></span>
+                    <span>Panel Admin</span>
+                </div>
+                <h1>Halo, selamat datang!</h1>
+                <p>Masuk ke panel admin/guru untuk mengelola ujian, bank soal, dan peserta.</p>
+            </div>
+            <div class="aside-footer">
+                <a class="btn-ghost" href="https://instagram.com/em_miftahussyarif" target="_blank"
+                    rel="noopener">Developer Contact</a>
+                <div class="aside-note">Develop by | Muhammad Miftahus Syarif</div>
+            </div>
+        </div>
+        <div class="login-panel">
+            <div class="panel-head">
+                <div class="panel-kicker">CBT SMK AL QODIRIYAH</div>
+                <h2>Login Panel</h2>
+                <p>Silahkan masukkan username dan password untuk melanjutkan.</p>
+            </div>
+            <div id="ingat" class="alert-card" style="display:none">
+                <div class="alert-title">Peringatan</div>
+                <div class="alert-body">
+                    <span id="isine">
                         <?php
                         if ($val == FALSE) { ?>
                             <script>
@@ -287,42 +508,46 @@ $val = mysql_query('select 1 from `cbt_admin` LIMIT 1');
                                     document.getElementById("ingat").style.display = "block";
                                     document.getElementById("isine").textContent = peluru + " <?php echo "Database belum Terbentuk, Klik disini untuk Proses Buat Database"; ?>";
                                     return false;
-                                });		
+                                });
                             </script>
                             <?php
                         }
                         ?>
                     </span>
                     <?php
-                    if ($val == FALSE) { ?><a href="buat_database.php">
-                            <input type="submit" class="btn btn-danger btn-small" value="Buat Database"></a>
+                    if ($val == FALSE) { ?><a href="buat_database.php" class="btn-alert">Buat Database</a>
                         <?php
                     }
                     ?>
-                </p>
+                </div>
             </div>
             <form id="loginform" name="loginform" onSubmit="return validateForm();" action="../pages/ceklogin.php"
                 method="post">
-                <div>
-                    <input type="text" id="userz" name="userz"
-                        placeholder="Username">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <div class="form-field">
+                    <label for="userz">Username</label>
+                    <input type="text" id="userz" name="userz" placeholder="Username">
+                </div>
+                <div class="form-field">
+                    <label for="passz">Password</label>
                     <input type="password" id="passz" name="passz" placeholder="Password">
-                    <div class="switch-field">
-                        <input type="radio" id="switch_left" name="login" value="admin" checked />
-                        <label for="switch_left">Admin</label>
-                        <input type="radio" id="switch_right" name="login" value="guru" />
-                        <label for="switch_right">Guru</label>
+                </div>
+                <div class="switch-field">
+                    <input type="radio" id="switch_left" name="login" value="admin" checked />
+                    <label for="switch_left">Admin</label>
+                    <input type="radio" id="switch_right" name="login" value="guru" />
+                    <label for="switch_right">Guru</label>
+                    <input type="radio" id="switch_pengawas" name="login" value="pengawas" />
+                    <label for="switch_pengawas">Pengawas</label>
+                </div>
+                <?php
+                if (!$val == FALSE) { ?>
+                    <div class="form-actions">
+                        <input type="submit" class="btn-login" value="Login">
                     </div>
                     <?php
-                    if (!$val == FALSE) { ?>
-                        <p style="text-align:right; width:84%"><input type="submit" class="btn btn-info btn-lg btn-small">
-                        </p>
-                        <?php
-                    }
-                    ?>
+                }
+                ?>
             </form>
-
-
         </div>
     </div>
 </div>
