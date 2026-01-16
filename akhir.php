@@ -41,6 +41,10 @@ $sa = mysql_fetch_array($sqlsoal);
 //$xkodeujian = $sa['XKodeUjian'];
 $xjumsoal = $sa['XJumSoal'];
 $xjumpil = $sa['XPilGanda'];
+$xjumbenar = 0;
+$xjumsalah = 0;
+$nilai_tampil = "0,00";
+$has_esai = false;
 
 if ($xjumsoal > 0) {
 
@@ -48,6 +52,10 @@ if ($xjumsoal > 0) {
 	$sqn = mysql_fetch_array($sqlnilai);
 	$per_pil = $sqn['XPersenPil'];
 	$per_esai = $sqn['XPersenEsai'];
+	$xjumesai = isset($sqn['XEsai']) ? (int)$sqn['XEsai'] : 0;
+	if ($xjumesai < 1 && isset($sa['XEsai'])) {
+		$xjumesai = (int)$sa['XEsai'];
+	}
 
 
 
@@ -55,7 +63,16 @@ if ($xjumsoal > 0) {
 	$r = mysql_fetch_array($xjumbenarz);
 	$xjumbenar = $r['benar'];
 	$xjumsalah = $xjumpil - $xjumbenar;
-	$nilaix = ($xjumbenar / $xjumpil) * 100;
+	if ($xjumsalah < 0) {
+		$xjumsalah = 0;
+	}
+	if ($xjumpil > 0) {
+		$nilaix = ($xjumbenar / $xjumpil) * 100;
+	} else {
+		$nilaix = 0;
+	}
+	$nilai_tampil = number_format($nilaix, 2, ',', '.');
+	$has_esai = ($xjumesai > 0);
 	if (isset($_COOKIE['beetahun'])) {
 		$setAY = $_COOKIE['beetahun'];
 	} else {
@@ -270,6 +287,15 @@ $r = mysql_fetch_array($sql);
 										Terimakasih telah berpartisipasi dalam tes ini.<br>
 										Silahkan klik tombol LOGOUT untuk mengakhiri test.
 									</p>
+									<div style="margin-top:10px; padding:10px; border:1px solid #ddd; background:#f7f7f7;">
+										<div style="font-size:16px; font-weight:bold; margin-bottom:5px;">Hasil Pilihan Ganda</div>
+										<?php if (!$has_esai) { ?>
+											<div>Nilai: <strong><?php echo $nilai_tampil; ?></strong></div>
+										<?php } ?>
+										<div>Benar: <strong><?php echo (int)$xjumbenar; ?></strong></div>
+										<div>Salah: <strong><?php echo (int)$xjumsalah; ?></strong></div>
+										<div style="margin-top:6px; font-size:12px; color:#666;">Logout otomatis dalam 30 detik.</div>
+									</div>
 								</div>
 							</div>
 							<div class="panel-footer">
@@ -290,6 +316,11 @@ $r = mysql_fetch_array($sql);
 		</div>
 	</div>
 
+	<script>
+		setTimeout(function() {
+			window.location.href = "logout.php";
+		}, 30000);
+	</script>
 </body>
 
 </html>
