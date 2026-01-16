@@ -93,15 +93,7 @@
     }
 
     .login-aside::after {
-        content: "";
-        position: absolute;
-        width: 240px;
-        height: 240px;
-        right: -80px;
-        bottom: -80px;
-        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0) 65%);
-        opacity: 0.7;
-        filter: blur(2px);
+        display: none;
     }
 
     .login-aside>* {
