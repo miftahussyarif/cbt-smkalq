@@ -1,26 +1,18 @@
 <?php
-include "../../config/server.php";
-$id=$_POST['txt_soal'];
-$sql = mysql_query("select * from cbt_soal where XKodeSoal='$id'");
-$s = mysql_fetch_array($sql);
-$soal = str_replace(" ","",$s['XKodeSoal']);
+require_once __DIR__ . "/../../config/server.php";
+$id = isset($_POST['txt_soal']) ? $_POST['txt_soal'] : '';
+$sql = db_query($db, "select XKodeSoal from cbt_soal where XKodeSoal = ?", array($id));
+$s = db_fetch_one($sql);
+$soal = $s ? str_replace(" ", "", $s['XKodeSoal']) : '';
 
-$sql1 = "delete from cbt_soal where XKodeSoal = '$soal'";
-mysql_query( $sql1);
+if ($soal !== '') {
+	db_query($db, "delete from cbt_soal where XKodeSoal = ?", array($soal));
+}
 
-$sql2 = "delete from cbt_paketsoal where XKodeSoal='$id'";
-mysql_query( $sql2);
-
-$sql3 = "delete from cbt_ujian where XKodeSoal='$id'";
-mysql_query( $sql3);
-
-$sql4 = "delete from cbt_jawaban where XKodeSoal='$id'";
-mysql_query( $sql4);
-
-$sql5 = "delete from cbt_siswa_ujian where XKodeSoal='$id'";
-mysql_query( $sql5);
-
-$sql6 = "delete from cbt_nilai where XKodeSoal='$id'";
-mysql_query( $sql6);
+db_query($db, "delete from cbt_paketsoal where XKodeSoal = ?", array($id));
+db_query($db, "delete from cbt_ujian where XKodeSoal = ?", array($id));
+db_query($db, "delete from cbt_jawaban where XKodeSoal = ?", array($id));
+db_query($db, "delete from cbt_siswa_ujian where XKodeSoal = ?", array($id));
+db_query($db, "delete from cbt_nilai where XKodeSoal = ?", array($id));
 
 ?>

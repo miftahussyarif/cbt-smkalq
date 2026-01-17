@@ -139,12 +139,12 @@ function deleteItem() {
             
 <?php include "../../config/server.php"; 
 
-					$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$_REQUEST[soal]'"));
-					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$_REQUEST[soal]' and XStatusUjian = '1'"));
-					$sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$_REQUEST[soal]'"));
+					$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '{$_REQUEST['soal']}'"));
+					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '{$_REQUEST['soal']}' and XStatusUjian = '1'"));
+					$sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '{$_REQUEST['soal']}'"));
 
 
-if(isset($_REQUEST['aksi'])&&$_REQUEST['aksi']=="hapus"){$sqldel = mysql_query("delete from cbt_soal where Urut = '$_REQUEST[nomer]' and XKodeSoal = '$_REQUEST[soal]'");}
+if(isset($_REQUEST['aksi'])&&$_REQUEST['aksi']=="hapus"){$sqldel = mysql_query("delete from cbt_soal where Urut = '{$_REQUEST['nomer']}' and XKodeSoal = '{$_REQUEST['soal']}'");}
 ?>
             <!-- /.row -->
             <div class="row">
@@ -152,8 +152,8 @@ if(isset($_REQUEST['aksi'])&&$_REQUEST['aksi']=="hapus"){$sqldel = mysql_query("
                     <div class="panel panel-default">
                     	<div class="panel-heading">
     <?php echo "<a href=?modul=daftar_soal><button type='button' class='btn btn-default'><i class='fa fa-arrow-circle-left'></i> Kembali ke Bank Soal</button></a>"; ?>
-    <?php echo "<a href=?modul=tambah_soal&jum=$_REQUEST[jum]&tambahan=ok&soal=$_REQUEST[soal]><button type='button' class='btn btn-warning'><i class='fa fa-plus-circle'></i> Pilihan Ganda</button></a>"; ?>
-     <?php echo "<a href=?modul=tambah_soal&jum=1&pil=$_REQUEST[jum]&tambahan=ok&soal=$_REQUEST[soal]><button type='button' class='btn btn-info'><i class='fa fa-plus-circle'></i> Soal Esai</button></a>"; ?>
+    <?php echo "<a href=?modul=tambah_soal&jum={$_REQUEST['jum']}&tambahan=ok&soal={$_REQUEST['soal']}><button type='button' class='btn btn-warning'><i class='fa fa-plus-circle'></i> Pilihan Ganda</button></a>"; ?>
+     <?php echo "<a href=?modul=tambah_soal&jum=1&pil={$_REQUEST['jum']}&tambahan=ok&soal={$_REQUEST['soal']}><button type='button' class='btn btn-info'><i class='fa fa-plus-circle'></i> Soal Esai</button></a>"; ?>
      <a href="soal_excel.php?idsoal=<?php echo $_REQUEST['soal']; ?>" target="_blank"><button type="button" class="btn btn-success" id="btnKosong">
      <i class='fa fa-file-excel-o  '></i> Download Excel</button></a>
     
@@ -186,7 +186,7 @@ if(isset($_REQUEST['aksi'])&&$_REQUEST['aksi']=="hapus"){$sqldel = mysql_query("
                                 </thead>
                                 <tbody>
 <?php
-$sql0 = mysql_query("select * from cbt_soal where XKodeSoal= '$_REQUEST[soal]' order by XnomerSoal");
+$sql0 = mysql_query("select * from cbt_soal where XKodeSoal= '{$_REQUEST['soal']}' order by XnomerSoal");
 
 $no=1;
 
@@ -196,12 +196,12 @@ while($xadm = mysql_fetch_array($sql0)){
 	if($xadm['XAcakSoal']=="A"){$acaksoal = "Acak";} else { $acaksoal = "Tidak";}
 	if($xadm['XAcakOpsi']=="Y"){$acakopsi = "Acak";} elseif($xadm['XAcakOpsi']=="T"){ $acakopsi = "Tidak";}	else { $acakopsi="";}
 
-$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$xadm[XKodeSoal]'"));
+$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '{$xadm['XKodeSoal']}'"));
 $str = $xadm['XTanya'];
 $soalnye = substr(strip_tags($str),0,110) . "...";
 echo "<tr height=40 style='border=0; border-bottom:thin solid #dcddde'>
 <td>$no</td>
-<td>$xadm[XKodeSoal]</a></td>
+<td>{$xadm['XKodeSoal']}</a></td>
 <td>$soalnye</td>
 <td><fon color=$warna>$jensoal</font></td>
 <td>$katsoal</td>
@@ -209,16 +209,16 @@ echo "<tr height=40 style='border=0; border-bottom:thin solid #dcddde'>
 <td>$acakopsi</td>
 ";
 
-if($xadm['XJenisSoal']==1){$ling = "<a href=?modul=edit_data_soal&jum=$_REQUEST[jum]&soal=$xadm[XKodeSoal]&nomer=$xadm[Urut]>";} else { 
-$ling = "<a href=?modul=edit_soal_esai&jum=$_REQUEST[jum]&soal=$xadm[XKodeSoal]&nomer=$xadm[Urut]>";}
+if($xadm['XJenisSoal']==1){$ling = "<a href=?modul=edit_data_soal&jum={$_REQUEST['jum']}&soal={$xadm['XKodeSoal']}&nomer={$xadm['Urut']}>";} else { 
+$ling = "<a href=?modul=edit_soal_esai&jum={$_REQUEST['jum']}&soal={$xadm['XKodeSoal']}&nomer={$xadm['Urut']}>";}
 echo "
 <td align=center>
-<button type='button' class='btn btn-default'  data-toggle='modal' data-target='#myModalR$xadm[Urut]' alt='Lihat'><i class='fa fa-search'></i> </button>
+<button type='button' class='btn btn-default'  data-toggle='modal' data-target='#myModalR{$xadm['Urut']}' alt='Lihat'><i class='fa fa-search'></i> </button>
 </td><td align=center>";
 ?>
 
 <?php
-					$sqlsudah1 = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$xadm[XKodeSoal]' and XNomerSoal = '$xadm[XNomerSoal]'"));
+					$sqlsudah1 = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '{$xadm['XKodeSoal']}' and XNomerSoal = '{$xadm['XNomerSoal']}'"));
 					if($sqlsoal==0){$katakosong="disabled";}  else {$katakosong="";}	
 					if($sqlsudah>0||$sqlpakai>0){$katasudah="disabled";}  else {$katasudah="";}			
 					if($sqlpakai>0){$katapakai="disabled";}  else {$katapakai="";}	
@@ -236,7 +236,7 @@ echo "
 $ling
 <button type='button' class='btn btn-info'><i class='fa fa-edit'></i></button></a>&nbsp;
 </td>
-<td align=center><a href=?modul=edit_soal&aksi=hapus&jum=$_REQUEST[jum]&soal=$xadm[XKodeSoal]&nomer=$xadm[Urut]>
+<td align=center><a href=?modul=edit_soal&aksi=hapus&jum={$_REQUEST['jum']}&soal={$xadm['XKodeSoal']}&nomer={$xadm['Urut']}>
 <button type='button' class='btn btn-danger'><i class='fa fa-times'></i></button></a>
 "; 
 }
@@ -259,36 +259,36 @@ $ling
 									
 									if(isset($jumz)){echo "anu $jumz";} 
 									//echo "select * from cbt_soal where XKodeSoal = '$xadm[XKodeSoal]' and Urut = '$xadm[Urut]'";
-									$sqlprev = mysql_query("select * from cbt_soal where XKodeSoal = '$xadm[XKodeSoal]' and Urut = '$xadm[Urut]'");
+									$sqlprev = mysql_query("select * from cbt_soal where XKodeSoal = '{$xadm['XKodeSoal']}' and Urut = '{$xadm['Urut']}'");
 									$sp = mysql_fetch_array($sqlprev);
 									$js = $sp['XJenisSoal'];
 																	
-									if(!$sp['XGambarTanya']==''){$gambarsoalnye = "<img src='../../pictures/$sp[XGambarTanya]' width='60%' align=center><br>";}
+									if(!$sp['XGambarTanya']==''){$gambarsoalnye = "<img src='../../pictures/{$sp['XGambarTanya']}' width='60%' align=center><br>";}
 										else {$gambarsoalnye = "";}
-									if(!$sp['XAudioTanya']==''){$audiosoalnye = "$sp[XAudioTanya]<br>";} else {$audiosoalnye = "";}
-									if(!$sp['XVideoTanya']==''){$videosoalnye = "$sp[XVideoTanya]<br>";} else {$videosoalnye = "";}
+									if(!$sp['XAudioTanya']==''){$audiosoalnye = "{$sp['XAudioTanya']}<br>";} else {$audiosoalnye = "";}
+									if(!$sp['XVideoTanya']==''){$videosoalnye = "{$sp['XVideoTanya']}<br>";} else {$videosoalnye = "";}
 
 
 								
 									if(str_replace(" ","",$sp['XGambarJawab1'])==''){$ambilfile1 = "";}else{									
-										if(file_exists("../../pictures/$sp[XGambarJawab1]")){$ambilfile1 = "<img src=../../pictures/$sp[XGambarJawab1] width='100px'>";} else 
-										{$ambilfile1 = "<img src=images/kross.png> $sp[XGambarJawab1] tidak belum diUpload";}
+										if(file_exists("../../pictures/{$sp['XGambarJawab1']}")){$ambilfile1 = "<img src=../../pictures/{$sp['XGambarJawab1']} width='100px'>";} else 
+										{$ambilfile1 = "<img src=images/kross.png> {$sp['XGambarJawab1']} tidak belum diUpload";}
 									}
 									if(str_replace(" ","",$sp['XGambarJawab2'])==''){$ambilfile2 = "";}else{									
-										if(file_exists("../../pictures/$sp[XGambarJawab2]")){$ambilfile2 = "<img src=../../pictures/$sp[XGambarJawab2] width='100px'>";} else 
-										{$ambilfile2 = "<img src=images/kross.png> $sp[XGambarJawab2] tidak belum diUpload";}
+										if(file_exists("../../pictures/{$sp['XGambarJawab2']}")){$ambilfile2 = "<img src=../../pictures/{$sp['XGambarJawab2']} width='100px'>";} else 
+										{$ambilfile2 = "<img src=images/kross.png> {$sp['XGambarJawab2']} tidak belum diUpload";}
 									}
 									if(str_replace(" ","",$sp['XGambarJawab3'])==''){$ambilfile3 = "";}else{									
-										if(file_exists("../../pictures/$sp[XGambarJawab3]")){$ambilfile3 = "<img src=../../pictures/$sp[XGambarJawab3] width='100px'>";} else 
+										if(file_exists("../../pictures/{$sp['XGambarJawab3']}")){$ambilfile3 = "<img src=../../pictures/{$sp['XGambarJawab3']} width='100px'>";} else 
 										{$ambilfile3 = "<img src=images/kross.png> File Gambar tidak ada [Upload File]";}
 									}
 									if(str_replace(" ","",$sp['XGambarJawab4'])==''){$ambilfile4 = "";}else{									
-										if(file_exists("../../pictures/$sp[XGambarJawab4]")){$ambilfile4 = "<img src=../../pictures/$sp[XGambarJawab4] width='100px'>";} else 
+										if(file_exists("../../pictures/{$sp['XGambarJawab4']}")){$ambilfile4 = "<img src=../../pictures/{$sp['XGambarJawab4']} width='100px'>";} else 
 										{$ambilfile4 = "<img src=images/kross.png> File Gambar tidak ada [Upload File]";}
 									}
 
 									if(str_replace(" ","",$sp['XGambarJawab5'])==''){$ambilfile5 = "";}else{									
-										if(file_exists("../../pictures/$sp[XGambarJawab5]")){$ambilfile5 = "<img src=../../pictures/$sp[XGambarJawab5] width='100px'>";} else 
+										if(file_exists("../../pictures/{$sp['XGambarJawab5']}")){$ambilfile5 = "<img src=../../pictures/{$sp['XGambarJawab5']} width='100px'>";} else 
 										{$ambilfile5 = "<img src=images/kross.png> File Gambar tidak ada [Upload File]";}
 									}
 										

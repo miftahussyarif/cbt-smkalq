@@ -333,43 +333,52 @@
                 $xkodemapel = "GAL1";
                 //$xkodesoal = "XGAL1SOAL1";
                 //$user = "P090100000";
-                $user = "$_COOKIE[PESERTA]";
-                $sqluser = mysql_query("SELECT * FROM  `cbt_siswa` WHERE XNomerUjian = '$user'");
-                $su = mysql_fetch_array($sqluser);
-                $xkelz = $su['XKodeKelas'];
-                $xjurz = $su['XKodeJurusan'];
+                $user = isset($_COOKIE['PESERTA']) ? $_COOKIE['PESERTA'] : '';
+                $sqluser = db_query(
+                    $db,
+                    "SELECT * FROM  `cbt_siswa` WHERE XNomerUjian = :user limit 1",
+                    array('user' => $user)
+                );
+                $su = db_fetch_one($sqluser);
+                $xkelz = $su ? $su['XKodeKelas'] : '';
+                $xjurz = $su ? $su['XKodeJurusan'] : '';
 
 
-                $sqlgabung = mysql_query("SELECT * FROM  `cbt_siswa` s LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') WHERE XNomerUjian = 
-  '$user' and (u.XKodeJurusan = '$xjurz' or u.XKodeJurusan = 'ALL') and (u.XKodeKelas = '$xkelz' or u.XKodeKelas = 'ALL') and u.XStatusUjian = '1'");
+                $sqlgabung = db_query(
+                    $db,
+                    "SELECT * FROM  `cbt_siswa` s LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') WHERE s.XNomerUjian = 
+  :user and (u.XKodeJurusan = :jurusan or u.XKodeJurusan = 'ALL') and (u.XKodeKelas = :kelas or u.XKodeKelas = 'ALL') and u.XStatusUjian = '1' limit 1",
+                    array('user' => $user, 'jurusan' => $xjurz, 'kelas' => $xkelz)
+                );
 
-                /* $sqlgabung = mysql_query("SELECT * FROM  `cbt_siswa` s LEFT JOIN cbt_ujian u ON s.XKodeKelas = u.XKodeKelas WHERE XNomerUjian = 
-                  '$user' and u.XKodeJurusan = '$xjurz' and u.XKodeKelas = '$xkelz' and u.XStatusUjian = '1'");
+                $s0 = db_fetch_one($sqlgabung);
+                $xkodesoal = $s0 ? $s0['XKodeSoal'] : '';
+                $xtokenujian = $s0 ? $s0['XTokenUjian'] : '';
 
-                    $sqlgabung = mysql_query("SELECT * FROM  cbt_ujian where XStatusUjian = '1'");  */
-
-                $s0 = mysql_fetch_array($sqlgabung);
-                $xkodesoal = $s0['XKodeSoal'];
-                $xtokenujian = $s0['XTokenUjian'];
-
-                $sqluser = mysql_query("
-SELECT u.*,m.XNamaMapel FROM cbt_ujian u LEFT JOIN cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal and p.XKodeMapel = u.XKodeMapel 
-left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodesoal' and u.XStatusUjian = '1'");
+                $sqluser = db_query(
+                    $db,
+                    "SELECT u.*,m.XNamaMapel FROM cbt_ujian u LEFT JOIN cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal and p.XKodeMapel = u.XKodeMapel 
+left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal = :kodesoal and u.XStatusUjian = '1' limit 1",
+                    array('kodesoal' => $xkodesoal)
+                );
 
 
-                $so = mysql_fetch_array($sqluser);
-                $sopil = $so['XJumPilihan'];
+                $so = db_fetch_one($sqluser);
+                $sopil = $so ? $so['XJumPilihan'] : '';
 
-                $sql = mysql_query("
-		SELECT j.Urut as Urut, j.XJawaban as XJawaban, j.XJawabanEsai as XJawabanEsai , c.XNomerSoal as XNomerSoal, j.XRagu as XRagu, c.XJenisSoal as XJenisSoal 
-		FROM  `cbt_soal` c LEFT JOIN cbt_jawaban j ON ( j.XNomerSoal = c.XNomerSoal AND j.XKodeSoal = c.XKodeSoal ) where c.XKodeSoal = '$xkodesoal' 
-		and j.XUserJawab = '$user' and j.XTokenUjian = '$xtokenujian' and j.XJenisSoal = '1' order by j.Urut");
+                $sql = db_query(
+                    $db,
+                    "SELECT j.Urut as Urut, j.XJawaban as XJawaban, j.XJawabanEsai as XJawabanEsai, c.XNomerSoal as XNomerSoal, j.XRagu as XRagu, c.XJenisSoal as XJenisSoal 
+		FROM  `cbt_soal` c LEFT JOIN cbt_jawaban j ON ( j.XNomerSoal = c.XNomerSoal AND j.XKodeSoal = c.XKodeSoal ) where c.XKodeSoal = :kodesoal 
+		and j.XUserJawab = :user and j.XTokenUjian = :token and j.XJenisSoal = '1' order by j.Urut",
+                    array('kodesoal' => $xkodesoal, 'user' => $user, 'token' => $xtokenujian)
+                );
 
                 /*	echo "		SELECT j.Urut as Urut, j.XJawaban as XJawaban, j.XJawabanEsai as XJawabanEsai , c.XNomerSoal as XNomerSoal, j.XRagu as XRagu, c.XJenisSoal as XJenisSoal 
                         FROM  `cbt_soal` c LEFT JOIN cbt_jawaban j ON ( j.XNomerSoal = c.XNomerSoal AND j.XKodeSoal = c.XKodeSoal ) where c.XKodeSoal = '$xkodesoal' 
                         and j.XUserJawab = '$user' and j.XTokenUjian = '$xtokenujian' order by j.Urut";
                     */
-                while ($s = mysql_fetch_array($sql)) {
+                while ($s = $sql->fetch()) {
 
 
 
@@ -465,43 +474,52 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
                 $xkodemapel = "GAL1";
                 //$xkodesoal = "XGAL1SOAL1";
                 //$user = "P090100000";
-                $user = "$_COOKIE[PESERTA]";
-                $sqluser = mysql_query("SELECT * FROM  `cbt_siswa` WHERE XNomerUjian = '$user'");
-                $su = mysql_fetch_array($sqluser);
-                $xkelz = $su['XKodeKelas'];
-                $xjurz = $su['XKodeJurusan'];
+                $user = isset($_COOKIE['PESERTA']) ? $_COOKIE['PESERTA'] : '';
+                $sqluser = db_query(
+                    $db,
+                    "SELECT * FROM  `cbt_siswa` WHERE XNomerUjian = :user limit 1",
+                    array('user' => $user)
+                );
+                $su = db_fetch_one($sqluser);
+                $xkelz = $su ? $su['XKodeKelas'] : '';
+                $xjurz = $su ? $su['XKodeJurusan'] : '';
 
 
-                $sqlgabung = mysql_query("SELECT * FROM  `cbt_siswa` s LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') WHERE XNomerUjian = 
-  '$user' and (u.XKodeJurusan = '$xjurz' or u.XKodeJurusan = 'ALL') and (u.XKodeKelas = '$xkelz' or u.XKodeKelas = 'ALL') and u.XStatusUjian = '1'");
+                $sqlgabung = db_query(
+                    $db,
+                    "SELECT * FROM  `cbt_siswa` s LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') WHERE s.XNomerUjian = 
+  :user and (u.XKodeJurusan = :jurusan or u.XKodeJurusan = 'ALL') and (u.XKodeKelas = :kelas or u.XKodeKelas = 'ALL') and u.XStatusUjian = '1' limit 1",
+                    array('user' => $user, 'jurusan' => $xjurz, 'kelas' => $xkelz)
+                );
 
-                /* $sqlgabung = mysql_query("SELECT * FROM  `cbt_siswa` s LEFT JOIN cbt_ujian u ON s.XKodeKelas = u.XKodeKelas WHERE XNomerUjian = 
-                  '$user' and u.XKodeJurusan = '$xjurz' and u.XKodeKelas = '$xkelz' and u.XStatusUjian = '1'");
+                $s0 = db_fetch_one($sqlgabung);
+                $xkodesoal = $s0 ? $s0['XKodeSoal'] : '';
+                $xtokenujian = $s0 ? $s0['XTokenUjian'] : '';
 
-                    $sqlgabung = mysql_query("SELECT * FROM  cbt_ujian where XStatusUjian = '1'");  */
-
-                $s0 = mysql_fetch_array($sqlgabung);
-                $xkodesoal = $s0['XKodeSoal'];
-                $xtokenujian = $s0['XTokenUjian'];
-
-                $sqluser = mysql_query("
-SELECT u.*,m.XNamaMapel FROM cbt_ujian u LEFT JOIN cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal and p.XKodeMapel = u.XKodeMapel 
-left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodesoal' and u.XStatusUjian = '1'");
+                $sqluser = db_query(
+                    $db,
+                    "SELECT u.*,m.XNamaMapel FROM cbt_ujian u LEFT JOIN cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal and p.XKodeMapel = u.XKodeMapel 
+left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal = :kodesoal and u.XStatusUjian = '1' limit 1",
+                    array('kodesoal' => $xkodesoal)
+                );
 
 
-                $so = mysql_fetch_array($sqluser);
-                $sopil = $so['XJumPilihan'];
+                $so = db_fetch_one($sqluser);
+                $sopil = $so ? $so['XJumPilihan'] : '';
 
-                $sql = mysql_query("
-		SELECT j.Urut as Urut, j.XJawaban as XJawaban, j.XJawabanEsai as XJawabanEsai , c.XNomerSoal as XNomerSoal, j.XRagu as XRagu, c.XJenisSoal as XJenisSoal 
-		FROM  `cbt_soal` c LEFT JOIN cbt_jawaban j ON ( j.XNomerSoal = c.XNomerSoal AND j.XKodeSoal = c.XKodeSoal ) where c.XKodeSoal = '$xkodesoal' 
-		and j.XUserJawab = '$user' and j.XTokenUjian = '$xtokenujian' and j.XJenisSoal = '2' order by j.Urut");
+                $sql = db_query(
+                    $db,
+                    "SELECT j.Urut as Urut, j.XJawaban as XJawaban, j.XJawabanEsai as XJawabanEsai, c.XNomerSoal as XNomerSoal, j.XRagu as XRagu, c.XJenisSoal as XJenisSoal 
+		FROM  `cbt_soal` c LEFT JOIN cbt_jawaban j ON ( j.XNomerSoal = c.XNomerSoal AND j.XKodeSoal = c.XKodeSoal ) where c.XKodeSoal = :kodesoal 
+		and j.XUserJawab = :user and j.XTokenUjian = :token and j.XJenisSoal = '2' order by j.Urut",
+                    array('kodesoal' => $xkodesoal, 'user' => $user, 'token' => $xtokenujian)
+                );
 
                 /*	echo "		SELECT j.Urut as Urut, j.XJawaban as XJawaban, j.XJawabanEsai as XJawabanEsai , c.XNomerSoal as XNomerSoal, j.XRagu as XRagu, c.XJenisSoal as XJenisSoal 
                         FROM  `cbt_soal` c LEFT JOIN cbt_jawaban j ON ( j.XNomerSoal = c.XNomerSoal AND j.XKodeSoal = c.XKodeSoal ) where c.XKodeSoal = '$xkodesoal' 
                         and j.XUserJawab = '$user' and j.XTokenUjian = '$xtokenujian' order by j.Urut";
                     */
-                while ($s = mysql_fetch_array($sql)) {
+                while ($s = $sql->fetch()) {
 
 
 
@@ -833,22 +851,25 @@ if (isset($_POST["pic"]) && is_numeric($_POST["pic"])) {
 }
 
 //Connect to Database
-//$sqlj = mysql_query("SELECT * from cbt_jawaban where Urut = '$_POST[pic]' and XKodeSoal = '$xkodesoal' and XUserJawab = '$user'");
-$sqlj = mysql_query("
-SELECT * 
+$sqlj = db_query(
+    $db,
+    "SELECT * 
 FROM cbt_soal s
 LEFT JOIN cbt_jawaban j ON (j.XNomerSoal = s.XNomerSoal and j.XKodeSoal = s.XKodeSoal)
-WHERE j.Urut =  '$_POST[pic]'
-AND s.XKodeSoal =   '$xkodesoal'
-AND XUserJawab =  '$user' and j.XTokenUjian = '$xtokenujian'
-");
+WHERE j.Urut = :urut
+AND s.XKodeSoal = :kodesoal
+AND XUserJawab = :user and j.XTokenUjian = :token",
+    array(
+        'urut' => $current_picture,
+        'kodesoal' => $xkodesoal,
+        'user' => $user,
+        'token' => $xtokenujian,
+    )
+);
 
-
-
-$sj = mysql_fetch_array($sqlj);
-
-$jensoal = $sj['XJenisSoal'];
-$opsijwb = $sj['XAcakOpsi'];
+$sj = db_fetch_one($sqlj);
+$jensoal = $sj ? $sj['XJenisSoal'] : '';
+$opsijwb = $sj ? $sj['XAcakOpsi'] : '';
 
 //echo "Acak Opsi : $sj[XAcakOpsi]";
 
@@ -926,14 +947,21 @@ if ($jensoal == 1) {
         }
     }
     //get next picture id
-    //$sql = mysql_query("SELECT id FROM pictures WHERE id > '$current_picture' ORDER BY id ASC LIMIT 1");
-    //$sql = mysql_query("SELECT XNomerSoal FROM cbt_soal WHERE XNomerSoal > '$current_picture' and XKodeSoal = '$xkodesoal' ORDER BY XNomerSoal ASC LIMIT 1");
 
 }
 
-$sql = mysql_query("SELECT Urut FROM cbt_jawaban WHERE Urut > '$current_picture' and XKodeSoal = '$xkodesoal'
-and XUserJawab = '$user' and XTokenUjian = '$xtokenujian' ORDER BY Urut ASC LIMIT 1");
-$result = mysql_fetch_array($sql);
+$sql = db_query(
+    $db,
+    "SELECT Urut FROM cbt_jawaban WHERE Urut > :urut and XKodeSoal = :kodesoal
+and XUserJawab = :user and XTokenUjian = :token ORDER BY Urut ASC LIMIT 1",
+    array(
+        'urut' => $current_picture,
+        'kodesoal' => $xkodesoal,
+        'user' => $user,
+        'token' => $xtokenujian,
+    )
+);
+$result = db_fetch_one($sql);
 if ($result) {
     //$next_id = $result['XNomerSoal'];
     $next_id = $result['Urut'];
@@ -942,11 +970,19 @@ if ($result) {
 
 
 //get previous picture id
-//$sql = mysql_query("SELECT XNomerSoal FROM cbt_soal WHERE XNomerSoal < $current_picture and XKodeSoal = '$xkodesoal' ORDER BY XNomerSoal DESC LIMIT 1");
 
-$sql = mysql_query("SELECT Urut FROM cbt_jawaban WHERE Urut < '$current_picture' and XKodeSoal = '$xkodesoal'
-and XUserJawab = '$user' and XTokenUjian = '$xtokenujian' ORDER BY Urut DESC LIMIT 1");
-$result = mysql_fetch_array($sql);
+$sql = db_query(
+    $db,
+    "SELECT Urut FROM cbt_jawaban WHERE Urut < :urut and XKodeSoal = :kodesoal
+and XUserJawab = :user and XTokenUjian = :token ORDER BY Urut DESC LIMIT 1",
+    array(
+        'urut' => $current_picture,
+        'kodesoal' => $xkodesoal,
+        'user' => $user,
+        'token' => $xtokenujian,
+    )
+);
+$result = db_fetch_one($sql);
 if ($result) {
     //$prev_id = $result['XNomerSoal'];
     $prev_id = $result['Urut'];
@@ -964,17 +1000,24 @@ $stu = $prev_id + 1;
 
 //echo "SELECT * FROM cbt_soal WHERE XNomerSoal = $current_picture and XKodeSoal = '$xkodesoal' LIMIT 1";
 //get details of current from database
-//$sql = mysql_query("SELECT * FROM cbt_soal WHERE XNomerSoal = $current_picture and XKodeSoal = '$xkodesoal' LIMIT 1");
-$sql = mysql_query("SELECT * 
+$sql = db_query(
+    $db,
+    "SELECT * 
 FROM cbt_soal s
 LEFT JOIN cbt_jawaban j ON (j.XNomerSoal = s.XNomerSoal and j.XKodeSoal = s.XKodeSoal)
-WHERE j.Urut =  '$_POST[pic]'
-AND s.XKodeSoal =   '$xkodesoal'
-AND XUserJawab =  '$user'  and j.XTokenUjian = '$xtokenujian'
-LIMIT 1");
+WHERE j.Urut = :urut
+AND s.XKodeSoal = :kodesoal
+AND XUserJawab = :user and j.XTokenUjian = :token
+LIMIT 1",
+    array(
+        'urut' => $current_picture,
+        'kodesoal' => $xkodesoal,
+        'user' => $user,
+        'token' => $xtokenujian,
+    )
+);
 
-
-$result = mysql_fetch_array($sql);
+$result = db_fetch_one($sql);
 
 if ($result) {
     //construct next/previous button
@@ -1028,26 +1071,23 @@ if ($result) {
                 $vidfile = str_replace(" ", "", $result['XVideoTanya']);
                 $vidfile = "video/$vidfile";
 
-                /*
-                $sqlsoal = mysql_query("SELECT * 
-                FROM cbt_soal s
-                LEFT JOIN cbt_jawaban j ON (j.XNomerSoal = s.XNomerSoal and j.XKodeSoal = s.XKodeSoal)
-                WHERE j.Urut =  '$_POST[pic]'
-                AND s.XKodeSoal =   '$xkodesoal'
-                AND XUserJawab =  '$user'  and j.XTokenUjian = '$xtokenujian'
-                and XNomerSoal");
-                $result = mysql_fetch_array($sql);
-                */
+                $sqlaud = db_query(
+                    $db,
+                    "select * from cbt_jawaban where XKodeSoal = :kodesoal and XTokenUjian = :token and Urut = :urut and XUserJawab = :user",
+                    array(
+                        'kodesoal' => $xkodesoal,
+                        'token' => $xtokenujian,
+                        'urut' => $current_picture,
+                        'user' => $user,
+                    )
+                );
+                $ml = db_fetch_one($sqlaud);
 
-                $sqlaud = mysql_query("select * from cbt_jawaban where XKodeSoal = '$xkodesoal' and XTokenUjian = '$xtokenujian' and Urut = '$current_picture'
- and XUserJawab = '$user'");
-                $ml = mysql_fetch_array($sqlaud);
+                $waktu = $ml ? $ml['XMulai'] : '';
+                $putar = $ml ? $ml['XPutar'] : '';
 
-                $waktu = $ml['XMulai'];
-                $putar = $ml['XPutar'];
-
-                $waktu2 = $ml['XMulaiV'];
-                $putar2 = $ml['XPutarV'];
+                $waktu2 = $ml ? $ml['XMulaiV'] : '';
+                $putar2 = $ml ? $ml['XPutarV'] : '';
 
                 /*
                 echo "select * from cbt_jawaban where XKodeSoal = '$xkodesoal' and XTokenUjian = '$xtokenujian' and XNomerSoal = '$current_picture'
@@ -1637,7 +1677,7 @@ if ($result) {
                     if ($result['XGambarTanya'] == '') {
                     } else {
                         echo "<a href='#'  data-toggle='modal' data-target='#myModalP'>";
-                        echo "<img src='pictures/$result[XGambarTanya]' width='150px'></a><br /><br />";
+                        echo "<img src='pictures/{$result['XGambarTanya']}' width='150px'></a><br /><br />";
                     }
                     echo "</p>";
 
@@ -1652,7 +1692,7 @@ if ($result) {
                             <div class="panel-body">
                                 <div class="inner-content">
                                     <div class="row" style="background-color:#fff">
-                                        <?php echo "<img src='pictures/$result[XGambarTanya]' height='100%'></a><br />"; ?>
+                                        <?php echo "<img src='pictures/{$result['XGambarTanya']}' height='100%'></a><br />"; ?>
                                     </div>
                                 </div>
                             </div>
@@ -1726,9 +1766,18 @@ if ($result) {
                     </script>
                     <?php
                     //echo "select * from cbt_jawaban where Urut='$current_picture' and XKodeSoal ='$xkodesoal' and XTokenUjian = '$xtokenujian' and XUserJawab = '$user'<br>";
-                    $cekesai = mysql_query("select * from cbt_jawaban where Urut='$current_picture' and XKodeSoal ='$xkodesoal' and XTokenUjian = '$xtokenujian' and XUserJawab = '$user' ");
-                    $ce = mysql_fetch_array($cekesai);
-                    $jwbesai = $ce['XJawabanEsai'];
+                    $cekesai = db_query(
+                        $db,
+                        "select * from cbt_jawaban where Urut = :urut and XKodeSoal = :kodesoal and XTokenUjian = :token and XUserJawab = :user",
+                        array(
+                            'urut' => $current_picture,
+                            'kodesoal' => $xkodesoal,
+                            'token' => $xtokenujian,
+                            'user' => $user,
+                        )
+                    );
+                    $ce = db_fetch_one($cekesai);
+                    $jwbesai = $ce ? $ce['XJawabanEsai'] : '';
                     ?>
                     <br>Jawaban :<br> <span style="color:#0066CC;font-size:12px">Ketik Jawaban didalam kotak dibawah ini,
                         Jawaban akan otomatis tersimpan Bila Cursor keluar dari Kotak</span><br>
@@ -2174,13 +2223,21 @@ if ($result) {
                 </a>
             </div>
             <?php
-            // $cek = mysql_query("select * from cbt_jawaban where XNomerSoal='$stu' and XKodeSoal ='$xkodesoal'"); 
             
             if (isset($stu)) {
-                $cek = mysql_query("select * from cbt_jawaban where Urut='$stu' and XKodeSoal ='$xkodesoal' and XTokenUjian = '$xtokenujian'  and XUserJawab = '$user'");
+                $cek = db_query(
+                    $db,
+                    "select * from cbt_jawaban where Urut = :urut and XKodeSoal = :kodesoal and XTokenUjian = :token and XUserJawab = :user",
+                    array(
+                        'urut' => $stu,
+                        'kodesoal' => $xkodesoal,
+                        'token' => $xtokenujian,
+                        'user' => $user,
+                    )
+                );
 
-                $var_ragu = mysql_fetch_array($cek);
-                $r = $var_ragu['XRagu'];
+                $var_ragu = db_fetch_one($cek);
+                $r = $var_ragu ? $var_ragu['XRagu'] : '';
                 if ($r == '1') {
                     $ragu = 'checked';
                 } else {
@@ -2223,8 +2280,16 @@ if ($result) {
                         ?>
 
                         <?php
-                        $cekragu = mysql_num_rows(mysql_query("select * from cbt_jawaban where XRagu ='1' and XKodeSoal ='$xkodesoal' and XTokenUjian = '$xtokenujian'
-				   and XUserJawab = '$user'"));
+                        $cekragu_stmt = db_query(
+                            $db,
+                            "select count(1) as total from cbt_jawaban where XRagu = '1' and XKodeSoal = :kodesoal and XTokenUjian = :token and XUserJawab = :user",
+                            array(
+                                'kodesoal' => $xkodesoal,
+                                'token' => $xtokenujian,
+                                'user' => $user,
+                            )
+                        );
+                        $cekragu = (int) db_fetch_value($cekragu_stmt);
                         if ($cekragu > 0) { ?>
                             <button id="btnSelesai" class="btn btn-primary btn-end activebutton"
                                 onclick="cekWaktuMinimum('#myModalR')">TES SELESAI</button>
@@ -2244,8 +2309,16 @@ if ($result) {
 
                 <?php } else { ?>
                     <?php
-                    $cekragu = mysql_num_rows(mysql_query("select * from cbt_jawaban where XRagu ='1' and XKodeSoal ='$xkodesoal' and XTokenUjian = '$xtokenujian'
-				   and XUserJawab = '$user'"));
+                    $cekragu_stmt = db_query(
+                        $db,
+                        "select count(1) as total from cbt_jawaban where XRagu = '1' and XKodeSoal = :kodesoal and XTokenUjian = :token and XUserJawab = :user",
+                        array(
+                            'kodesoal' => $xkodesoal,
+                            'token' => $xtokenujian,
+                            'user' => $user,
+                        )
+                    );
+                    $cekragu = (int) db_fetch_value($cekragu_stmt);
                     if ($cekragu > 0) { ?>
                         <button id="btnSelesai" class="btn btn-primary btn-end activebutton"
                             onclick="cekWaktuMinimum('#myModalR')">TES SELESAI</button>

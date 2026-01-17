@@ -202,7 +202,7 @@ $('#datetimepicker_dark').datetimepicker({theme:'dark'})
                                 include "../cbt_con.php";
                                 $sqlkelas = mysql_query("select * from cbt_mapel order by XNamaMapel");
                                 while($sk = mysql_fetch_array($sqlkelas)){
-                                echo "<option value='$sk[XKodeMapel]'>$sk[XNamaMapel]</option>";
+                                echo "<option value='{$sk['XKodeMapel']}'>{$sk['XNamaMapel']}</option>";
                                 }
                                 ?>
                                 </select>
@@ -213,7 +213,7 @@ $('#datetimepicker_dark').datetimepicker({theme:'dark'})
                                 include "../cbt_con.php";
                                 $sqlkelas = mysql_query("select * from cbt_kelas where XStatusKelas = '1' order by Urut");
                                 while($sk = mysql_fetch_array($sqlkelas)){
-                                echo "<option value='$sk[XLevelKelas]'>$sk[XKodeLevel] - $sk[XLevelKelas]</option>";
+                                echo "<option value='{$sk['XLevelKelas']}'>{$sk['XKodeLevel']} - {$sk['XLevelKelas']}</option>";
                                 }
                                 ?>
                                 </select>
@@ -223,7 +223,7 @@ $('#datetimepicker_dark').datetimepicker({theme:'dark'})
                                 <?php echo "<option>-- Pilih Tes --</option>";
                                 $sqltes= mysql_query("select * from cbt_ujian where XStatusKelas = '1' order by XKodeKelas");
                                 while($sk = mysql_fetch_array($sqlkelas)){
-                                echo "<option value='$sk[XKodeSoal]'>$sk[XKodeSoal]</option>";
+                                echo "<option value='{$sk['XKodeSoal']}'>{$sk['XKodeSoal']}</option>";
                                 }
                                 ?>
                                 </select>

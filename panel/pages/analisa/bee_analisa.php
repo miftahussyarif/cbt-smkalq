@@ -55,7 +55,7 @@ body {
 
 	<div id="Nwagon"></div>
     <br>
-    <? 
+    <?php 
 
 function fungsi_keter($nomer){
 	if($nomer==1){
@@ -121,7 +121,7 @@ $al = 1;
 	        },
 	        'dataset': {
 	            title: 'Web accessibility status',
-	            values: [<? echo "$varr"; ?>],
+	            values: [<?php echo "$varr"; ?>],
 	            colorset: ['#2EB400', '#FF00CC', "#666666",'#FF0000', '#9900CC', "#FFCC00",'#2BC8C9', '#993300'],
 	            fields: ['INTRAPERSONAL', 'VISUAL', 'MUSICAL','INTERPERSONAL', 'KINAESTHETIC', 'LINGUISTIC','LOGICAL', 'NATURALIST'],
 	            opacity:[0.75, 0.75, 0.75, 0.75,0.75, 0.75, 0.75, 0.75]

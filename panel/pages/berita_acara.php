@@ -107,21 +107,21 @@ $jamx = date("H:i:s");
 $sql = mysql_query("select u.*,m.*,u.Urut as Urutan,u.XKodeKelas as kokel from cbt_ujian u left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel 
 left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal where u.XStatusUjian='9'");
 								while($s = mysql_fetch_array($sql)){ 
-					$sqlsoal  = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$s[XKodeSoal]'"));
-					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$s[XKodeSoal]' and XStatusUjian = '1'"));
-					$sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$s[XKodeSoal]'"));
+					$sqlsoal  = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '{$s['XKodeSoal']}'"));
+					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '{$s['XKodeSoal']}' and XStatusUjian = '1'"));
+					$sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '{$s['XKodeSoal']}'"));
 					if($sqlsoal<1){$kata="disabled";}  else {$kata="";}	
 					if($sqlsudah>0||$sqlpakai>0){$kata="disabled";}  else {$kata="";}			
 					if($sqlpakai>0){$katapakai="disabled";}  else {$katapakai="";}
 					
-$time1 = "$s[XJamUjian]";
-$time2 = "$s[XLamaUjian]";
+$time1 = "{$s['XJamUjian']}";
+$time2 = "{$s['XLamaUjian']}";
 
 $secs = strtotime($time2)-strtotime("00:00:00");
 $jamhabis = date("H:i:s",strtotime($time1)+$secs);	
 $sekarang = date("H:i:s");	
 $tglsekarang = date("Y-m-d");	
-$tglujian = "$s[XTglUjian]";	
+$tglujian = "{$s['XTglUjian']}";	
 		
 								?>
 <script type="text/javascript" src="../js/jquery.js"></script>
@@ -132,9 +132,9 @@ $(document).ready(function(){
 	$("#awas<?php echo $s['XTokenUjian']; ?>").click(function(){
 	alert();
 	//alert("<?php echo $s['Urutan']; ?>");
-	 var txt_tokenx = $("#txt_tokenx<?php echo "$s[XTokenUjian]"; ?>").val();
-	 var txt_pengawasx = $("#txt_pengawasx<?php echo "$s[XTokenUjian]"; ?>").val();
-	 var txt_nip_pengawasx = $("#txt_nip_pengawasx<?php echo "$s[XTokenUjian]"; ?>").val();
+	 var txt_tokenx = $("#txt_tokenx<?php echo "{$s['XTokenUjian']}"; ?>").val();
+	 var txt_pengawasx = $("#txt_pengawasx<?php echo "{$s['XTokenUjian']}"; ?>").val();
+	 var txt_nip_pengawasx = $("#txt_nip_pengawasx<?php echo "{$s['XTokenUjian']}"; ?>").val();
 	
 	  
 	//alert(txt_ujianx);  
@@ -190,7 +190,7 @@ $(document).ready(function(){
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Pengawas Ujian Mapel : $s[XNamaMapel]"; ?></h4>
+                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Pengawas Ujian Mapel : {$s['XNamaMapel']}"; ?></h4>
                                         </div>
                                         <div class="modal-body" >
                                         

@@ -31,7 +31,7 @@ $(document).ready(function() {
   MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
 </script>
 <!-- script untuk refresh/reload mathjax setiap content baru !-->
-<iframe src="<?php echo "print_jawaban.php?soal=$_REQUEST[soal]&siswa=$_REQUEST[siswa]"; ?>" style="display:none;" name="frame"></iframe>
+<iframe src="<?php echo "print_jawaban.php?soal={$_REQUEST['soal']}&siswa={$_REQUEST['siswa']}"; ?>" style="display:none;" name="frame"></iframe>
 <button type="button" class="btn btn-default btn-sm" onClick="frames['frame'].print()" style="margin-top:10px; margin-bottom:5px"><i class="glyphicon glyphicon-print"></i> Cetak 
 </button>
 
@@ -41,8 +41,8 @@ $(document).ready(function() {
 <?php
 include "../../config/server.php";
 
-$var_soal = "$_REQUEST[soal]";
-$var_siswa = "$_REQUEST[siswa]";
+$var_soal = "{$_REQUEST['soal']}";
+$var_siswa = "{$_REQUEST['siswa']}";
 
 //Soal Pilihan Ganda
 $sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$var_soal' and XJenisSoal = '2'")); 
@@ -84,8 +84,8 @@ if(str_replace(" ","",$fotsis)==""){
 $foto = "nouser.png";} else { $foto = "$fotsis";}
 
 ?>
-<input type="hidden" id="soale" name="soale" value="<?php echo "$_REQUEST[soal]"; ?>" />
-<input type="hidden" id="siswae" name="siswae" value="<?php echo "$_REQUEST[siswa]"; ?>" />
+<input type="hidden" id="soale" name="soale" value="<?php echo "{$_REQUEST['soal']}"; ?>" />
+<input type="hidden" id="siswae" name="siswae" value="<?php echo "{$_REQUEST['siswa']}"; ?>" />
 <input type="hidden" id="tokene" name="tokene" value="<?php echo "$xtokenujian"; ?>" />
 
  <div class="panel panel-default">
@@ -145,7 +145,7 @@ $jumpil = $r['XJumPilihan'];
 $nosoal = $r['XNomerSoal'];
 $nil = $r['XNilaiEsai'];
 
-echo "<tr><td width=50px>$nomer.</td><td>$r[XTanya] </td></tr>
+echo "<tr><td width=50px>$nomer.</td><td>{$r['XTanya']} </td></tr>
 <tr><td width=50px colspan=2>&nbsp;</td></tr>
 ";
 
@@ -155,7 +155,7 @@ echo "<tr><td width=50px>$nomer.</td><td>$r[XTanya] </td></tr>
 if(str_replace("  ","",$r['XGambarTanya']!=="")){
 echo "
 <tr><td width=30px colspan=2>&nbsp; </td></tr>
-<tr><td colspan=2><img src=../../pictures/$r[XGambarTanya] width=150px></td></tr>";}
+<tr><td colspan=2><img src=../../pictures/{$r['XGambarTanya']} width=150px></td></tr>";}
 echo "<tr><td width=50px colspan=2>&nbsp;</td></tr>";
 
 $jawab = $r['XJawabanEsai'];

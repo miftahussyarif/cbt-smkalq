@@ -6,7 +6,7 @@
 <?php
 if(isset($_REQUEST['aksi'])&&$_REQUEST['aksi']=="simpan"){
 $sss= str_replace("'","\'",$_REQUEST['tanyasoal']);
-	$sql0 = mysql_query("update cbt_soal set XTanya = '$sss' where XKodeSoal = '$_REQUEST[soal]' and Urut = '$_REQUEST[nom]'");
+	$sql0 = mysql_query("update cbt_soal set XTanya = '$sss' where XKodeSoal = '{$_REQUEST['soal']}' and Urut = '{$_REQUEST['nom']}'");
 	//echo "update cbt_soal set XTanya = '$sss' where XKodeSoal = '$_REQUEST[txt_soal]' and Urut = '$_REQUEST[txt_nom]'";
 }
 
@@ -195,12 +195,12 @@ $jnoc(document).ready(function(e) {
 <div class="panel panel-info">
 	<div class="panel-heading">
     Data Bank Soal (5 Opsi Pilihan Jawaban) &nbsp; &nbsp; | &nbsp; &nbsp; 
-	<?php echo "<a href=?modul=edit_soal&jum=$_REQUEST[jum]&soal=$_REQUEST[soal]><button type='button' class='btn btn-info'><i class='fa fa-arrow-left'></i> Kembali ke Bank Soal</button></a>"; ?>	
+	<?php echo "<a href=?modul=edit_soal&jum={$_REQUEST['jum']}&soal={$_REQUEST['soal']}><button type='button' class='btn btn-info'><i class='fa fa-arrow-left'></i> Kembali ke Bank Soal</button></a>"; ?>	
           
 
     </div>
 <?php
-	$sql0 = mysql_query("select * from cbt_soal where XKodeSoal= '$_REQUEST[soal]' and Urut = '$_REQUEST[nomer]'");
+	$sql0 = mysql_query("select * from cbt_soal where XKodeSoal= '{$_REQUEST['soal']}' and Urut = '{$_REQUEST['nomer']}'");
 	$s=mysql_fetch_array($sql0);
 ?>
 <div class="panel-body">
@@ -245,7 +245,7 @@ $jnoc(document).ready(function(e) {
 <tr><td colspan="4">&nbsp;</td></tr>    
     <td colspan="4" align="right">
     <textarea name="tanyasoal"  id="tanyasoal" style="font-size:18px; width:100%; height:300px"><?php 
-	echo "$s[XTanya]"; ?></textarea>
+	echo "{$s['XTanya']}"; ?></textarea>
         <input type="hidden" id="map" name="map" value="<?php echo $s['XKodeMapel']; ?>" />
     
     </td>
@@ -361,9 +361,9 @@ $jnoc(document).ready(function(e) {
 </script>
 
 <?php 
-if($s['XAudioTanya']==""){$ico_audx="images/no_aud.png";$file_audx="";}else {$ico_audx="images/mp3.png";$file_audx="$s[XAudioTanya]";}
-if($s['XVideoTanya']==""){$ico_vidx="images/no_vid.png";$file_vidx="";}else {$ico_vidx="images/vid.png";$file_vidx="$s[XVideoTanya]";}
-if($s['XGambarTanya']==""){$ico_gbrx="images/no_pic.png";$file_gbrx="";}else {$ico_gbrx="../../pictures/$s[XGambarTanya]";$file_gbrx="$s[XGambarTanya]";}
+if($s['XAudioTanya']==""){$ico_audx="images/no_aud.png";$file_audx="";}else {$ico_audx="images/mp3.png";$file_audx="{$s['XAudioTanya']}";}
+if($s['XVideoTanya']==""){$ico_vidx="images/no_vid.png";$file_vidx="";}else {$ico_vidx="images/vid.png";$file_vidx="{$s['XVideoTanya']}";}
+if($s['XGambarTanya']==""){$ico_gbrx="images/no_pic.png";$file_gbrx="";}else {$ico_gbrx="../../pictures/{$s['XGambarTanya']}";$file_gbrx="{$s['XGambarTanya']}";}
 ?>
        <table cellpadding="10" width="70%" align="center" cellspacing="10">
          <tr height="40"><td align="center">Gambar Soal</td><td align="center">Audio Soal</td><td align="center">Video Soal</td></tr>
@@ -399,14 +399,14 @@ if($s['XGambarTanya']==""){$ico_gbrx="images/no_pic.png";$file_gbrx="";}else {$i
 <tr bgcolor="#507db3"><td colspan="4" style="padding:10px"><font color="#FFFFFF" size="5"><b>&nbsp;Pilihan Jawaban Soal Multiple Choices</b></font></td></tr>
 <tr><td colspan="4"><hr></td></tr> 
 <?php
-$sqltanya = mysql_query("select * from cbt_paketsoal where XKodeSoal= '$_REQUEST[soal]'");
+$sqltanya = mysql_query("select * from cbt_paketsoal where XKodeSoal= '{$_REQUEST['soal']}'");
 $so=mysql_fetch_array($sqltanya); 
 for($i=1;$i<=$so['XJumPilihan'] ;$i++){
 $jwb = "XJawab$i";
 $jawaban = "$s[$jwb]"; 
 $gjwb = "XGambarJawab$i";
 $gambarjawaban = "$s[$gjwb]"; 
-$kuncijwb = "$s[XKunciJawaban]"; 
+$kuncijwb = "{$s['XKunciJawaban']}"; 
 ?>
 <?php $var = $i +3 ; ?>
 <script type="text/javascript" >
@@ -475,7 +475,7 @@ if($GJ==''){
  </div>
 </td>
 <td align="right" colspan="2"><textarea name="tanya"  id="jawab<?php echo $i; ?>" style="font-size:18px; width:95%; height:150px"><?php 
-	$sql0 = mysql_query("select * from cbt_soal where XKodeSoal= '$_REQUEST[soal]' and Urut = '$_REQUEST[nomer]'");
+	$sql0 = mysql_query("select * from cbt_soal where XKodeSoal= '{$_REQUEST['soal']}' and Urut = '{$_REQUEST['nomer']}'");
 	$s=mysql_fetch_array($sql0);
 	echo "$jawaban"; ?></textarea></td>
   </tr>

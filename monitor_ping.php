@@ -9,10 +9,15 @@ if (!isset($_COOKIE['PESERTA'])) {
     exit;
 }
 
-$user = mysql_real_escape_string($_COOKIE['PESERTA']);
+$user = $_COOKIE['PESERTA'];
 
-$sqlUjian = mysql_query("SELECT XTokenUjian, XKodeSoal FROM cbt_siswa_ujian WHERE XNomerUjian = '$user' AND XStatusUjian = '1' ORDER BY XMulaiUjian DESC LIMIT 1");
-if (!$sqlUjian || mysql_num_rows($sqlUjian) < 1) {
+$sqlUjian = db_query(
+    $db,
+    "SELECT XTokenUjian, XKodeSoal FROM cbt_siswa_ujian WHERE XNomerUjian = :user AND XStatusUjian = '1' ORDER BY XMulaiUjian DESC LIMIT 1",
+    array('user' => $user)
+);
+$uj = db_fetch_one($sqlUjian);
+if (!$uj) {
     echo json_encode(array('ok' => false, 'rto' => false));
     exit;
 }

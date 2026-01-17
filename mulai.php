@@ -1,17 +1,40 @@
-<?php include "config/server.php";
+<?php
+require __DIR__ . '/config/server.php';
 if (isset($_COOKIE['PESERTA'])) {
     //echo "WAHA ";
 }
+
+$user = isset($_COOKIE['PESERTA']) ? $_COOKIE['PESERTA'] : '';
+$val_siswa = '';
+$xjeniskelamin = '';
+$xkelz = '';
+$xjurz = '';
+$jekel = '';
+$xkodesoal = '';
+$xkodekelas = '';
+$xtglujian = '';
+$xkodemapel = '';
+$xjumlahsoal = '';
+$xtokenujian = '';
+$xlamaujian = '';
+$xjamujian = '';
+$xbatasmasuk = '';
+$xnamamapel = '';
+
 if (isset($_REQUEST['KodeNik'])) {
     $txtuser = str_replace(" ", "", $_REQUEST['KodeNik']);
-    ?>
-    <?php
-    $sqllogin = mysql_query("SELECT * FROM  `cbt_siswa` WHERE XNomerUjian = '$txtuser'");
-    $sis = mysql_fetch_array($sqllogin);
-    $val_siswa = $sis['XNamaSiswa'];
-    $xjeniskelamin = $sis['XJenisKelamin'];
-    $xkelz = $sis['XKodeKelas'];
-    $xjurz = $sis['XKodeJurusan'];
+    $sqllogin = db_query(
+        $db,
+        "SELECT * FROM `cbt_siswa` WHERE XNomerUjian = :user",
+        array(':user' => $txtuser)
+    );
+    $sis = db_fetch_one($sqllogin);
+    if ($sis) {
+        $val_siswa = $sis['XNamaSiswa'];
+        $xjeniskelamin = $sis['XJenisKelamin'];
+        $xkelz = $sis['XKodeKelas'];
+        $xjurz = $sis['XKodeJurusan'];
+    }
     if ($xjeniskelamin == "L") {
         $jekel = "LAKI-LAKI";
     } else {
@@ -25,7 +48,7 @@ if (isset($_REQUEST['KodeNik'])) {
     */
     $tglujian = date("Y-m-d");
     $xjam1 = date("H:i:s");
-    $user = "$_COOKIE[PESERTA]";
+    $user = isset($_COOKIE['PESERTA']) ? $_COOKIE['PESERTA'] : '';
     // setcookie('PESERTA',$user);
 
     //  $user = $_COOKIE['PESERTA'];
@@ -37,24 +60,31 @@ if (isset($_REQUEST['KodeNik'])) {
      WHERE XNomerUjian = '$user' and u.XStatusUjian = '1'");
    */
 
-    $sqluser = mysql_query("SELECT u.*,m.XNamaMapel FROM `cbt_ujian` u LEFT JOIN cbt_paketsoal p on p.XKodeKelas = u.XKodeKelas and p.XKodeMapel = u.XKodeMapel
-left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE (u.XKodeKelas = '$xkelz' or u.XKodeKelas = 'ALL') and (u.XKodeJurusan = '$xjurz' or u.XKodeJurusan = 'ALL')   and u.XTglUjian = '$tglujian' and u.XJamUjian <= '$xjam1'
-and u.XStatusUjian = '1'");
+    if ($xkelz !== '' && $xjurz !== '') {
+        $sqluser = db_query(
+            $db,
+            "SELECT u.*, m.XNamaMapel FROM `cbt_ujian` u LEFT JOIN cbt_paketsoal p ON p.XKodeKelas = u.XKodeKelas AND p.XKodeMapel = u.XKodeMapel
+LEFT JOIN cbt_mapel m ON u.XKodeMapel = m.XKodeMapel WHERE (u.XKodeKelas = :kelas OR u.XKodeKelas = 'ALL') AND (u.XKodeJurusan = :jur OR u.XKodeJurusan = 'ALL') AND u.XTglUjian = :tgl AND u.XJamUjian <= :jam
+AND u.XStatusUjian = '1'",
+            array(':kelas' => $xkelz, ':jur' => $xjurz, ':tgl' => $tglujian, ':jam' => $xjam1)
+        );
 
+        $s = db_fetch_one($sqluser);
+        if ($s) {
+            $xkodesoal = $s['XKodeSoal'];
+            $xkodekelas = $s['XKodeKelas'];
+            $xtglujian = $s['XTglUjian'];
+            $xkodemapel = $s['XKodeMapel'];
+            $xjumlahsoal = $s['XJumSoal'];
+            $xtokenujian = $s['XTokenUjian'];
+            $xlamaujian = $s['XLamaUjian'];
+            $xjamujian = $s['XJamUjian'];
+            $xbatasmasuk = $s['XBatasMasuk'];
+            $xnamamapel = $s['XNamaMapel'];
+        }
+    }
 
-    $s = mysql_fetch_array($sqluser);
-    $xkodesoal = $s['XKodeSoal'];
-    $xkodekelas = $s['XKodeKelas'];
-    $xtglujian = $s['XTglUjian'];
-    $xkodemapel = $s['XKodeMapel'];
-    $xjumlahsoal = $s['XJumSoal'];
-    $xtokenujian = $s['XTokenUjian'];
-    $xlamaujian = $s['XLamaUjian'];
-    $xjamujian = $s['XJamUjian'];
-    $xbatasmasuk = $s['XBatasMasuk'];
-    $xnamamapel = $s['XNamaMapel'];
-
-    if ($_REQUEST['KodeToken'] !== $xtokenujian) {
+    if (isset($_REQUEST['KodeToken']) && $xtokenujian !== '' && $_REQUEST['KodeToken'] !== $xtokenujian) {
         header('Location:konfirm.php?salah=1');
         echo "Token Salah";
     }
@@ -248,14 +278,17 @@ if (isset($xkodesoalz)) {
 
         <script src="js/inline.js"></script>
         <?php
-        include "config/server.php";
-        $sql = mysql_query("select * from cbt_admin");
-        $r = mysql_fetch_array($sql);
+        require_once __DIR__ . "/config/server.php";
+        $sql = db_query($db, "SELECT * FROM cbt_admin LIMIT 1", array());
+        $r = db_fetch_one($sql);
+        if (!$r) {
+            $r = array('XWarna' => '', 'XBanner' => '');
+        }
         ?>
-        <header style="background-color:<?php echo "$r[XWarna]"; ?>">
+        <header style="background-color:<?php echo "{$r['XWarna']}"; ?>">
             <div class="group">
-                <div class="left" style="background-color:<?php echo "$r[XWarna]"; ?>"><a href=" "><img
-                            src="images/<?php echo "$r[XBanner]"; ?>" style=" margin-left:0px;"></a>
+                <div class="left" style="background-color:<?php echo "{$r['XWarna']}"; ?>"><a href=" "><img
+                            src="images/<?php echo "{$r['XBanner']}"; ?>" style=" margin-left:0px;"></a>
                 </div>
                 <div class="right1">
                     <table width="100%" border="0" cellspacing="5px;" style="margin-top:10px">
@@ -308,7 +341,16 @@ if (isset($xkodesoalz)) {
                     </div>
 
                     <?php
-                    $sqlcekujian = mysql_num_rows(mysql_query("SELECT * FROM cbt_ujian where XKodeKelas = '$xkodekelas' and XStatusUjian = '1'"));
+                    $sqlcekujian = 0;
+                    if ($xkodekelas !== '') {
+                        $sqlcekujian = (int) db_fetch_value(
+                            db_query(
+                                $db,
+                                "SELECT COUNT(*) FROM cbt_ujian WHERE XKodeKelas = :kelas AND XStatusUjian = '1'",
+                                array(':kelas' => $xkodekelas)
+                            )
+                        );
+                    }
                     if ($sqlcekujian > 0) {
                         $xtglujian0 = strtotime($xtglujian);
                         $xtglujian1 = date('d/m/Y', $xtglujian0);

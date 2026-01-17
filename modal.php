@@ -113,11 +113,15 @@
                     //.scrollToBottom();
 					//					$("#myModal").modal("hide");
 					<?php
-					include "config/server.php";
-					if(isset($_COOKIE['PESERTA'])){
-					$user = $_COOKIE['PESERTA'];
-					$jam = date("H:i:s");
-					$sql2 = mysql_query("Update cbt_siswa_ujian set XLastUpdate = '$jam' where XTglUjian = '$xtglujian' and XNomerUjian = '$user' and XStatusUjian = '1'");
+					require_once __DIR__ . '/config/server.php';
+					$cookie_user = isset($_COOKIE['PESERTA']) ? $_COOKIE['PESERTA'] : '';
+					if ($cookie_user !== '' && isset($xtglujian) && $xtglujian !== '') {
+						$jam = date("H:i:s");
+						db_query(
+							$db,
+							"UPDATE cbt_siswa_ujian SET XLastUpdate = :jam WHERE XTglUjian = :tgl AND XNomerUjian = :user AND XStatusUjian = '1'",
+							array(':jam' => $jam, ':tgl' => $xtglujian, ':user' => $cookie_user)
+						);
 					}
 					?>
             });

@@ -6,7 +6,7 @@
 <?php
 if(isset($_REQUEST['aksi'])&&$_REQUEST['aksi']=="simpan"){
 $sss= str_replace("'","\'",$_REQUEST['tanyasoal']);
-	$sql0 = mysql_query("update cbt_soal set XTanya = '$sss' where XKodeSoal = '$_REQUEST[soal]' and Urut = '$_REQUEST[nom]'");
+	$sql0 = mysql_query("update cbt_soal set XTanya = '$sss' where XKodeSoal = '{$_REQUEST['soal']}' and Urut = '{$_REQUEST['nom']}'");
 	//echo "update cbt_soal set XTanya = '$sss' where XKodeSoal = '$_REQUEST[txt_soal]' and Urut = '$_REQUEST[txt_nom]'";
 }
 ?>	
@@ -146,13 +146,13 @@ $jnoc(document).ready(function(e) {
 
 <form  method="post"> 
 <?php	
-$sqltanya = mysql_query("select * from cbt_paketsoal where XKodeSoal= '$_REQUEST[soal]' and XGuru = '$_COOKIE[beeuser]'");
+$sqltanya = mysql_query("select * from cbt_paketsoal where XKodeSoal= '{$_REQUEST['soal']}' and XGuru = '{$_COOKIE['beeuser']}'");
 	$so=mysql_fetch_array($sqltanya); ?>
 
 <div class="panel panel-info">
 	<div class="panel-heading">
     Data Bank Soal (5 Opsi Pilihan Jawaban) &nbsp; &nbsp; | &nbsp; &nbsp; 
-	<?php echo "<a href=?modul=edit_soal&jum=$_REQUEST[jum]&soal=$_REQUEST[soal]><button type='button' class='btn btn-info'><i class='fa fa-arrow-left'></i> Kembali ke Bank Soal</button></a>"; ?>	
+	<?php echo "<a href=?modul=edit_soal&jum={$_REQUEST['jum']}&soal={$_REQUEST['soal']}><button type='button' class='btn btn-info'><i class='fa fa-arrow-left'></i> Kembali ke Bank Soal</button></a>"; ?>	
           
 
     </div>
@@ -188,7 +188,7 @@ tinyMCE.init({
 
 </script>	
 <?php
-	$sql0 = mysql_query("select * from cbt_soal where XKodeSoal= '$_REQUEST[soal]' and Urut = '$_REQUEST[nomer]'");
+	$sql0 = mysql_query("select * from cbt_soal where XKodeSoal= '{$_REQUEST['soal']}' and Urut = '{$_REQUEST['nomer']}'");
 	$s=mysql_fetch_array($sql0);
 ?>	
     <div class="panel-body">
@@ -229,9 +229,9 @@ tinyMCE.init({
 <tr><td colspan="3">&nbsp;</td></tr>    
     <td colspan="3" align="right">
     <textarea name="tanyasoal"  id="tanyasoal" style="font-size:18px; width:100%; height:300px"><?php 
-	$sql0 = mysql_query("select * from cbt_soal where XKodeSoal= '$_REQUEST[soal]' and Urut = '$_REQUEST[nomer]'");
+	$sql0 = mysql_query("select * from cbt_soal where XKodeSoal= '{$_REQUEST['soal']}' and Urut = '{$_REQUEST['nomer']}'");
 	$s=mysql_fetch_array($sql0);
-	echo "$s[XTanya]"; ?></textarea>
+	echo "{$s['XTanya']}"; ?></textarea>
         <input type="hidden" id="map" name="map" value="<?php echo $s['XKodeMapel']; ?>" />
     
     </td>
@@ -347,9 +347,9 @@ tinyMCE.init({
 </script>
 
 <?php 
-if($s['XAudioTanya']==""){$ico_audx="images/no_aud.png";$file_audx="";}else {$ico_audx="images/mp3.png";$file_audx="$s[XAudioTanya]";}
-if($s['XVideoTanya']==""){$ico_vidx="images/no_vid.png";$file_vidx="";}else {$ico_vidx="images/vid.png";$file_vidx="$s[XVideoTanya]";}
-if($s['XGambarTanya']==""){$ico_gbrx="images/no_pic.png";$file_gbrx="";}else {$ico_gbrx="../../pictures/$s[XGambarTanya]";$file_gbrx="$s[XGambarTanya]";}
+if($s['XAudioTanya']==""){$ico_audx="images/no_aud.png";$file_audx="";}else {$ico_audx="images/mp3.png";$file_audx="{$s['XAudioTanya']}";}
+if($s['XVideoTanya']==""){$ico_vidx="images/no_vid.png";$file_vidx="";}else {$ico_vidx="images/vid.png";$file_vidx="{$s['XVideoTanya']}";}
+if($s['XGambarTanya']==""){$ico_gbrx="images/no_pic.png";$file_gbrx="";}else {$ico_gbrx="../../pictures/{$s['XGambarTanya']}";$file_gbrx="{$s['XGambarTanya']}";}
 ?>
        <table cellpadding="10" width="70%" align="center" cellspacing="10">
          <tr height="40"><td align="center">Gambar Soal</td><td align="center">Audio Soal</td><td align="center">Video Soal</td></tr>
@@ -394,12 +394,12 @@ if($s['XGambarTanya']==""){$ico_gbrx="images/no_pic.png";$file_gbrx="";}else {$i
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Peserta Ujian : $s[XNomerUjian]"; ?></h4>
+                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Peserta Ujian : {$s['XNomerUjian']}"; ?></h4>
                                         </div>
                                         <div class="modal-body" style="text-align:center">
                                         
                                                <?php 
-												if(file_exists("../../fotosiswa/$s[XFoto]")&&!$gbr==''){ ?>
+												if(file_exists("../../fotosiswa/{$s['XFoto']}")&&!$gbr==''){ ?>
                                                 <img src="../../fotosiswa/<?php echo $s['XFoto']; ?>" width="400px">
                                                 <?php 
 												} else {

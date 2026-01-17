@@ -1,11 +1,19 @@
 <?php
-include "../../config/server.php";
+require_once __DIR__ . "/../../config/server.php";
 $uploaddir = '../../images/'; 
-$namafile = basename($_FILES['uploadfile']['name']);
-$file = $uploaddir . basename($_FILES['uploadfile']['name']); 
- if (move_uploaded_file($_FILES['uploadfile']['tmp_name'], $file)) { 
-$sql = mysql_query("update cbt_admin set XLogo = '$namafile'");
-  echo "success"; 
+$namafile = isset($_FILES['uploadfile']['name']) ? basename($_FILES['uploadfile']['name']) : '';
+$file = $uploaddir . $namafile; 
+if ($namafile !== '' && move_uploaded_file($_FILES['uploadfile']['tmp_name'], $file)) {
+    try {
+        db_query(
+            $db,
+            "UPDATE cbt_admin SET XLogo = :logo",
+            array(':logo' => $namafile)
+        );
+        echo "success";
+    } catch (Exception $e) {
+        // echo "error";
+    }
 } else {
 //	echo "error";
 }

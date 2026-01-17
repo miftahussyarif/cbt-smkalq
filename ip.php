@@ -1,4 +1,4 @@
-<?PHP
+<?php
 include "config/server.php";
 function getUserIP()
 {

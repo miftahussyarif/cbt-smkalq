@@ -1,9 +1,10 @@
 <?php
 if (!isset($_COOKIE['PESERTA'])) {
     header('Location:index.php');
+    exit;
 } ?>
 <?php
-include "config/server.php";
+require_once __DIR__ . "/config/server.php";
 include "config/fungsi_jam.php";
 include "ip.php";
 
@@ -11,18 +12,27 @@ $tglbuat = date("Y-m-d");
 $xtgl1 = date("Y-m-d");
 $xjam1 = date("H:i:s");
 
-$user = $_COOKIE['PESERTA'];
+$user = isset($_COOKIE['PESERTA']) ? $_COOKIE['PESERTA'] : '';
+if ($user === '') {
+    header('Location:index.php');
+    exit;
+}
 
-$sqluser = mysql_query("
-  SELECT * , u.XKodeKelas AS kelaz, s.XKodeKelas AS kelasx, s.XKodeJurusan AS jurusx, u.XKodeSoal AS soalz, u.XKodeUjian AS ujianz,s.XSesi as sesiz,
-  s.XSetId as setidx,u.XKodeMapel as mapelx,u.XSemester as semex FROM cbt_siswa s 
-LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') 
-and (s.XKodeJurusan = u.XKodeJurusan or u.XKodeJurusan = 'ALL')
-LEFT JOIN cbt_mapel m on m.XKodeMapel = u.XKodeMapel WHERE s.XNomerUjian = 
-  '$_COOKIE[PESERTA]' and u.XStatusUjian = '1'");
+$sqluser = db_query(
+    $db,
+    "SELECT *, u.XKodeKelas AS kelaz, s.XKodeKelas AS kelasx, s.XKodeJurusan AS jurusx, u.XKodeSoal AS soalz, u.XKodeUjian AS ujianz, s.XSesi AS sesiz,
+    s.XSetId AS setidx, u.XKodeMapel AS mapelx, u.XSemester AS semex FROM cbt_siswa s
+LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas OR u.XKodeKelas = 'ALL')
+AND (s.XKodeJurusan = u.XKodeJurusan OR u.XKodeJurusan = 'ALL')
+LEFT JOIN cbt_mapel m ON m.XKodeMapel = u.XKodeMapel WHERE s.XNomerUjian = :user AND u.XStatusUjian = '1'",
+    array(':user' => $user)
+);
 
-
-$s = mysql_fetch_array($sqluser);
+$s = db_fetch_one($sqluser);
+if (!$s) {
+    header('Location:index.php');
+    exit;
+}
 $val_siswa = $s['XNamaSiswa'];
 $xsesi = $s['sesiz'];
 $xkodesoal = $s['soalz'];
@@ -52,10 +62,18 @@ $xjumlahpilganda = $s['XPilGanda'];
 $xjumlahesai = $s['XEsai'];
 
 
-$sqlIP = mysql_query("SELECT * FROM  `cbt_siswa_ujian` WHERE XNomerUjian = '$user' and XTokenUjian = '$xtokenujian'");
-$ad0 = mysql_fetch_array($sqlIP);
-$user_ip2 = str_replace(" ", "", $ad0['XGetIP']);
-$sqlIP1 = mysql_query("update `cbt_siswa_ujian` set XGetIP = '$user_ip' WHERE XNomerUjian = '$user' and XTokenUjian = '$xtokenujian'");
+$sqlIP = db_query(
+    $db,
+    "SELECT * FROM `cbt_siswa_ujian` WHERE XNomerUjian = :user AND XTokenUjian = :token",
+    array(':user' => $user, ':token' => $xtokenujian)
+);
+$ad0 = db_fetch_one($sqlIP);
+$user_ip2 = $ad0 ? str_replace(" ", "", $ad0['XGetIP']) : '';
+db_query(
+    $db,
+    "UPDATE `cbt_siswa_ujian` SET XGetIP = :ip WHERE XNomerUjian = :user AND XTokenUjian = :token",
+    array(':ip' => $user_ip, ':user' => $user, ':token' => $xtokenujian)
+);
 
 
 
@@ -129,12 +147,16 @@ $sisawaktu = "$hr2:$mn2:$sc2";
 //*********************************************************************************************
 
 //cek data siswa ujian
-$sqlceksiswa = mysql_query("select * from cbt_siswa_ujian where XNomerUjian = '$user' and XKodeSoal = '$xkodesoal' and XTokenUjian ='$xtokenujian' and XSesi ='$xsesi'");
-$jumsqlceksiswa = mysql_num_rows($sqlceksiswa);
-$s2 = mysql_fetch_array($sqlceksiswa);
+$sqlceksiswa = db_query(
+    $db,
+    "SELECT * FROM cbt_siswa_ujian WHERE XNomerUjian = :user AND XKodeSoal = :kodesoal AND XTokenUjian = :token AND XSesi = :sesi",
+    array(':user' => $user, ':kodesoal' => $xkodesoal, ':token' => $xtokenujian, ':sesi' => $xsesi)
+);
+$s2 = db_fetch_one($sqlceksiswa);
+$jumsqlceksiswa = $s2 ? 1 : 0;
 
 //cek status ujian jika status = 9 maka sudah selesai redirect ke logout
-$xstatusujian = $s2['XStatusUjian'];
+$xstatusujian = $s2 ? $s2['XStatusUjian'] : '';
 if ($xstatusujian == 9) {
     header('location:logout.php');
 }
@@ -146,7 +168,11 @@ if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login
 
 
     if ($xjam1 > $xbatasmasuk) {
-        $sqlout = mysql_query("Update cbt_siswa_ujian set XStatusUjian = '9' where XNomerUjian = '$user' and XStatusUjian = '1' and XTokenUjian ='$xtokenujian' and XSesi ='$xsesi'");
+        db_query(
+            $db,
+            "UPDATE cbt_siswa_ujian SET XStatusUjian = '9' WHERE XNomerUjian = :user AND XStatusUjian = '1' AND XTokenUjian = :token AND XSesi = :sesi",
+            array(':user' => $user, ':token' => $xtokenujian, ':sesi' => $xsesi)
+        );
         // header('location:logout.php');
     }
 
@@ -168,10 +194,28 @@ if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login
     $xtgl1 = "$xtgl1 $xjam1";
 
 
-    $sqlinputsiswa = mysql_query("insert into cbt_siswa_ujian 
-	(XNomerUjian, XKodeKelas, XKodeMapel,XKodeSoal,XJumSoal,XTglUjian,XJamUjian, XMulaiUjian, XLastUpdate, XLamaUjian,XTokenUjian,XStatusUjian,XSesi,XPilGanda,XEsai,XGetIP) values 
-	('$user','$xkodekelasx','$xkodemapel','$xkodesoal','$xjumlahsoal','$xtgl1','$xjamujian','$xjam1',
-	'$xjam1','$xlamaujian','$xtokenujian','1','$xsesi','$xjumpilg','$xjumesai','$user_ip')");
+    db_query(
+        $db,
+        "INSERT INTO cbt_siswa_ujian (XNomerUjian, XKodeKelas, XKodeMapel, XKodeSoal, XJumSoal, XTglUjian, XJamUjian, XMulaiUjian, XLastUpdate, XLamaUjian, XTokenUjian, XStatusUjian, XSesi, XPilGanda, XEsai, XGetIP)
+        VALUES (:user, :kodekelas, :kodemapel, :kodesoal, :jumsoal, :tglujian, :jamujian, :mulai, :lastupdate, :lamaujian, :token, '1', :sesi, :pilganda, :esai, :ip)",
+        array(
+            ':user' => $user,
+            ':kodekelas' => $xkodekelasx,
+            ':kodemapel' => $xkodemapel,
+            ':kodesoal' => $xkodesoal,
+            ':jumsoal' => $xjumlahsoal,
+            ':tglujian' => $xtgl1,
+            ':jamujian' => $xjamujian,
+            ':mulai' => $xjam1,
+            ':lastupdate' => $xjam1,
+            ':lamaujian' => $xlamaujian,
+            ':token' => $xtokenujian,
+            ':sesi' => $xsesi,
+            ':pilganda' => $xjumpilg,
+            ':esai' => $xjumesai,
+            ':ip' => $user_ip,
+        )
+    );
 
 
 } else {
@@ -184,7 +228,11 @@ if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login
     $tglbalik = date("H:i:s");
     if (isset($_COOKIE['PESERTA'])) {
         $user = $_COOKIE['PESERTA'];
-        $sql = mysql_query("Update cbt_siswa_ujian set XLastUpdate = '$tglbalik'  where XNomerUjian = '$user' and XStatusUjian = '1' ");
+        db_query(
+            $db,
+            "UPDATE cbt_siswa_ujian SET XLastUpdate = :tgl WHERE XNomerUjian = :user AND XStatusUjian = '1'",
+            array(':tgl' => $tglbalik, ':user' => $user)
+        );
     }
 
     $j1 = substr($s2['XMulaiUjian'], 0, 2);
@@ -730,25 +778,40 @@ if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login
   !-->
 
 <?php
-$cek = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$xkodesoal' and XUserJawab = '$user' and XTokenUjian = '$xtokenujian'"));
+$cek = (int) db_fetch_value(
+    db_query(
+        $db,
+        "SELECT COUNT(*) FROM cbt_jawaban WHERE XKodeSoal = :kodesoal AND XUserJawab = :user AND XTokenUjian = :token",
+        array(':kodesoal' => $xkodesoal, ':user' => $user, ':token' => $xtokenujian)
+    )
+);
 if ($cek < 1) {
     $hit = 1;
 
-
-    //  $xjumpilg = $s['XPilGanda'];   
-//  $xjumesai = $s['XEsai'];     
+    //  $xjumpilg = $s['XPilGanda'];
+    //  $xjumesai = $s['XEsai'];
 
     //ambil soal pilihan yang status acak sebanyak xjumlahsoalpil
-
-
+    $limit_pilganda = (int) $xjumpilg;
+    $agama_value = null;
     if ($xmapelagama == 'Y') {
-        $sqlambilsoalpilT1 = mysql_query("select * from cbt_soal where XKodeSoal = '$xkodesoal' and XJenisSoal = '1' and XAcakSoal = 'T' and XAgama = '$xpilih' order by Urut LIMIT  $xjumpilg");
-    } else if ($xmapelagama == 'A') {
-        $sqlambilsoalpilT1 = mysql_query("select * from cbt_soal where XKodeSoal = '$xkodesoal' and XJenisSoal = '1' and XAcakSoal = 'T' and XAgama = '$xagama' order by Urut LIMIT  $xjumpilg");
-    } else {
-        $sqlambilsoalpilT1 = mysql_query("select * from cbt_soal where XKodeSoal = '$xkodesoal' and XJenisSoal = '1' and XAcakSoal = 'T' order by Urut LIMIT  $xjumpilg");
+        $agama_value = $xpilih;
+    } elseif ($xmapelagama == 'A') {
+        $agama_value = $xagama;
     }
-    while ($r2 = mysql_fetch_array($sqlambilsoalpilT1)) {
+    $agama_clause = $agama_value !== null ? " AND XAgama = :agama" : "";
+    $agama_params = array(':kodesoal' => $xkodesoal);
+    if ($agama_value !== null) {
+        $agama_params[':agama'] = $agama_value;
+    }
+
+    $sqlambilsoalpilT1 = db_query(
+        $db,
+        "SELECT * FROM cbt_soal WHERE XKodeSoal = :kodesoal AND XJenisSoal = '1' AND XAcakSoal = 'T'{$agama_clause} ORDER BY Urut LIMIT {$limit_pilganda}",
+        $agama_params
+    );
+    $soal_pil_t = $sqlambilsoalpilT1->fetchAll();
+    foreach ($soal_pil_t as $r2) {
         if ($xjumlahpilihan == 4) {
             $a = array("1", "2", "3", "4");
 
@@ -777,11 +840,30 @@ if ($cek < 1) {
                 $kuncijawab = $D1;
             }
 
-
-            $sql = mysql_query("insert into cbt_jawaban (Urut,XNomerSoal,XUserJawab,XKodeSoal,XTokenUjian,XKunciJawaban,XA,XB,XC,XD,XTglJawab,XJenisSoal,XKodeKelas,XKodeJurusan,XKodeUjian,XSetId,XKodeMapel,XSemester) values 	
-	('$hit','$r2[XNomerSoal]','$user','$xkodesoal','$xtokenujian','$kuncijawab]',
-	'$A1','$B1','$C1','$D1','$tglbuat','1','$xkodekelasx','$xkodejurusx','$xkodeujianx',
-'$xsetidx','$xkodemapel','$xsemester')");
+            db_query(
+                $db,
+                "INSERT INTO cbt_jawaban (Urut, XNomerSoal, XUserJawab, XKodeSoal, XTokenUjian, XKunciJawaban, XA, XB, XC, XD, XTglJawab, XJenisSoal, XKodeKelas, XKodeJurusan, XKodeUjian, XSetId, XKodeMapel, XSemester)
+                VALUES (:urut, :nomer, :user, :kodesoal, :token, :kunci, :a, :b, :c, :d, :tgl, '1', :kelas, :jurusan, :ujian, :setid, :mapel, :semester)",
+                array(
+                    ':urut' => $hit,
+                    ':nomer' => $r2['XNomerSoal'],
+                    ':user' => $user,
+                    ':kodesoal' => $xkodesoal,
+                    ':token' => $xtokenujian,
+                    ':kunci' => $kuncijawab,
+                    ':a' => $A1,
+                    ':b' => $B1,
+                    ':c' => $C1,
+                    ':d' => $D1,
+                    ':tgl' => $tglbuat,
+                    ':kelas' => $xkodekelasx,
+                    ':jurusan' => $xkodejurusx,
+                    ':ujian' => $xkodeujianx,
+                    ':setid' => $xsetidx,
+                    ':mapel' => $xkodemapel,
+                    ':semester' => $xsemester,
+                )
+            );
             $hit = $hit + 1;
         } elseif ($xjumlahpilihan == 5) {
             $a = array("1", "2", "3", "4", "5");
@@ -813,134 +895,201 @@ if ($cek < 1) {
                 $kuncijawab = $E1;
             }
 
-
-
-            $sql = mysql_query("insert into cbt_jawaban (Urut,XNomerSoal,XUserJawab,XKodeSoal,XTokenUjian,XKunciJawaban,XA,XB,XC,XD,XE,XTglJawab,XJenisSoal,XKodeKelas,XKodeJurusan,XKodeUjian,XSetId,XKodeMapel,XSemester) values 
-	('$hit','$r2[XNomerSoal]','$user','$xkodesoal','$xtokenujian','$kuncijawab','$A1','$B1','$C1','$D1','$E1','$tglbuat','1','$xkodekelasx','$xkodejurusx','$xkodeujianx',
-'$xsetidx','$xkodemapel','$xsemester')");
+            db_query(
+                $db,
+                "INSERT INTO cbt_jawaban (Urut, XNomerSoal, XUserJawab, XKodeSoal, XTokenUjian, XKunciJawaban, XA, XB, XC, XD, XE, XTglJawab, XJenisSoal, XKodeKelas, XKodeJurusan, XKodeUjian, XSetId, XKodeMapel, XSemester)
+                VALUES (:urut, :nomer, :user, :kodesoal, :token, :kunci, :a, :b, :c, :d, :e, :tgl, '1', :kelas, :jurusan, :ujian, :setid, :mapel, :semester)",
+                array(
+                    ':urut' => $hit,
+                    ':nomer' => $r2['XNomerSoal'],
+                    ':user' => $user,
+                    ':kodesoal' => $xkodesoal,
+                    ':token' => $xtokenujian,
+                    ':kunci' => $kuncijawab,
+                    ':a' => $A1,
+                    ':b' => $B1,
+                    ':c' => $C1,
+                    ':d' => $D1,
+                    ':e' => $E1,
+                    ':tgl' => $tglbuat,
+                    ':kelas' => $xkodekelasx,
+                    ':jurusan' => $xkodejurusx,
+                    ':ujian' => $xkodeujianx,
+                    ':setid' => $xsetidx,
+                    ':mapel' => $xkodemapel,
+                    ':semester' => $xsemester,
+                )
+            );
             $hit = $hit + 1;
         }
     }
-
 
     // jumlah soal tidak acak harus tampil semua
-    $jmlpilT = mysql_num_rows($sqlambilsoalpilT1);
+    $jmlpilT = count($soal_pil_t);
     // jumlah soal tersisa buat yg acak adalah $jmlpilA
-    $jmlpilA = $xjumpilg - $jmlpilT;
-
-    if ($xmapelagama == 'Y') {
-        $sqlambilsoalpilA2 = mysql_query("select * from cbt_soal where XKodeSoal = '$xkodesoal' and XJenisSoal = '1' and XAcakSoal = 'A' and XAgama = '$xpilih'
-   order by RAND() LIMIT  $jmlpilA");
-    } elseif ($xmapelagama == 'A') {
-        $sqlambilsoalpilA2 = mysql_query("select * from cbt_soal where XKodeSoal = '$xkodesoal' and XJenisSoal = '1' and XAcakSoal = 'A' and XAgama = '$xagama'
-   order by RAND() LIMIT  $jmlpilA");
-    } else {
-        $sqlambilsoalpilA2 = mysql_query("select * from cbt_soal where XKodeSoal = '$xkodesoal' and XJenisSoal = '1' and XAcakSoal = 'A' order by RAND() LIMIT  $jmlpilA");
+    $jmlpilA = $limit_pilganda - $jmlpilT;
+    if ($jmlpilA < 0) {
+        $jmlpilA = 0;
     }
-    while ($r2 = mysql_fetch_array($sqlambilsoalpilA2)) {
-        if ($xjumlahpilihan == 4) {
-            $a = array("1", "2", "3", "4");
 
-            if ($r2['XAcakOpsi'] == 'Y') { //jika opsijawaban diacak
-                shuffle($a);
+    if ($jmlpilA > 0) {
+        $sqlambilsoalpilA2 = db_query(
+            $db,
+            "SELECT * FROM cbt_soal WHERE XKodeSoal = :kodesoal AND XJenisSoal = '1' AND XAcakSoal = 'A'{$agama_clause} ORDER BY RAND() LIMIT {$jmlpilA}",
+            $agama_params
+        );
+        $soal_pil_a = $sqlambilsoalpilA2->fetchAll();
+        foreach ($soal_pil_a as $r2) {
+            if ($xjumlahpilihan == 4) {
+                $a = array("1", "2", "3", "4");
+
+                if ($r2['XAcakOpsi'] == 'Y') { //jika opsijawaban diacak
+                    shuffle($a);
+                }
+
+                $A1 = $a[0];
+                $B1 = $a[1];
+                $C1 = $a[2];
+                $D1 = $a[3];
+                db_query(
+                    $db,
+                    "INSERT INTO cbt_jawaban (Urut, XNomerSoal, XUserJawab, XKodeSoal, XTokenUjian, XKunciJawaban, XA, XB, XC, XD, XTglJawab, XJenisSoal, XKodeKelas, XKodeJurusan, XKodeUjian, XSetId, XKodeMapel, XSemester)
+                    VALUES (:urut, :nomer, :user, :kodesoal, :token, :kunci, :a, :b, :c, :d, :tgl, '1', :kelas, :jurusan, :ujian, :setid, :mapel, :semester)",
+                    array(
+                        ':urut' => $hit,
+                        ':nomer' => $r2['XNomerSoal'],
+                        ':user' => $user,
+                        ':kodesoal' => $xkodesoal,
+                        ':token' => $xtokenujian,
+                        ':kunci' => $r2['XKunciJawaban'],
+                        ':a' => $A1,
+                        ':b' => $B1,
+                        ':c' => $C1,
+                        ':d' => $D1,
+                        ':tgl' => $tglbuat,
+                        ':kelas' => $xkodekelasx,
+                        ':jurusan' => $xkodejurusx,
+                        ':ujian' => $xkodeujianx,
+                        ':setid' => $xsetidx,
+                        ':mapel' => $xkodemapel,
+                        ':semester' => $xsemester,
+                    )
+                );
+                $hit = $hit + 1;
+            } elseif ($xjumlahpilihan == 5) {
+                $a = array("1", "2", "3", "4", "5");
+
+                if ($r2['XAcakOpsi'] == 'Y') { //jika opsijawaban diacak
+                    shuffle($a);
+                }
+
+                $A1 = $a[0];
+                $B1 = $a[1];
+                $C1 = $a[2];
+                $D1 = $a[3];
+                $E1 = $a[4];
+                db_query(
+                    $db,
+                    "INSERT INTO cbt_jawaban (Urut, XNomerSoal, XUserJawab, XKodeSoal, XTokenUjian, XKunciJawaban, XA, XB, XC, XD, XE, XTglJawab, XJenisSoal, XKodeKelas, XKodeJurusan, XKodeUjian, XSetId, XKodeMapel, XSemester)
+                    VALUES (:urut, :nomer, :user, :kodesoal, :token, :kunci, :a, :b, :c, :d, :e, :tgl, '1', :kelas, :jurusan, :ujian, :setid, :mapel, :semester)",
+                    array(
+                        ':urut' => $hit,
+                        ':nomer' => $r2['XNomerSoal'],
+                        ':user' => $user,
+                        ':kodesoal' => $xkodesoal,
+                        ':token' => $xtokenujian,
+                        ':kunci' => $r2['XKunciJawaban'],
+                        ':a' => $A1,
+                        ':b' => $B1,
+                        ':c' => $C1,
+                        ':d' => $D1,
+                        ':e' => $E1,
+                        ':tgl' => $tglbuat,
+                        ':kelas' => $xkodekelasx,
+                        ':jurusan' => $xkodejurusx,
+                        ':ujian' => $xkodeujianx,
+                        ':setid' => $xsetidx,
+                        ':mapel' => $xkodemapel,
+                        ':semester' => $xsemester,
+                    )
+                );
+                $hit = $hit + 1;
             }
+        }
+    }
 
-            $A1 = $a[0];
-            $B1 = $a[1];
-            $C1 = $a[2];
-            $D1 = $a[3];
-            $sql = mysql_query("insert into cbt_jawaban (Urut,XNomerSoal,XUserJawab,XKodeSoal,XTokenUjian,XKunciJawaban,XA,XB,XC,XD,XTglJawab,XJenisSoal,XKodeKelas,XKodeJurusan,XKodeUjian,XSetId,XKodeMapel,XSemester) values 	
-	('$hit','$r2[XNomerSoal]','$user','$xkodesoal','$xtokenujian','$r2[XKunciJawaban]','$A1','$B1','$C1','$D1','$tglbuat','1','$xkodekelasx','$xkodejurusx','$xkodeujianx',
-'$xsetidx','$xkodemapel','$xsemester')");
+    //Ambil Soal Esai
+    $limit_esai = (int) $xjumesai;
+    if ($limit_esai > 0) {
+        $sqlambilsoalesai = db_query(
+            $db,
+            "SELECT * FROM cbt_soal WHERE XKodeSoal = :kodesoal AND XJenisSoal = '2' AND XAcakSoal = 'T'{$agama_clause} ORDER BY Urut LIMIT {$limit_esai}",
+            $agama_params
+        );
+        $soal_esai_t = $sqlambilsoalesai->fetchAll();
+        foreach ($soal_esai_t as $r1) {
+            db_query(
+                $db,
+                "INSERT INTO cbt_jawaban (Urut, XNomerSoal, XUserJawab, XKodeSoal, XTokenUjian, XTglJawab, XJenisSoal, XKodeKelas, XKodeJurusan, XKodeUjian, XSetId, XKodeMapel, XSemester)
+                VALUES (:urut, :nomer, :user, :kodesoal, :token, :tgl, '2', :kelas, :jurusan, :ujian, :setid, :mapel, :semester)",
+                array(
+                    ':urut' => $hit,
+                    ':nomer' => $r1['XNomerSoal'],
+                    ':user' => $user,
+                    ':kodesoal' => $xkodesoal,
+                    ':token' => $xtokenujian,
+                    ':tgl' => $tglbuat,
+                    ':kelas' => $xkodekelasx,
+                    ':jurusan' => $xkodejurusx,
+                    ':ujian' => $xkodeujianx,
+                    ':setid' => $xsetidx,
+                    ':mapel' => $xkodemapel,
+                    ':semester' => $xsemester,
+                )
+            );
             $hit = $hit + 1;
-        } elseif ($xjumlahpilihan == 5) {
-            $a = array("1", "2", "3", "4", "5");
-
-            if ($r2['XAcakOpsi'] == 'Y') { //jika opsijawaban diacak
-                shuffle($a);
+        }
+        //esai utama harus muncul bila acak=T
+        $jmlesaiutama = count($soal_esai_t);
+        //jika jml esai utama masih < xjumlahesai
+        if ($jmlesaiutama < $limit_esai) {
+            //ambil acak esai tambahan sebanyak sisa esai
+            $sisaesai = $limit_esai - $jmlesaiutama;
+            if ($sisaesai > 0) {
+                $sqlambilsoalesai = db_query(
+                    $db,
+                    "SELECT * FROM cbt_soal WHERE XKodeSoal = :kodesoal AND XJenisSoal = '2' AND XAcakSoal = 'A'{$agama_clause} ORDER BY RAND() LIMIT {$sisaesai}",
+                    $agama_params
+                );
+                $soal_esai_a = $sqlambilsoalesai->fetchAll();
+                foreach ($soal_esai_a as $r2) {
+                    db_query(
+                        $db,
+                        "INSERT INTO cbt_jawaban (Urut, XNomerSoal, XUserJawab, XKodeSoal, XTokenUjian, XTglJawab, XJenisSoal, XKodeKelas, XKodeJurusan, XKodeUjian, XSetId, XKodeMapel, XSemester)
+                        VALUES (:urut, :nomer, :user, :kodesoal, :token, :tgl, '2', :kelas, :jurusan, :ujian, :setid, :mapel, :semester)",
+                        array(
+                            ':urut' => $hit,
+                            ':nomer' => $r2['XNomerSoal'],
+                            ':user' => $user,
+                            ':kodesoal' => $xkodesoal,
+                            ':token' => $xtokenujian,
+                            ':tgl' => $tglbuat,
+                            ':kelas' => $xkodekelasx,
+                            ':jurusan' => $xkodejurusx,
+                            ':ujian' => $xkodeujianx,
+                            ':setid' => $xsetidx,
+                            ':mapel' => $xkodemapel,
+                            ':semester' => $xsemester,
+                        )
+                    );
+                    $hit = $hit + 1;
+                }
             }
-
-            $A1 = $a[0];
-            $B1 = $a[1];
-            $C1 = $a[2];
-            $D1 = $a[3];
-            $E1 = $a[4];
-            $sql = mysql_query("insert into cbt_jawaban (Urut,XNomerSoal,XUserJawab,XKodeSoal,XTokenUjian,XKunciJawaban,XA,XB,XC,XD,XE,XTglJawab,XJenisSoal,XKodeKelas,XKodeJurusan,XKodeUjian,XSetId,XKodeMapel,XSemester) values 
-	('$hit','$r2[XNomerSoal]','$user','$xkodesoal','$xtokenujian','$r2[XKunciJawaban]','$A1','$B1','$C1','$D1','$E1','$tglbuat','1','$xkodekelasx','$xkodejurusx','$xkodeujianx',
-'$xsetidx','$xkodemapel','$xsemester')");
-            $hit = $hit + 1;
         }
-    }
-
-    //Ambil Soal Esai 
-//  $xjumlahesai = $s['XEsai'];  
-    if ($xmapelagama == 'A') {
-        $sqlambilsoalesai = mysql_query("select * from cbt_soal where XKodeSoal = '$xkodesoal' and XJenisSoal = '2' and XAcakSoal = 'T' and XAgama = '$xagama' order by Urut LIMIT $xjumesai");
-    } elseif ($xmapelagama == 'Y') {
-        $sqlambilsoalesai = mysql_query("select * from cbt_soal where XKodeSoal = '$xkodesoal' and XJenisSoal = '2' and XAcakSoal = 'T' and XAgama = '$xpilih' order by Urut LIMIT $xjumesai");
-    } else {
-        $sqlambilsoalesai = mysql_query("select * from cbt_soal where XKodeSoal = '$xkodesoal' and XJenisSoal = '2' and XAcakSoal = 'T' order by Urut LIMIT $xjumesai");
-    }
-    while ($r1 = mysql_fetch_array($sqlambilsoalesai)) {
-        $sqlsimpanesai = mysql_query("insert into cbt_jawaban (Urut,XNomerSoal,XUserJawab,XKodeSoal,XTokenUjian,XTglJawab,XJenisSoal,XKodeKelas,XKodeJurusan,XKodeUjian,XSetId,XKodeMapel,XSemester) values 	
-	  ('$hit','$r1[XNomerSoal]','$user','$xkodesoal','$xtokenujian','$tglbuat','2','$xkodekelasx','$xkodejurusx','$xkodeujianx','$xsetidx','$xkodemapel','$xsemester'  
-)");
-        $hit = $hit + 1;
-    }
-    //esai utama harus muncul bila acak=T
-    $jmlesaiutama = mysql_num_rows($sqlambilsoalesai);
-    //jika jml esai utama masih < xjumlahesai
-    if ($jmlesaiutama < $xjumesai) {
-        //ambil acak esai tambahan sebanyak sisa esai
-        $sisaesai = $xjumesai - $jmlesaiutama;
-        if ($xmapelagama == 'Y') {
-            $sqlambilsoalesai = mysql_query("select * from cbt_soal where XKodeSoal = '$xkodesoal' and XJenisSoal = '2' and XAcakSoal = 'A' and XAgama = '$xpilih' order by RAND() 
-	  LIMIT $sisaesai");
-        } elseif ($xmapelagama == 'A') {
-            $sqlambilsoalesai = mysql_query("select * from cbt_soal where XKodeSoal = '$xkodesoal' and XJenisSoal = '2' and XAcakSoal = 'A' and XAgama = '$xagama' order by RAND() 
-	  LIMIT $sisaesai");
-        } else {
-            $sqlambilsoalesai = mysql_query("select * from cbt_soal where XKodeSoal = '$xkodesoal' and XJenisSoal = '2' and XAcakSoal = 'A' order by RAND() LIMIT $sisaesai");
-        }
-        while ($r2 = mysql_fetch_array($sqlambilsoalesai)) {
-            $sqlsimpanesai = mysql_query("insert into cbt_jawaban (Urut,XNomerSoal,XUserJawab,XKodeSoal,XTokenUjian,XTglJawab,XJenisSoal,XKodeKelas,XKodeJurusan,XKodeUjian,XSetId,XKodeMapel,XSemester) values 	
-	  ('$hit','$r2[XNomerSoal]','$user','$xkodesoal','$xtokenujian','$tglbuat','2','$xkodekelasx','$xkodejurusx','$xkodeujianx','$xsetidx','$xkodemapel','$xsemester')");
-            $hit = $hit + 1;
-        }
-
     }
 
     $xjumlahsoalpil = $xjumlahsoal - $xjumlahesai;
     //Ambil Soal berdasarkan Random atau Tidak
-/*
-  $sqlambilsoalpilT1 = mysql_query("select * from cbt_soal where XKodeSoal = '$xkodesoal' and XJenisSoal = '1' and XAcakSoal = 'T' order by Urut LIMIT  $jmlpilT");
-  while($r1=mysql_fetch_array($sqlambilsoalpilT1)){
-	if($xjumlahpilihan==4){
-	$a=array("1","2","3","4");
-	shuffle($a);
-
-	$A1 = $a[0];
-	$B1 = $a[1];
-	$C1 = $a[2];
-	$D1 = $a[3];
-	$sql = mysql_query("insert into cbt_jawaban (Urut,XNomerSoal,XUserJawab,XKodeSoal,XTokenUjian,XKunciJawaban,XA,XB,XC,XD,XTglJawab,XJenisSoal) values 	
-	('$hit','$r1[XNomerSoal]','$user','$xkodesoal','$xtokenujian','$r1[XKunciJawaban]','$A1','$B1','$C1','$D1','$tglbuat','1')"); 
-	$hit = $hit+1;
-	} elseif($xjumlahpilihan==5){
-    $a=array("1","2","3","4","5");
-	shuffle($a);
-
-	$A1 = $a[0];
-	$B1 = $a[1];
-	$C1 = $a[2];
-	$D1 = $a[3];
-	$E1 = $a[4];	
-	$sql = mysql_query("insert into cbt_jawaban (Urut,XNomerSoal,XUserJawab,XKodeSoal,XTokenUjian,XKunciJawaban,XA,XB,XC,XD,XE,XTglJawab,XJenisSoal) values 
-	('$hit','$r1[XNomerSoal]','$user','$xkodesoal','$xtokenujian','$r1[XKunciJawaban]','$A1','$B1','$C1','$D1','$E1','$tglbuat','1')");
-	$hit = $hit+1; 
-	}  
-  }
-*/
 }
 ?>
 <style>
@@ -1130,16 +1279,19 @@ img {
 </style>
 
 <?php
-include "config/server.php";
-$sql = mysql_query("select * from cbt_admin");
-$r = mysql_fetch_array($sql);
+require_once __DIR__ . "/config/server.php";
+$sql = db_query($db, "SELECT * FROM cbt_admin LIMIT 1", array());
+$r = db_fetch_one($sql);
+if (!$r) {
+    $r = array('XWarna' => '', 'XBanner' => '');
+}
 ?>
 
 <body class="font-medium" style="background-color:#c9c9c9">
-    <header style="background-color:<?php echo "$r[XWarna]"; ?>">
+    <header style="background-color:<?php echo "{$r['XWarna']}"; ?>">
         <div class="group">
-            <div class="left" style="background-color:<?php echo "$r[XWarna]"; ?>"><a href=" "><img
-                        src="images/<?php echo "$r[XBanner]"; ?>" style=" margin-left:0px;"></a>
+            <div class="left" style="background-color:<?php echo "{$r['XWarna']}"; ?>"><a href=" "><img
+                        src="images/<?php echo "{$r['XBanner']}"; ?>" style=" margin-left:0px;"></a>
             </div>
             <div class="right1">
                 <table width="100%" border="0" cellspacing="5px;" style="margin-top:10px">

@@ -10,9 +10,11 @@ $tgl2 = date("Y-m-d");
 if(isset($_COOKIE['PESERTA'])){
 $user = $_COOKIE['PESERTA'];
 
-  $sqlgabung = mysql_query("
-SELECT * FROM `cbt_siswa_ujian` s LEFT JOIN cbt_jawaban j ON j.XUserJawab = s.XNomerUjian and j.XTokenUjian = s.XTokenUjian WHERE XNomerUjian = '$user' and s.XStatusUjian = '1'
-  ");
+  db_query(
+      $db,
+      "SELECT 1 FROM `cbt_siswa_ujian` s LEFT JOIN cbt_jawaban j ON j.XUserJawab = s.XNomerUjian and j.XTokenUjian = s.XTokenUjian WHERE XNomerUjian = :user and s.XStatusUjian = '1' LIMIT 1",
+      array('user' => $user)
+  );
   
 
 
@@ -37,6 +39,7 @@ if (isset($_SERVER['HTTP_COOKIE'])) {
 
 
 header('location:index.php');
+exit;
 
 ?>
 <!DOCTYPE html>

@@ -18,7 +18,7 @@ $(document).ready(function() {
 </script> 
 </head>
 <body>
-<iframe src="<?php echo "cetakberita.php?token=$_REQUEST[token]"; ?>" style="display:none;" name="frame"></iframe>
+<iframe src="<?php echo "cetakberita.php?token={$_REQUEST['token']}"; ?>" style="display:none;" name="frame"></iframe>
 <button type="button" class="btn btn-default btn-sm" onClick="frames['frame'].print()" style="margin-top:10px; margin-bottom:5px"><i class="glyphicon glyphicon-print"></i> Cetak 
 </button>
 <?php echo "Cetak Berita Acara"; ?>
@@ -26,9 +26,9 @@ $(document).ready(function() {
 <?php
 
 //koneksi database
-include "../../config/server.php";
-$sqlad = mysql_query("select * from cbt_admin");
-$ad = mysql_fetch_array($sqlad);
+require_once __DIR__ . "/../../config/server.php";
+$ad = db_fetch_one(db_query($db, "SELECT * FROM cbt_admin LIMIT 1", array()));
+$ad = $ad ? $ad : array('XSekolah' => '', 'XKepSek' => '', 'XNIPAdmin' => '', 'XNIPKepsek' => '', 'XLogo' => '', 'XKodeSekolah' => '');
 $namsek = strtoupper($ad['XSekolah']);
 $kepsek = $ad['XKepSek'];
 $nipadmin = $ad['XNIPAdmin'];
@@ -37,13 +37,32 @@ $logsek = $ad['XLogo'];
 $BatasAwal = 50;
 
 
-								$sqk = mysql_query("select * from cbt_ujian where XTokenUjian = '$_REQUEST[token]'");
-								$rs = mysql_fetch_array($sqk);
-								$tanggal = "$rs[XTglUjian]";
-								$kelas = "$rs[XKodeKelas]";
-								$jurus = "$rs[XKodeJurusan]";
-								$pengawas = "$rs[XPengawas]";
-								$nip = "$rs[XNIPPengawas]";
+								$token = isset($_REQUEST['token']) ? $_REQUEST['token'] : '';
+								$rs = db_fetch_one(
+								    db_query(
+								        $db,
+								        "SELECT * FROM cbt_ujian WHERE XTokenUjian = :token LIMIT 1",
+								        array(':token' => $token)
+								    )
+								);
+								$rs = $rs ? $rs : array(
+								    'XTglUjian' => '',
+								    'XKodeKelas' => '',
+								    'XKodeJurusan' => '',
+								    'XPengawas' => '',
+								    'XNIPPengawas' => '',
+								    'XJamUjian' => '',
+								    'XLamaUjian' => '',
+								    'XTokenUjian' => '',
+								    'XMapel' => '',
+								    'XKodeMapel' => '',
+								    'XSesi' => '',
+								);
+								$tanggal = "{$rs['XTglUjian']}";
+								$kelas = "{$rs['XKodeKelas']}";
+								$jurus = "{$rs['XKodeJurusan']}";
+								$pengawas = "{$rs['XPengawas']}";
+								$nip = "{$rs['XNIPPengawas']}";
 																								
 								$timestamp = strtotime($tanggal);								
 								$hari = date('l', $timestamp);
@@ -80,26 +99,28 @@ $habis = date('H:i',strtotime($jum_menit,strtotime($start)));
 
 if(!$kelas=="ALL"&&!$jurus=="ALL"){ 
 $kondisi = "1";
-$cekQuery = mysql_query("SELECT * FROM cbt_siswa where XKodeKelas = '$kelas' and XKodeJurusan = '$jurus'");
+$jumlahSiswaSemua = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_siswa WHERE XKodeKelas = :kelas AND XKodeJurusan = :jurus", array(':kelas' => $kelas, ':jurus' => $jurus)));
 }elseif(!$kelas=="ALL"&&$jurus=="ALL"){ 
 $kondisi = "2";
-$cekQuery = mysql_query("SELECT * FROM cbt_siswa where  XKodeKelas = '$kelas'");
+$jumlahSiswaSemua = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_siswa WHERE XKodeKelas = :kelas", array(':kelas' => $kelas)));
 }elseif($kelas=="ALL"&&!$jurus=="ALL"){ 
 $kondisi = "3";
-$cekQuery = mysql_query("SELECT * FROM cbt_siswa where  XKodeJurusan = '$jurus'");
+$jumlahSiswaSemua = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_siswa WHERE XKodeJurusan = :jurus", array(':jurus' => $jurus)));
 }elseif($kelas=="ALL"&&$jurus=="ALL"){ 
 $kondisi = "4";
-$cekQuery = mysql_query("SELECT * FROM cbt_siswa");
+$jumlahSiswaSemua = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_siswa", array()));
 } else {
 $kondisi = "5";
-$cekQuery = mysql_query("SELECT * FROM cbt_siswa where XKodeKelas = '$kelas' and XKodeJurusan = '$jurus'");
+$jumlahSiswaSemua = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_siswa WHERE XKodeKelas = :kelas AND XKodeJurusan = :jurus", array(':kelas' => $kelas, ':jurus' => $jurus)));
 }
 
-$ikutSiswa = mysql_query("SELECT * FROM cbt_siswa_ujian where XTokenUjian = '$rs[XTokenUjian]'");
-
-
-$jumlahSiswaSemua = mysql_num_rows($cekQuery);
-$jumlahSiswaUjian = mysql_num_rows($ikutSiswa);
+$jumlahSiswaUjian = (int) db_fetch_value(
+    db_query(
+        $db,
+        "SELECT COUNT(*) FROM cbt_siswa_ujian WHERE XTokenUjian = :token",
+        array(':token' => $rs['XTokenUjian'])
+    )
+);
 $jumlahSiswaAbsen = $jumlahSiswaSemua-$jumlahSiswaUjian;
 ?>
 	<div style="background:#999; width:100%; height:1275px;" ><br>
@@ -155,9 +176,15 @@ $jumlahSiswaAbsen = $jumlahSiswaSemua-$jumlahSiswaUjian;
    <!-- <tr>
 
    								 <?php 
-								$sqk2 = mysql_query("select * from cbt_mapel where XKodeMapel = '$rs[XKodeMapel]'");
-								$rs1 = mysql_fetch_array($sqk2);
-                             	$rs2 = strtoupper("$rs1[XNamaMapel]");
+								$rs1 = db_fetch_one(
+								    db_query(
+								        $db,
+								        "SELECT * FROM cbt_mapel WHERE XKodeMapel = :mapel LIMIT 1",
+								        array(':mapel' => $rs['XKodeMapel'])
+								    )
+								);
+                                $rs1 = $rs1 ? $rs1 : array('XNamaMapel' => '', 'XKKM' => '');
+                             	$rs2 = strtoupper("{$rs1['XNamaMapel']}");
 								$NilaiKKM2 = $rs1['XKKM'];
 								?>   
     <td width="20%">Mata Pelajaran</td><td>: <b><?php echo $rs2; ?> (Nilai KKM : <?php echo $NilaiKKM2; ?>)</b></td>
@@ -190,7 +217,7 @@ $jumlahSiswaAbsen = $jumlahSiswaSemua-$jumlahSiswaUjian;
   <tr height="30">
   <td height="30" width="5%">1.</td>
   <td height="30" width="30%">Username</td>
-  <td height="30" width="60%" style="border-bottom:thin solid #000000"><?php echo "$ad[XKodeSekolah]"; ?></td>
+  <td height="30" width="60%" style="border-bottom:thin solid #000000"><?php echo "{$ad['XKodeSekolah']}"; ?></td>
   </tr>
   <tr height="30">
   <td height="30" width="10px"></td>
@@ -200,7 +227,7 @@ $jumlahSiswaAbsen = $jumlahSiswaSemua-$jumlahSiswaUjian;
   <tr height="30">
   <td height="30" width="10px"></td>
   <td height="30">Sesi</td>
-  <td height="30" width="60%" style="border-bottom:thin solid #000000"><?php echo "$rs[XSesi]"; ?></td>  
+  <td height="30" width="60%" style="border-bottom:thin solid #000000"><?php echo "{$rs['XSesi']}"; ?></td>  
   </tr>
   <tr height="30">
   <td height="30" width="10px"></td>

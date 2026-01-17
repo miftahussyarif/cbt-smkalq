@@ -1366,8 +1366,7 @@ class Graph {
         }
 
         // Now reconstruct any user URL argument
-        reset($_GET);
-        while( list($key,$value) = each($_GET) ) {
+        foreach ($_GET as $key => $value) {
             if( is_array($value) ) {
                 foreach ( $value as $k => $v ) {
                     $urlarg .= '&amp;'.$key.'%5B'.$k.'%5D='.urlencode($v);
@@ -1381,8 +1380,7 @@ class Graph {
         // It's not ideal to convert POST argument to GET arguments
         // but there is little else we can do. One idea for the
         // future might be recreate the POST header in case.
-        reset($_POST);
-        while( list($key,$value) = each($_POST) ) {
+        foreach ($_POST as $key => $value) {
             if( is_array($value) ) {
                 foreach ( $value as $k => $v ) {
                     $urlarg .= '&amp;'.$key.'%5B'.$k.'%5D='.urlencode($v);
@@ -1414,7 +1412,7 @@ class Graph {
 
         $urlarg = $this->GetURLArguments(true);
 
-        if( empty($_GET[_CSIM_DISPLAY]) ) {
+        if( empty($_GET['_CSIM_DISPLAY']) ) {
             // First determine if we need to check for a cached version
             // This differs from the standard cache in the sense that the
             // image and CSIM map HTML file is written relative to the directory
@@ -1472,7 +1470,7 @@ class Graph {
     }
 
     function StrokeCSIMImage() {
-        if( @$_GET[_CSIM_DISPLAY] == 1 ) {
+        if( @$_GET['_CSIM_DISPLAY'] == 1 ) {
             $this->Stroke();
         }
     }

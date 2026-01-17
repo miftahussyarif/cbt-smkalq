@@ -1,6 +1,7 @@
 <?php
 	if(!isset($_COOKIE['beeuser'])){
 	header("Location: login.php");}
+require_once __DIR__ . "/../../config/server.php";
 ?>
 
 <!DOCTYPE html>
@@ -177,24 +178,24 @@ $('#datetimepicker_dark').datetimepicker({theme:'dark'})
                                 </thead>
                                 <tbody>
 <?php 
-$sql = mysql_query("select u.*,m.*,u.Urut as Urutan,u.XKodeKelas as kokel from cbt_ujian u left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel 
-left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal where u.XStatusUjian='1'");
-								while($s = mysql_fetch_array($sql)){ 
-					$sqlsoal  = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$s[XKodeSoal]'"));
-					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$s[XKodeSoal]' and XStatusUjian = '1'"));
-					$sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$s[XKodeSoal]'"));
+$sql = db_query($db, "SELECT u.*, m.*, u.Urut AS Urutan, u.XKodeKelas AS kokel FROM cbt_ujian u LEFT JOIN cbt_mapel m ON m.XKodeMapel = u.XKodeMapel 
+LEFT JOIN cbt_paketsoal p ON p.XKodeSoal = u.XKodeSoal WHERE u.XStatusUjian = '1'", array());
+								while($s = $sql->fetch()){ 
+					$sqlsoal  = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_soal WHERE XKodeSoal = :kodesoal", array(':kodesoal' => $s['XKodeSoal'])));
+					$sqlpakai = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_siswa_ujian WHERE XKodeSoal = :kodesoal AND XStatusUjian = '1'", array(':kodesoal' => $s['XKodeSoal'])));
+					$sqlsudah = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_jawaban WHERE XKodeSoal = :kodesoal", array(':kodesoal' => $s['XKodeSoal'])));
 					if($sqlsoal<1){$kata="disabled";}  else {$kata="";}	
 					if($sqlsudah>0||$sqlpakai>0){$kata="disabled";}  else {$kata="";}			
 					if($sqlpakai>0){$katapakai="disabled";}  else {$katapakai="";}
 					
-$time1 = "$s[XJamUjian]";
-$time2 = "$s[XLamaUjian]";
+$time1 = "{$s['XJamUjian']}";
+$time2 = "{$s['XLamaUjian']}";
 
 $secs = strtotime($time2)-strtotime("00:00:00");
 $jamhabis = date("H:i:s",strtotime($time1)+$secs);	
 $sekarang = date("H:i:s");	
 $tglsekarang = date("Y-m-d");	
-$tglujian = "$s[XTglUjian]";	
+$tglujian = "{$s['XTglUjian']}";	
 		
 								?>
                                     <tr class="odd gradeX">
@@ -207,7 +208,7 @@ $tglujian = "$s[XTglUjian]";
                                         <td><?php echo $s['kokel']." | ".$s['XKodeJurusan']."."; ?></td> 
                                         <td><?php echo $s['XSesi']; ?></td>
                                         <td align="center"><a href="?modul=reset_peserta&token=<?php echo $s['XTokenUjian']; ?>">
-										<button class="btn btn-default" ><?php echo "<i class='fa fa-refresh fa-fw'></i> $s[XTokenUjian]"; ?></button></a>
+										<button class="btn btn-default" ><?php echo "<i class='fa fa-refresh fa-fw'></i> {$s['XTokenUjian']}"; ?></button></a>
 										</td>
                                         <td align="center">
                                         <?php echo $s['XTglUjian']." ".$s['XJamUjian'] ; ?>
@@ -235,12 +236,12 @@ $tglujian = "$s[XTglUjian]";
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Peserta Ujian : $s[XNomerUjian]"; ?></h4>
+                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Peserta Ujian : {$s['XNomerUjian']}"; ?></h4>
                                         </div>
                                         <div class="modal-body" style="text-align:center">
                                         
                                                <?php 
-												if(file_exists("../../fotosiswa/$s[XFoto]")&&!$gbr==''){ ?>
+												if(file_exists("../../fotosiswa/{$s['XFoto']}")&&!$gbr==''){ ?>
                                                 <img src="../../fotosiswa/<?php echo $s['XFoto']; ?>" width="400px">
                                                 <?php 
 												} else {
@@ -450,10 +451,10 @@ function confirmDialog(message, onConfirm){
                                 </thead>
                                 <tbody>
 <?php 
-$sql = mysql_query("select u.*,m.*,u.Urut as Urutan,u.XKodeKelas as kokel from cbt_ujian u left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel 
-left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal where u.XStatusUjian='9' order by u.XTglUjian desc, u.XJamUjian desc");
+$sql = db_query($db, "SELECT u.*, m.*, u.Urut AS Urutan, u.XKodeKelas AS kokel FROM cbt_ujian u LEFT JOIN cbt_mapel m ON m.XKodeMapel = u.XKodeMapel 
+LEFT JOIN cbt_paketsoal p ON p.XKodeSoal = u.XKodeSoal WHERE u.XStatusUjian = '9' ORDER BY u.XTglUjian DESC, u.XJamUjian DESC", array());
 $no = 1;
-while($s = mysql_fetch_array($sql)){ 
+while($s = $sql->fetch()){ 
 ?>
                                     <tr class="odd gradeX">
                                         <td><?php echo $no; ?></td>

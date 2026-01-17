@@ -5,7 +5,7 @@
 <?php
 include "../../config/server.php";
 if($_REQUEST['aksi']=="tampil"){
-$sql0 = mysql_query("select p.*,m.*,p.Urut as Urutan from cbt_paketsoal p left join cbt_mapel m on m.XKodeMapel = p.XKodeMapel where p.XGuru = '$_COOKIE[beelogin]' order by p.Urut desc");
+$sql0 = mysql_query("select p.*,m.*,p.Urut as Urutan from cbt_paketsoal p left join cbt_mapel m on m.XKodeMapel = p.XKodeMapel where p.XGuru = '{$_COOKIE['beelogin']}' order by p.Urut desc");
 ?>
 
 <table width="100%">
@@ -19,14 +19,14 @@ $sql0 = mysql_query("select p.*,m.*,p.Urut as Urutan from cbt_paketsoal p left j
 <th>Acak</th>
 </tr>
 
-<?Php
+<?php
 $no=1;
 
 while($xadm = mysql_fetch_array($sql0)){
-$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$xadm[XKodeSoal]'"));
+$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '{$xadm['XKodeSoal']}'"));
 if($sqlsoal<1){$kata="disabled";}  else {$kata="";}
-echo "<tr height=40 style='border=0; border-bottom:thin solid #dcddde'><td>$no</td><td>$xadm[XKodeSoal]</td><td>$xadm[XNamaMapel]</td><td>$xadm[XLevel]</td>
-<td align=center>$sqlsoal</td><td>$xadm[XJumPilihan]</td><td>$xadm[XAcakSoal]</td></tr>";?>
+echo "<tr height=40 style='border=0; border-bottom:thin solid #dcddde'><td>$no</td><td>{$xadm['XKodeSoal']}</td><td>{$xadm['XNamaMapel']}</td><td>{$xadm['XLevel']}</td>
+<td align=center>$sqlsoal</td><td>{$xadm['XJumPilihan']}</td><td>{$xadm['XAcakSoal']}</td></tr>";?>
 <!--
 <td>
 <a href=?modul=edit_soal&soal=$xadm[XKodeSoal]><button type='button' class='btn btn-info'>Periksa</button></a>

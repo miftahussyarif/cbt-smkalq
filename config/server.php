@@ -1,8 +1,13 @@
 <?php
-// 1. Connect ke database
-$sqlconn=@mysql_connect("localhost:3306","root","");
-// 2. Pilih database
+require_once __DIR__ . '/db.php';
+
 date_default_timezone_set("Asia/Jakarta");
-mysql_select_db("beesmartv3", $sqlconn);
+
+try {
+    $db = db_local(true);
+} catch (PDOException $e) {
+    die('Could not connect: ' . $e->getMessage());
+}
+
 $mode = "lokal"; // pilih 'lokal' atau 'pusat'
 ?>

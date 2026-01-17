@@ -11,7 +11,7 @@ if ($_COOKIE['beelogin'] != 'admin') {
     exit;
 }
 
-include "../../config/server.php";
+require_once __DIR__ . "/../../config/server.php";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $urut = $_POST['urut'];
@@ -29,15 +29,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
-    // Hash password dengan MD5 (sesuai dengan cara simpan user baru)
-    $password_hash = md5($password_baru);
+    // Hash password dengan password_hash untuk kompatibilitas PHP 8.3
+    $password_hash = password_hash($password_baru, PASSWORD_DEFAULT);
 
     // Update password
-    $sql = mysql_query("UPDATE cbt_user SET Password = '$password_hash' WHERE Urut = '$urut'");
-
-    if ($sql) {
+    try {
+        db_query(
+            $db,
+            "UPDATE cbt_user SET Password = :password WHERE Urut = :urut",
+            array(':password' => $password_hash, ':urut' => $urut)
+        );
         echo "<script>alert('Password berhasil diubah!'); window.location='index.php?modul=buat_user';</script>";
-    } else {
+    } catch (Exception $e) {
         echo "<script>alert('Gagal mengubah password!'); window.history.back();</script>";
     }
 } else {

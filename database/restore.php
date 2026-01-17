@@ -12,28 +12,14 @@ include "../../config/server.php";
  */
 
 // Name of the file
-$filex = "$_REQUEST[anu]";
+$filex = isset($_REQUEST['anu']) ? $_REQUEST['anu'] : '';
 $filename = '/opt/lampp/backup/' . $filex;
+if ($filex === '' || !is_file($filename)) {
+	echo "<div class=\"alert alert-danger\">File backup tidak ditemukan.</div>";
+	return;
+}
 
-/*
-// MySQL host
-$mysql_host = 'localhost:3306';
-// MySQL username
-$mysql_username = 'root';
-// MySQL password
-$mysql_password = '';
-// Database name
-$mysql_database = 'beesmartv3';
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-// Connect to MySQL server
-mysql_connect($mysql_host, $mysql_username, $mysql_password) or die('Error connecting to MySQL server: ' . mysql_error());
-// Select database
-mysql_select_db($mysql_database) or die('Error selecting MySQL database: ' . mysql_error());
-*/
-
-//$sqlupd = mysql_query("DROP TABLE cbt_jawaban, cbt_kelas,cbt_mapel,cbt_nilai,cbt_paketsoal,cbt_persen,cbt_siswa,cbt_siswa_ujian,cbt_soal,cbt_tugas,cbt_ujian");
+// Legacy restore snippet removed during PDO migration.
 
 // Temporary variable, used to store current query
 $templine = '';
@@ -50,7 +36,11 @@ foreach ($lines as $line) {
 	// If it has a semicolon at the end, it's the end of the query
 	if (substr(trim($line), -1, 1) == ';') {
 		// Perform the query
-		mysql_query($templine) or print ('Error performing query \'<strong>' . $templine . '\': ' . mysql_error() . '<br /><br />');
+		try {
+			$db->exec($templine);
+		} catch (PDOException $e) {
+			print ('Error performing query \'<strong>' . $templine . '\': ' . $e->getMessage() . '<br /><br />');
+		}
 		// Reset temp variable to empty
 		$templine = '';
 	}

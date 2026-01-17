@@ -9,22 +9,33 @@
 
 <?php include "config/server.php";
 include "config/pengawasan.php";
-mysql_query("SET NAMES utf8");
-if(isset($_COOKIE['PESERTA'])){
-$user = $_COOKIE['PESERTA'];}
+$db->exec("SET NAMES utf8");
+$user = '';
+if (isset($_COOKIE['PESERTA'])) {
+    $user = $_COOKIE['PESERTA'];
+}
 //  setcookie('PESERTA',$user);
-  $sqluser = mysql_query("SELECT * FROM  `cbt_siswa` s LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') 
-  and (s.XKodeJurusan = u.XKodeJurusan or u.XKodeJurusan = 'ALL') WHERE XNomerUjian = 
-  '$user' and u.XStatusUjian = '1'");
-  $s = mysql_fetch_array($sqluser);
+  $sqluser = db_query(
+      $db,
+      "SELECT * FROM  `cbt_siswa` s LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') 
+  and (s.XKodeJurusan = u.XKodeJurusan or u.XKodeJurusan = 'ALL') WHERE s.XNomerUjian = 
+  :user and u.XStatusUjian = '1' limit 1",
+      array('user' => $user)
+  );
+  $s = db_fetch_one($sqluser);
 //  $xkodesoal = "BAS1";//$s['XKodeSoal'];
 //  $xtokenujian = "ZQIFG"; // $s['XTokenUjian'];
-    $xkodesoal = $s['XKodeSoal'];
-    $xtokenujian = $s['XTokenUjian'];
+    $xkodesoal = $s ? $s['XKodeSoal'] : '';
+    $xtokenujian = $s ? $s['XTokenUjian'] : '';
 
 cbt_ensure_pengawasan_table();
-$ceklock = mysql_num_rows(mysql_query("SELECT XIsLocked FROM cbt_pengawasan WHERE XNomerUjian = '$user' AND XTokenUjian = '$xtokenujian' AND XKodeSoal = '$xkodesoal' AND XIsLocked = '1'"));
-if ($ceklock > 0) {
+$ceklock = db_query(
+    $db,
+    "SELECT count(1) as total FROM cbt_pengawasan WHERE XNomerUjian = :user AND XTokenUjian = :token AND XKodeSoal = :kodesoal AND XIsLocked = '1'",
+    array('user' => $user, 'token' => $xtokenujian, 'kodesoal' => $xkodesoal)
+);
+$ceklock_count = (int) db_fetch_value($ceklock);
+if ($ceklock_count > 0) {
     header('HTTP/1.1 403 Forbidden');
     echo "LOCKED";
     exit;
@@ -32,56 +43,126 @@ if ($ceklock > 0) {
 
   
   
-if(isset($_REQUEST['soale'])){
-$soalnja = $_REQUEST['soale'];
+$soalnja = isset($_REQUEST['soale']) ? $_REQUEST['soale'] : '';
+if ($user === '' || $soalnja === '' || $xkodesoal === '') {
+    echo "failed!";
+    exit;
 }
- $cek = mysql_num_rows(mysql_query("select * from cbt_jawaban where Urut='$soalnja' and XKodeSoal = '$xkodesoal' and XUserJawab = '$user'"));
- if($cek>0){
-// $sql = mysql_query("update cbt_jawaban set XJawaban = '$_REQUEST[nama]' where XNomerSoal='$_REQUEST[soale]' and XKodeSoal = '$xkodesoal' and XUserJawab = '$user'");
+ $updated = false;
+ $cek = db_query(
+     $db,
+     "select count(1) as total from cbt_jawaban where Urut = :urut and XKodeSoal = :kodesoal and XUserJawab = :user",
+     array('urut' => $soalnja, 'kodesoal' => $xkodesoal, 'user' => $user)
+ );
+ $cek_count = (int) db_fetch_value($cek);
+ if ($cek_count > 0) {
 $tgl = date("Y-m-d");
 $jam = date("H:i:s");
 
-if(isset($_REQUEST['nama'])){
-$nomber = str_replace(" ","",$_REQUEST['nama']);
-$jawab_esai = str_replace("  ","",mysql_real_escape_string($_REQUEST['nama']));
+if (isset($_REQUEST['nama'])) {
+    $nomber = str_replace(" ", "", $_REQUEST['nama']);
+    $jawab_esai = str_replace("  ", "", $_REQUEST['nama']);
 }
-$ambiljawaban = "X$nomber";
+$nomber = isset($nomber) ? $nomber : '';
+$jawab_esai = isset($jawab_esai) ? $jawab_esai : '';
+$opsi = strtoupper(trim($nomber));
+$allowed_opsi = array('A', 'B', 'C', 'D', 'E');
+$ambiljawaban = in_array($opsi, $allowed_opsi, true) ? 'X' . $opsi : 'XA';
 
-$sqljwb = mysql_query("select *,$ambiljawaban as hasile from cbt_jawaban where Urut='$soalnja' and XKodeSoal = '$xkodesoal' and XUserJawab = '$user' and XTokenUjian = '$xtokenujian'");
-$uj = mysql_fetch_array($sqljwb);
+$sqljwb = db_query(
+    $db,
+    "select *, {$ambiljawaban} as hasile from cbt_jawaban where Urut = :urut and XKodeSoal = :kodesoal and XUserJawab = :user and XTokenUjian = :token",
+    array(
+        'urut' => $soalnja,
+        'kodesoal' => $xkodesoal,
+        'user' => $user,
+        'token' => $xtokenujian,
+    )
+);
+$uj = db_fetch_one($sqljwb);
+if (!$uj) {
+    echo "failed!";
+    exit;
+}
 $jwb = $uj['hasile'];
 $tkn = $uj['XTokenUjian'];
 $knc = $uj['XKunciJawaban'];
 
-$sqljenis = mysql_query("select * from cbt_jawaban where Urut='$soalnja' and XKodeSoal = '$xkodesoal' and XUserJawab = '$user' and XTokenUjian = '$xtokenujian'");
-$uji = mysql_fetch_array($sqljenis);
-$jenis = $uji['XJenisSoal'];
+$sqljenis = db_query(
+    $db,
+    "select XJenisSoal from cbt_jawaban where Urut = :urut and XKodeSoal = :kodesoal and XUserJawab = :user and XTokenUjian = :token",
+    array(
+        'urut' => $soalnja,
+        'kodesoal' => $xkodesoal,
+        'user' => $user,
+        'token' => $xtokenujian,
+    )
+);
+$uji = db_fetch_one($sqljenis);
+$jenis = $uji ? $uji['XJenisSoal'] : null;
 
-
-if($jenis==2){
-	if(!$jawab_esai==""){
-	$sql = mysql_query("update cbt_jawaban set XJawabanEsai = '$jawab_esai', XTglJawab = '$tgl',XJamJawab = '$jam',Campur = '$tkn',XTemp = '$soalnja'
-	where Urut='$soalnja' and XKodeSoal = '$xkodesoal' and XUserJawab = '$user'  and XTokenUjian = '$xtokenujian'");
-	}
-} elseif($jenis==1){
-	if($jwb==$knc){$nil = 1;} else {$nil=0;}
-	$sql = mysql_query("update cbt_jawaban set XJawaban = '$nomber',XKodeJawab = '$ambiljawaban',XNilaiJawab = '$jwb', XNilai='$nil', XTglJawab = '$tgl',XJamJawab = '$jam', 
-	Campur = '$tkn'
-	where Urut='$soalnja' and XKodeSoal = '$xkodesoal' and XUserJawab = '$user'  and XTokenUjian = '$xtokenujian'");
+if ($jenis == 2) {
+    if ($jawab_esai !== '') {
+        db_query(
+            $db,
+            "update cbt_jawaban set XJawabanEsai = :jawab_esai, XTglJawab = :tgl, XJamJawab = :jam, Campur = :tkn, XTemp = :urut
+            where Urut = :urut and XKodeSoal = :kodesoal and XUserJawab = :user and XTokenUjian = :token",
+            array(
+                'jawab_esai' => $jawab_esai,
+                'tgl' => $tgl,
+                'jam' => $jam,
+                'tkn' => $tkn,
+                'urut' => $soalnja,
+                'kodesoal' => $xkodesoal,
+                'user' => $user,
+                'token' => $xtokenujian,
+            )
+        );
+        $updated = true;
+    }
+} elseif ($jenis == 1) {
+    if ($jwb == $knc) {
+        $nil = 1;
+    } else {
+        $nil = 0;
+    }
+    db_query(
+        $db,
+        "update cbt_jawaban set XJawaban = :jawaban, XKodeJawab = :kodejawab, XNilaiJawab = :nilaijawab, XNilai = :nilai, XTglJawab = :tgl, XJamJawab = :jam, Campur = :tkn
+        where Urut = :urut and XKodeSoal = :kodesoal and XUserJawab = :user and XTokenUjian = :token",
+        array(
+            'jawaban' => $nomber,
+            'kodejawab' => $ambiljawaban,
+            'nilaijawab' => $jwb,
+            'nilai' => $nil,
+            'tgl' => $tgl,
+            'jam' => $jam,
+            'tkn' => $tkn,
+            'urut' => $soalnja,
+            'kodesoal' => $xkodesoal,
+            'user' => $user,
+            'token' => $xtokenujian,
+        )
+    );
+    $updated = true;
 }
 
-if(isset($jam)){
-$sql2 = mysql_query("Update cbt_siswa_ujian set XLastUpdate = '$jam' where XNomerUjian = '$user' and XStatusUjian = '1'");
+if (isset($jam)) {
+    db_query(
+        $db,
+        "Update cbt_siswa_ujian set XLastUpdate = :jam where XNomerUjian = :user and XStatusUjian = '1'",
+        array('jam' => $jam, 'user' => $user)
+    );
 }
 
  
  } 
 
-    if(mysql_query($sql)){
-     return "success!";
-   	} else {
-    return "failed!";
-  	}
+    if ($updated) {
+        echo "success!";
+    } else {
+        echo "failed!";
+    }
  
 ?>  
 </body>

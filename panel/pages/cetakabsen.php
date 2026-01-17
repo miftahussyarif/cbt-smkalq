@@ -53,7 +53,7 @@ $logsek = $ad['XLogo'];
   } 
  }
 if(isset($_REQUEST['kelas'])){ 
- $q = mysql_query("SELECT * FROM cbt_siswa where XKodeKelas = '$_REQUEST[kelas]' and  XKodeJurusan = '$_REQUEST[jur]'  and  XSesi = '$_REQUEST[sesi]' and  XRuang = '$_REQUEST[ruang]'");
+ $q = mysql_query("SELECT * FROM cbt_siswa where XKodeKelas = '{$_REQUEST['kelas']}' and  XKodeJurusan = '{$_REQUEST['jur']}'  and  XSesi = '{$_REQUEST['sesi']}' and  XRuang = '{$_REQUEST['ruang']}'");
  } else {
  $q = mysql_query("select * from cbt_siswa  ");
  } 

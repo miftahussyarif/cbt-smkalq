@@ -276,7 +276,7 @@ class PclZip
 
         // ----- Set default values
         $v_options = array();
-        $v_options[PCLZIP_OPT_NO_COMPRESSION] = false;
+        $v_options['PCLZIP_OPT_NO_COMPRESSION'] = false;
 
         // ----- Look for variable options arguments
         $v_size = func_num_args();
@@ -314,11 +314,11 @@ class PclZip
                 // Here we need to support the first historic synopsis of the
                 // method.
                 // ----- Get the first argument
-                $v_options[PCLZIP_OPT_ADD_PATH] = $v_arg_list[0];
+                $v_options['PCLZIP_OPT_ADD_PATH'] = $v_arg_list[0];
 
                 // ----- Look for the optional second argument
                 if ($v_size == 2) {
-                    $v_options[PCLZIP_OPT_REMOVE_PATH] = $v_arg_list[1];
+                    $v_options['PCLZIP_OPT_REMOVE_PATH'] = $v_arg_list[1];
                 } elseif ($v_size > 2) {
                     PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Invalid number / type of arguments");
                     return 0;
@@ -442,7 +442,7 @@ class PclZip
 
         // ----- Set default values
         $v_options = array();
-        $v_options[PCLZIP_OPT_NO_COMPRESSION] = false;
+        $v_options['PCLZIP_OPT_NO_COMPRESSION'] = false;
 
         // ----- Look for variable options arguments
         $v_size = func_num_args();
@@ -482,11 +482,11 @@ class PclZip
                 // Here we need to support the first historic synopsis of the
                 // method.
                 // ----- Get the first argument
-                $v_options[PCLZIP_OPT_ADD_PATH] = $v_add_path = $v_arg_list[0];
+                $v_options['PCLZIP_OPT_ADD_PATH'] = $v_add_path = $v_arg_list[0];
 
                 // ----- Look for the optional second argument
                 if ($v_size == 2) {
-                    $v_options[PCLZIP_OPT_REMOVE_PATH] = $v_arg_list[1];
+                    $v_options['PCLZIP_OPT_REMOVE_PATH'] = $v_arg_list[1];
                 } elseif ($v_size > 2) {
                     // ----- Error log
                     PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Invalid number / type of arguments");
@@ -686,7 +686,7 @@ class PclZip
         $v_size = func_num_args();
 
         // ----- Default values for option
-        $v_options[PCLZIP_OPT_EXTRACT_AS_STRING] = false;
+        $v_options['PCLZIP_OPT_EXTRACT_AS_STRING'] = false;
 
         // ----- Look for arguments
         if ($v_size > 0) {
@@ -722,21 +722,21 @@ class PclZip
                 }
 
                 // ----- Set the arguments
-                if (isset($v_options[PCLZIP_OPT_PATH])) {
-                    $v_path = $v_options[PCLZIP_OPT_PATH];
+                if (isset($v_options['PCLZIP_OPT_PATH'])) {
+                    $v_path = $v_options['PCLZIP_OPT_PATH'];
                 }
-                if (isset($v_options[PCLZIP_OPT_REMOVE_PATH])) {
-                    $v_remove_path = $v_options[PCLZIP_OPT_REMOVE_PATH];
+                if (isset($v_options['PCLZIP_OPT_REMOVE_PATH'])) {
+                    $v_remove_path = $v_options['PCLZIP_OPT_REMOVE_PATH'];
                 }
-                if (isset($v_options[PCLZIP_OPT_REMOVE_ALL_PATH])) {
-                    $v_remove_all_path = $v_options[PCLZIP_OPT_REMOVE_ALL_PATH];
+                if (isset($v_options['PCLZIP_OPT_REMOVE_ALL_PATH'])) {
+                    $v_remove_all_path = $v_options['PCLZIP_OPT_REMOVE_ALL_PATH'];
                 }
-                if (isset($v_options[PCLZIP_OPT_ADD_PATH])) {
+                if (isset($v_options['PCLZIP_OPT_ADD_PATH'])) {
                     // ----- Check for '/' in last path char
                     if ((strlen($v_path) > 0) && (substr($v_path, -1) != '/')) {
                         $v_path .= '/';
                     }
-                    $v_path .= $v_options[PCLZIP_OPT_ADD_PATH];
+                    $v_path .= $v_options['PCLZIP_OPT_ADD_PATH'];
                 }
             } else {
                 // ----- Look for 2 args
@@ -837,7 +837,7 @@ class PclZip
         $v_size = func_num_args();
 
         // ----- Default values for option
-        $v_options[PCLZIP_OPT_EXTRACT_AS_STRING] = false;
+        $v_options['PCLZIP_OPT_EXTRACT_AS_STRING'] = false;
 
         // ----- Look for arguments
         if ($v_size > 1) {
@@ -872,24 +872,24 @@ class PclZip
                 }
 
                 // ----- Set the arguments
-                if (isset($v_options[PCLZIP_OPT_PATH])) {
-                    $v_path = $v_options[PCLZIP_OPT_PATH];
+                if (isset($v_options['PCLZIP_OPT_PATH'])) {
+                    $v_path = $v_options['PCLZIP_OPT_PATH'];
                 }
-                if (isset($v_options[PCLZIP_OPT_REMOVE_PATH])) {
-                    $v_remove_path = $v_options[PCLZIP_OPT_REMOVE_PATH];
+                if (isset($v_options['PCLZIP_OPT_REMOVE_PATH'])) {
+                    $v_remove_path = $v_options['PCLZIP_OPT_REMOVE_PATH'];
                 }
-                if (isset($v_options[PCLZIP_OPT_REMOVE_ALL_PATH])) {
-                    $v_remove_all_path = $v_options[PCLZIP_OPT_REMOVE_ALL_PATH];
+                if (isset($v_options['PCLZIP_OPT_REMOVE_ALL_PATH'])) {
+                    $v_remove_all_path = $v_options['PCLZIP_OPT_REMOVE_ALL_PATH'];
                 }
-                if (isset($v_options[PCLZIP_OPT_ADD_PATH])) {
+                if (isset($v_options['PCLZIP_OPT_ADD_PATH'])) {
                     // ----- Check for '/' in last path char
                     if ((strlen($v_path) > 0) && (substr($v_path, -1) != '/')) {
                         $v_path .= '/';
                     }
-                    $v_path .= $v_options[PCLZIP_OPT_ADD_PATH];
+                    $v_path .= $v_options['PCLZIP_OPT_ADD_PATH'];
                 }
-                if (!isset($v_options[PCLZIP_OPT_EXTRACT_AS_STRING])) {
-                    $v_options[PCLZIP_OPT_EXTRACT_AS_STRING] = false;
+                if (!isset($v_options['PCLZIP_OPT_EXTRACT_AS_STRING'])) {
+                    $v_options['PCLZIP_OPT_EXTRACT_AS_STRING'] = false;
                 } else {
                 }
             } else {
@@ -924,7 +924,7 @@ class PclZip
         if ($v_result != 1) {
             return 0;
         }
-        $v_options[PCLZIP_OPT_BY_INDEX] = $v_options_trick[PCLZIP_OPT_BY_INDEX];
+        $v_options['PCLZIP_OPT_BY_INDEX'] = $v_options_trick['PCLZIP_OPT_BY_INDEX'];
 
         // ----- Look for default option values
         $this->privOptionDefaultThreshold($v_options);
@@ -1396,7 +1396,7 @@ class PclZip
                     }
 
                     // ----- Check for incompatible options
-                    if (isset($v_result_list[PCLZIP_OPT_TEMP_FILE_OFF])) {
+                    if (isset($v_result_list['PCLZIP_OPT_TEMP_FILE_OFF'])) {
                         PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Option '".PclZipUtilOptionText($p_options_list[$i])."' can not be used with option 'PCLZIP_OPT_TEMP_FILE_OFF'");
                         return PclZip::errorCode();
                     }
@@ -1415,7 +1415,7 @@ class PclZip
 
                 case PCLZIP_OPT_TEMP_FILE_ON:
                     // ----- Check for incompatible options
-                    if (isset($v_result_list[PCLZIP_OPT_TEMP_FILE_OFF])) {
+                    if (isset($v_result_list['PCLZIP_OPT_TEMP_FILE_OFF'])) {
                         PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Option '".PclZipUtilOptionText($p_options_list[$i])."' can not be used with option 'PCLZIP_OPT_TEMP_FILE_OFF'");
                         return PclZip::errorCode();
                     }
@@ -1425,12 +1425,12 @@ class PclZip
 
                 case PCLZIP_OPT_TEMP_FILE_OFF:
                     // ----- Check for incompatible options
-                    if (isset($v_result_list[PCLZIP_OPT_TEMP_FILE_ON])) {
+                    if (isset($v_result_list['PCLZIP_OPT_TEMP_FILE_ON'])) {
                         PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Option '".PclZipUtilOptionText($p_options_list[$i])."' can not be used with option 'PCLZIP_OPT_TEMP_FILE_ON'");
                         return PclZip::errorCode();
                     }
                     // ----- Check for incompatible options
-                    if (isset($v_result_list[PCLZIP_OPT_TEMP_FILE_THRESHOLD])) {
+                    if (isset($v_result_list['PCLZIP_OPT_TEMP_FILE_THRESHOLD'])) {
                         PclZip::privErrorLog(PCLZIP_ERR_INVALID_PARAMETER, "Option '".PclZipUtilOptionText($p_options_list[$i])."' can not be used with option 'PCLZIP_OPT_TEMP_FILE_THRESHOLD'");
                         return PclZip::errorCode();
                     }
@@ -1700,7 +1700,7 @@ class PclZip
         }
 
         // ----- Look for default values
-        if (!isset($v_result_list[PCLZIP_OPT_TEMP_FILE_THRESHOLD])) {
+        if (!isset($v_result_list['PCLZIP_OPT_TEMP_FILE_THRESHOLD'])) {
         }
 
         // ----- Return
@@ -1718,7 +1718,7 @@ class PclZip
     {
         $v_result=1;
 
-        if (isset($p_options[PCLZIP_OPT_TEMP_FILE_THRESHOLD]) || isset($p_options[PCLZIP_OPT_TEMP_FILE_OFF])) {
+        if (isset($p_options['PCLZIP_OPT_TEMP_FILE_THRESHOLD']) || isset($p_options['PCLZIP_OPT_TEMP_FILE_OFF'])) {
             return $v_result;
         }
 
@@ -1739,11 +1739,11 @@ class PclZip
             $v_memory_limit = $v_memory_limit*1024;
         }
 
-        $p_options[PCLZIP_OPT_TEMP_FILE_THRESHOLD] = floor($v_memory_limit*PCLZIP_TEMPORARY_FILE_RATIO);
+        $p_options['PCLZIP_OPT_TEMP_FILE_THRESHOLD'] = floor($v_memory_limit*PCLZIP_TEMPORARY_FILE_RATIO);
 
         // ----- Sanity check : No threshold if value lower than 1M
-        if ($p_options[PCLZIP_OPT_TEMP_FILE_THRESHOLD] < 1048576) {
-            unset($p_options[PCLZIP_OPT_TEMP_FILE_THRESHOLD]);
+        if ($p_options['PCLZIP_OPT_TEMP_FILE_THRESHOLD'] < 1048576) {
+            unset($p_options['PCLZIP_OPT_TEMP_FILE_THRESHOLD']);
         }
 
         // ----- Return
@@ -1941,7 +1941,7 @@ class PclZip
                         // Because the name of the folder was changed, the name of the
                         // files/sub-folders also change
                         if (($v_descr['stored_filename'] != $v_descr['filename'])
-                                 && (!isset($p_options[PCLZIP_OPT_REMOVE_ALL_PATH]))) {
+                                 && (!isset($p_options['PCLZIP_OPT_REMOVE_ALL_PATH']))) {
                             if ($v_descr['stored_filename'] != '') {
                                 $v_dirlist_descr[$v_dirlist_nb]['new_full_name'] = $v_descr['stored_filename'].'/'.$v_item_handler;
                             } else {
@@ -2133,14 +2133,14 @@ class PclZip
 
         // ----- Zip file comment
         $v_comment = $v_central_dir['comment'];
-        if (isset($p_options[PCLZIP_OPT_COMMENT])) {
-            $v_comment = $p_options[PCLZIP_OPT_COMMENT];
+        if (isset($p_options['PCLZIP_OPT_COMMENT'])) {
+            $v_comment = $p_options['PCLZIP_OPT_COMMENT'];
         }
-        if (isset($p_options[PCLZIP_OPT_ADD_COMMENT])) {
-            $v_comment = $v_comment.$p_options[PCLZIP_OPT_ADD_COMMENT];
+        if (isset($p_options['PCLZIP_OPT_ADD_COMMENT'])) {
+            $v_comment = $v_comment.$p_options['PCLZIP_OPT_ADD_COMMENT'];
         }
-        if (isset($p_options[PCLZIP_OPT_PREPEND_COMMENT])) {
-            $v_comment = $p_options[PCLZIP_OPT_PREPEND_COMMENT].$v_comment;
+        if (isset($p_options['PCLZIP_OPT_PREPEND_COMMENT'])) {
+            $v_comment = $p_options['PCLZIP_OPT_PREPEND_COMMENT'].$v_comment;
         }
 
         // ----- Calculate the size of the central header
@@ -2280,8 +2280,8 @@ class PclZip
 
         // ----- Zip file comment
         $v_comment = '';
-        if (isset($p_options[PCLZIP_OPT_COMMENT])) {
-            $v_comment = $p_options[PCLZIP_OPT_COMMENT];
+        if (isset($p_options['PCLZIP_OPT_COMMENT'])) {
+            $v_comment = $p_options['PCLZIP_OPT_COMMENT'];
         }
 
         // ----- Calculate the size of the central header
@@ -2339,7 +2339,7 @@ class PclZip
             // or a dir with all its path removed
     //            if (    (is_file($p_filedescr_list[$j]['filename']))
     //                    || (    is_dir($p_filedescr_list[$j]['filename'])
-            if (($p_filedescr_list[$j]['type'] == 'file') || ($p_filedescr_list[$j]['type'] == 'virtual_file') || (($p_filedescr_list[$j]['type'] == 'folder') && (!isset($p_options[PCLZIP_OPT_REMOVE_ALL_PATH]) || !$p_options[PCLZIP_OPT_REMOVE_ALL_PATH]))) {
+            if (($p_filedescr_list[$j]['type'] == 'file') || ($p_filedescr_list[$j]['type'] == 'virtual_file') || (($p_filedescr_list[$j]['type'] == 'folder') && (!isset($p_options['PCLZIP_OPT_REMOVE_ALL_PATH']) || !$p_options['PCLZIP_OPT_REMOVE_ALL_PATH']))) {
                 // ----- Add the file
                 $v_result = $this->privAddFile($p_filedescr_list[$j], $v_header, $p_options);
                 if ($v_result != 1) {
@@ -2442,7 +2442,7 @@ class PclZip
         }
 
         // ----- Look for pre-add callback
-        if (isset($p_options[PCLZIP_CB_PRE_ADD])) {
+        if (isset($p_options['PCLZIP_CB_PRE_ADD'])) {
             // ----- Generate a local information
             $v_local_header = array();
             $this->privConvertHeader2FileInfo($p_header, $v_local_header);
@@ -2451,7 +2451,7 @@ class PclZip
             // Here I do not use call_user_func() because I need to send a reference to the
             // header.
     //            eval('$v_result = '.$p_options[PCLZIP_CB_PRE_ADD].'(PCLZIP_CB_PRE_ADD, $v_local_header);');
-            $v_result = $p_options[PCLZIP_CB_PRE_ADD](PCLZIP_CB_PRE_ADD, $v_local_header);
+            $v_result = $p_options['PCLZIP_CB_PRE_ADD'](PCLZIP_CB_PRE_ADD, $v_local_header);
             if ($v_result == 0) {
                 // ----- Change the file status
                 $p_header['status'] = "skipped";
@@ -2480,7 +2480,7 @@ class PclZip
             // ----- Look for a file
             if ($p_filedescr['type'] == 'file') {
                 // ----- Look for using temporary file to zip
-                if ((!isset($p_options[PCLZIP_OPT_TEMP_FILE_OFF])) && (isset($p_options[PCLZIP_OPT_TEMP_FILE_ON]) || (isset($p_options[PCLZIP_OPT_TEMP_FILE_THRESHOLD]) && ($p_options[PCLZIP_OPT_TEMP_FILE_THRESHOLD] <= $p_header['size'])))) {
+                if ((!isset($p_options['PCLZIP_OPT_TEMP_FILE_OFF'])) && (isset($p_options['PCLZIP_OPT_TEMP_FILE_ON']) || (isset($p_options['PCLZIP_OPT_TEMP_FILE_THRESHOLD']) && ($p_options['PCLZIP_OPT_TEMP_FILE_THRESHOLD'] <= $p_header['size'])))) {
                     $v_result = $this->privAddFileUsingTempFile($p_filedescr, $p_header, $p_options);
                     if ($v_result < PCLZIP_ERR_NO_ERROR) {
                         return $v_result;
@@ -2503,7 +2503,7 @@ class PclZip
                     $p_header['crc'] = @crc32($v_content);
 
                     // ----- Look for no compression
-                    if ($p_options[PCLZIP_OPT_NO_COMPRESSION]) {
+                    if ($p_options['PCLZIP_OPT_NO_COMPRESSION']) {
                         // ----- Set header parameters
                         $p_header['compressed_size'] = $p_header['size'];
                         $p_header['compression'] = 0;
@@ -2534,7 +2534,7 @@ class PclZip
                 $p_header['crc'] = @crc32($v_content);
 
                 // ----- Look for no compression
-                if ($p_options[PCLZIP_OPT_NO_COMPRESSION]) {
+                if ($p_options['PCLZIP_OPT_NO_COMPRESSION']) {
                     // ----- Set header parameters
                     $p_header['compressed_size'] = $p_header['size'];
                     $p_header['compression'] = 0;
@@ -2576,7 +2576,7 @@ class PclZip
         }
 
         // ----- Look for post-add callback
-        if (isset($p_options[PCLZIP_CB_POST_ADD])) {
+        if (isset($p_options['PCLZIP_CB_POST_ADD'])) {
             // ----- Generate a local information
             $v_local_header = array();
             $this->privConvertHeader2FileInfo($p_header, $v_local_header);
@@ -2585,7 +2585,7 @@ class PclZip
             // Here I do not use call_user_func() because I need to send a reference to the
             // header.
     //            eval('$v_result = '.$p_options[PCLZIP_CB_POST_ADD].'(PCLZIP_CB_POST_ADD, $v_local_header);');
-            $v_result = $p_options[PCLZIP_CB_POST_ADD](PCLZIP_CB_POST_ADD, $v_local_header);
+            $v_result = $p_options['PCLZIP_CB_POST_ADD'](PCLZIP_CB_POST_ADD, $v_local_header);
             if ($v_result == 0) {
                 // ----- Ignored
                 $v_result = 1;
@@ -2722,18 +2722,18 @@ class PclZip
 
         // ----- Working variables
         $p_filename = $p_filedescr['filename'];
-        if (isset($p_options[PCLZIP_OPT_ADD_PATH])) {
-            $p_add_dir = $p_options[PCLZIP_OPT_ADD_PATH];
+        if (isset($p_options['PCLZIP_OPT_ADD_PATH'])) {
+            $p_add_dir = $p_options['PCLZIP_OPT_ADD_PATH'];
         } else {
             $p_add_dir = '';
         }
-        if (isset($p_options[PCLZIP_OPT_REMOVE_PATH])) {
-            $p_remove_dir = $p_options[PCLZIP_OPT_REMOVE_PATH];
+        if (isset($p_options['PCLZIP_OPT_REMOVE_PATH'])) {
+            $p_remove_dir = $p_options['PCLZIP_OPT_REMOVE_PATH'];
         } else {
             $p_remove_dir = '';
         }
-        if (isset($p_options[PCLZIP_OPT_REMOVE_ALL_PATH])) {
-            $p_remove_all_dir = $p_options[PCLZIP_OPT_REMOVE_ALL_PATH];
+        if (isset($p_options['PCLZIP_OPT_REMOVE_ALL_PATH'])) {
+            $p_remove_all_dir = $p_options['PCLZIP_OPT_REMOVE_ALL_PATH'];
         } else {
             $p_remove_all_dir = 0;
         }
@@ -3122,37 +3122,37 @@ class PclZip
             $v_extract = false;
 
             // ----- Look for extract by name rule
-            if ((isset($p_options[PCLZIP_OPT_BY_NAME])) && ($p_options[PCLZIP_OPT_BY_NAME] != 0)) {
+            if ((isset($p_options['PCLZIP_OPT_BY_NAME'])) && ($p_options['PCLZIP_OPT_BY_NAME'] != 0)) {
                 // ----- Look if the filename is in the list
-                for ($j=0; ($j<sizeof($p_options[PCLZIP_OPT_BY_NAME])) && (!$v_extract); $j++) {
+                for ($j=0; ($j<sizeof($p_options['PCLZIP_OPT_BY_NAME'])) && (!$v_extract); $j++) {
                     // ----- Look for a directory
-                    if (substr($p_options[PCLZIP_OPT_BY_NAME][$j], -1) == "/") {
+                    if (substr($p_options['PCLZIP_OPT_BY_NAME'][$j], -1) == "/") {
                         // ----- Look if the directory is in the filename path
-                        if ((strlen($v_header['stored_filename']) > strlen($p_options[PCLZIP_OPT_BY_NAME][$j])) && (substr($v_header['stored_filename'], 0, strlen($p_options[PCLZIP_OPT_BY_NAME][$j])) == $p_options[PCLZIP_OPT_BY_NAME][$j])) {
+                        if ((strlen($v_header['stored_filename']) > strlen($p_options['PCLZIP_OPT_BY_NAME'][$j])) && (substr($v_header['stored_filename'], 0, strlen($p_options['PCLZIP_OPT_BY_NAME'][$j])) == $p_options['PCLZIP_OPT_BY_NAME'][$j])) {
                             $v_extract = true;
                         }
-                    } elseif ($v_header['stored_filename'] == $p_options[PCLZIP_OPT_BY_NAME][$j]) {
+                    } elseif ($v_header['stored_filename'] == $p_options['PCLZIP_OPT_BY_NAME'][$j]) {
                         // ----- Look for a filename
                         $v_extract = true;
                     }
                 }
-            } elseif ((isset($p_options[PCLZIP_OPT_BY_PREG])) && ($p_options[PCLZIP_OPT_BY_PREG] != "")) {
+            } elseif ((isset($p_options['PCLZIP_OPT_BY_PREG'])) && ($p_options['PCLZIP_OPT_BY_PREG'] != "")) {
                 // ----- Look for extract by preg rule
-                if (preg_match($p_options[PCLZIP_OPT_BY_PREG], $v_header['stored_filename'])) {
+                if (preg_match($p_options['PCLZIP_OPT_BY_PREG'], $v_header['stored_filename'])) {
                     $v_extract = true;
                 }
-            } elseif ((isset($p_options[PCLZIP_OPT_BY_INDEX])) && ($p_options[PCLZIP_OPT_BY_INDEX] != 0)) {
+            } elseif ((isset($p_options['PCLZIP_OPT_BY_INDEX'])) && ($p_options['PCLZIP_OPT_BY_INDEX'] != 0)) {
                 // ----- Look for extract by index rule
                 // ----- Look if the index is in the list
-                for ($j=$j_start; ($j<sizeof($p_options[PCLZIP_OPT_BY_INDEX])) && (!$v_extract); $j++) {
-                    if (($i>=$p_options[PCLZIP_OPT_BY_INDEX][$j]['start']) && ($i<=$p_options[PCLZIP_OPT_BY_INDEX][$j]['end'])) {
+                for ($j=$j_start; ($j<sizeof($p_options['PCLZIP_OPT_BY_INDEX'])) && (!$v_extract); $j++) {
+                    if (($i>=$p_options['PCLZIP_OPT_BY_INDEX'][$j]['start']) && ($i<=$p_options['PCLZIP_OPT_BY_INDEX'][$j]['end'])) {
                             $v_extract = true;
                     }
-                    if ($i>=$p_options[PCLZIP_OPT_BY_INDEX][$j]['end']) {
+                    if ($i>=$p_options['PCLZIP_OPT_BY_INDEX'][$j]['end']) {
                             $j_start = $j+1;
                     }
 
-                    if ($p_options[PCLZIP_OPT_BY_INDEX][$j]['start']>$i) {
+                    if ($p_options['PCLZIP_OPT_BY_INDEX'][$j]['start']>$i) {
                         break;
                     }
                 }
@@ -3166,7 +3166,7 @@ class PclZip
                 $v_header['status'] = 'unsupported_compression';
 
                 // ----- Look for PCLZIP_OPT_STOP_ON_ERROR
-                if ((isset($p_options[PCLZIP_OPT_STOP_ON_ERROR])) && ($p_options[PCLZIP_OPT_STOP_ON_ERROR] === true)) {
+                if ((isset($p_options['PCLZIP_OPT_STOP_ON_ERROR'])) && ($p_options['PCLZIP_OPT_STOP_ON_ERROR'] === true)) {
                     $this->privSwapBackMagicQuotes();
 
                     PclZip::privErrorLog(PCLZIP_ERR_UNSUPPORTED_COMPRESSION, "Filename '".$v_header['stored_filename']."' is compressed by an unsupported compression method (".$v_header['compression'].") ");
@@ -3179,7 +3179,7 @@ class PclZip
             if (($v_extract) && (($v_header['flag'] & 1) == 1)) {
                 $v_header['status'] = 'unsupported_encryption';
                 // ----- Look for PCLZIP_OPT_STOP_ON_ERROR
-                if ((isset($p_options[PCLZIP_OPT_STOP_ON_ERROR])) && ($p_options[PCLZIP_OPT_STOP_ON_ERROR] === true)) {
+                if ((isset($p_options['PCLZIP_OPT_STOP_ON_ERROR'])) && ($p_options['PCLZIP_OPT_STOP_ON_ERROR'] === true)) {
                     $this->privSwapBackMagicQuotes();
 
                     PclZip::privErrorLog(PCLZIP_ERR_UNSUPPORTED_ENCRYPTION, "Unsupported encryption for  filename '".$v_header['stored_filename']."'");
@@ -3218,7 +3218,7 @@ class PclZip
                 }
 
                 // ----- Look for extraction as string
-                if ($p_options[PCLZIP_OPT_EXTRACT_AS_STRING]) {
+                if ($p_options['PCLZIP_OPT_EXTRACT_AS_STRING']) {
                     $v_string = '';
 
                     // ----- Extracting the file
@@ -3248,7 +3248,7 @@ class PclZip
                     if ($v_result1 == 2) {
                         break;
                     }
-                } elseif ((isset($p_options[PCLZIP_OPT_EXTRACT_IN_OUTPUT])) && ($p_options[PCLZIP_OPT_EXTRACT_IN_OUTPUT])) {
+                } elseif ((isset($p_options['PCLZIP_OPT_EXTRACT_IN_OUTPUT'])) && ($p_options['PCLZIP_OPT_EXTRACT_IN_OUTPUT'])) {
                     // ----- Look for extraction in standard output
                     // ----- Extracting the file in standard output
                     $v_result1 = $this->privExtractFileInOutput($v_header, $p_options);
@@ -3364,8 +3364,8 @@ class PclZip
         }
 
         // ----- Check a base_dir_restriction
-        if (isset($p_options[PCLZIP_OPT_EXTRACT_DIR_RESTRICTION])) {
-            $v_inclusion = PclZipUtilPathInclusion($p_options[PCLZIP_OPT_EXTRACT_DIR_RESTRICTION], $p_entry['filename']);
+        if (isset($p_options['PCLZIP_OPT_EXTRACT_DIR_RESTRICTION'])) {
+            $v_inclusion = PclZipUtilPathInclusion($p_options['PCLZIP_OPT_EXTRACT_DIR_RESTRICTION'], $p_entry['filename']);
             if ($v_inclusion == 0) {
                 PclZip::privErrorLog(PCLZIP_ERR_DIRECTORY_RESTRICTION, "Filename '".$p_entry['filename']."' is outside PCLZIP_OPT_EXTRACT_DIR_RESTRICTION");
 
@@ -3374,7 +3374,7 @@ class PclZip
         }
 
         // ----- Look for pre-extract callback
-        if (isset($p_options[PCLZIP_CB_PRE_EXTRACT])) {
+        if (isset($p_options['PCLZIP_CB_PRE_EXTRACT'])) {
             // ----- Generate a local information
             $v_local_header = array();
             $this->privConvertHeader2FileInfo($p_entry, $v_local_header);
@@ -3383,7 +3383,7 @@ class PclZip
             // Here I do not use call_user_func() because I need to send a reference to the
             // header.
     //            eval('$v_result = '.$p_options[PCLZIP_CB_PRE_EXTRACT].'(PCLZIP_CB_PRE_EXTRACT, $v_local_header);');
-            $v_result = $p_options[PCLZIP_CB_PRE_EXTRACT](PCLZIP_CB_PRE_EXTRACT, $v_local_header);
+            $v_result = $p_options['PCLZIP_CB_PRE_EXTRACT'](PCLZIP_CB_PRE_EXTRACT, $v_local_header);
             if ($v_result == 0) {
                 // ----- Change the file status
                 $p_entry['status'] = "skipped";
@@ -3414,7 +3414,7 @@ class PclZip
                     // ----- Look for PCLZIP_OPT_STOP_ON_ERROR
                     // For historical reason first PclZip implementation does not stop
                     // when this kind of error occurs.
-                    if ((isset($p_options[PCLZIP_OPT_STOP_ON_ERROR])) && ($p_options[PCLZIP_OPT_STOP_ON_ERROR]===true)) {
+                    if ((isset($p_options['PCLZIP_OPT_STOP_ON_ERROR'])) && ($p_options['PCLZIP_OPT_STOP_ON_ERROR']===true)) {
                         PclZip::privErrorLog(PCLZIP_ERR_ALREADY_A_DIRECTORY, "Filename '".$p_entry['filename']."' is already used by an existing directory");
                         return PclZip::errorCode();
                     }
@@ -3426,21 +3426,21 @@ class PclZip
                     // ----- Look for PCLZIP_OPT_STOP_ON_ERROR
                     // For historical reason first PclZip implementation does not stop
                     // when this kind of error occurs.
-                    if ((isset($p_options[PCLZIP_OPT_STOP_ON_ERROR])) && ($p_options[PCLZIP_OPT_STOP_ON_ERROR] === true)) {
+                    if ((isset($p_options['PCLZIP_OPT_STOP_ON_ERROR'])) && ($p_options['PCLZIP_OPT_STOP_ON_ERROR'] === true)) {
                         PclZip::privErrorLog(PCLZIP_ERR_WRITE_OPEN_FAIL, "Filename '".$p_entry['filename']."' exists and is write protected");
                         return PclZip::errorCode();
                     }
                 } elseif (filemtime($p_entry['filename']) > $p_entry['mtime']) {
                     // ----- Look if the extracted file is older
                     // ----- Change the file status
-                    if ((isset($p_options[PCLZIP_OPT_REPLACE_NEWER])) && ($p_options[PCLZIP_OPT_REPLACE_NEWER] === true)) {
+                    if ((isset($p_options['PCLZIP_OPT_REPLACE_NEWER'])) && ($p_options['PCLZIP_OPT_REPLACE_NEWER'] === true)) {
                     } else {
                         $p_entry['status'] = "newer_exist";
 
                         // ----- Look for PCLZIP_OPT_STOP_ON_ERROR
                         // For historical reason first PclZip implementation does not stop
                         // when this kind of error occurs.
-                        if ((isset($p_options[PCLZIP_OPT_STOP_ON_ERROR])) && ($p_options[PCLZIP_OPT_STOP_ON_ERROR] === true)) {
+                        if ((isset($p_options['PCLZIP_OPT_STOP_ON_ERROR'])) && ($p_options['PCLZIP_OPT_STOP_ON_ERROR'] === true)) {
                             PclZip::privErrorLog(PCLZIP_ERR_WRITE_OPEN_FAIL, "Newer version of '".$p_entry['filename']."' exists and option PCLZIP_OPT_REPLACE_NEWER is not selected");
                             return PclZip::errorCode();
                         }
@@ -3510,7 +3510,7 @@ class PclZip
                     }
 
                     // ----- Look for using temporary file to unzip
-                    if ((!isset($p_options[PCLZIP_OPT_TEMP_FILE_OFF])) && (isset($p_options[PCLZIP_OPT_TEMP_FILE_ON]) || (isset($p_options[PCLZIP_OPT_TEMP_FILE_THRESHOLD]) && ($p_options[PCLZIP_OPT_TEMP_FILE_THRESHOLD] <= $p_entry['size'])))) {
+                    if ((!isset($p_options['PCLZIP_OPT_TEMP_FILE_OFF'])) && (isset($p_options['PCLZIP_OPT_TEMP_FILE_ON']) || (isset($p_options['PCLZIP_OPT_TEMP_FILE_THRESHOLD']) && ($p_options['PCLZIP_OPT_TEMP_FILE_THRESHOLD'] <= $p_entry['size'])))) {
                         $v_result = $this->privExtractFileUsingTempFile($p_entry, $p_options);
                         if ($v_result < PCLZIP_ERR_NO_ERROR) {
                             return $v_result;
@@ -3552,9 +3552,9 @@ class PclZip
                 }
 
                 // ----- Look for chmod option
-                if (isset($p_options[PCLZIP_OPT_SET_CHMOD])) {
+                if (isset($p_options['PCLZIP_OPT_SET_CHMOD'])) {
                     // ----- Change the mode of the file
-                    @chmod($p_entry['filename'], $p_options[PCLZIP_OPT_SET_CHMOD]);
+                    @chmod($p_entry['filename'], $p_options['PCLZIP_OPT_SET_CHMOD']);
                 }
             }
         }
@@ -3562,7 +3562,7 @@ class PclZip
         // ----- Change abort status
         if ($p_entry['status'] == "aborted") {
             $p_entry['status'] = "skipped";
-        } elseif (isset($p_options[PCLZIP_CB_POST_EXTRACT])) {
+        } elseif (isset($p_options['PCLZIP_CB_POST_EXTRACT'])) {
             // ----- Look for post-extract callback
             // ----- Generate a local information
             $v_local_header = array();
@@ -3572,7 +3572,7 @@ class PclZip
             // Here I do not use call_user_func() because I need to send a reference to the
             // header.
     //            eval('$v_result = '.$p_options[PCLZIP_CB_POST_EXTRACT].'(PCLZIP_CB_POST_EXTRACT, $v_local_header);');
-            $v_result = $p_options[PCLZIP_CB_POST_EXTRACT](PCLZIP_CB_POST_EXTRACT, $v_local_header);
+            $v_result = $p_options['PCLZIP_CB_POST_EXTRACT'](PCLZIP_CB_POST_EXTRACT, $v_local_header);
 
             // ----- Look for abort result
             if ($v_result == 2) {
@@ -3679,7 +3679,7 @@ class PclZip
         }
 
         // ----- Look for pre-extract callback
-        if (isset($p_options[PCLZIP_CB_PRE_EXTRACT])) {
+        if (isset($p_options['PCLZIP_CB_PRE_EXTRACT'])) {
             // ----- Generate a local information
             $v_local_header = array();
             $this->privConvertHeader2FileInfo($p_entry, $v_local_header);
@@ -3688,7 +3688,7 @@ class PclZip
             // Here I do not use call_user_func() because I need to send a reference to the
             // header.
     //            eval('$v_result = '.$p_options[PCLZIP_CB_PRE_EXTRACT].'(PCLZIP_CB_PRE_EXTRACT, $v_local_header);');
-            $v_result = $p_options[PCLZIP_CB_PRE_EXTRACT](PCLZIP_CB_PRE_EXTRACT, $v_local_header);
+            $v_result = $p_options['PCLZIP_CB_PRE_EXTRACT'](PCLZIP_CB_PRE_EXTRACT, $v_local_header);
             if ($v_result == 0) {
                 // ----- Change the file status
                 $p_entry['status'] = "skipped";
@@ -3739,7 +3739,7 @@ class PclZip
         // ----- Change abort status
         if ($p_entry['status'] == "aborted") {
             $p_entry['status'] = "skipped";
-        } elseif (isset($p_options[PCLZIP_CB_POST_EXTRACT])) {
+        } elseif (isset($p_options['PCLZIP_CB_POST_EXTRACT'])) {
             // ----- Look for post-extract callback
 
             // ----- Generate a local information
@@ -3750,7 +3750,7 @@ class PclZip
             // Here I do not use call_user_func() because I need to send a reference to the
             // header.
     //            eval('$v_result = '.$p_options[PCLZIP_CB_POST_EXTRACT].'(PCLZIP_CB_POST_EXTRACT, $v_local_header);');
-            $v_result = $p_options[PCLZIP_CB_POST_EXTRACT](PCLZIP_CB_POST_EXTRACT, $v_local_header);
+            $v_result = $p_options['PCLZIP_CB_POST_EXTRACT'](PCLZIP_CB_POST_EXTRACT, $v_local_header);
 
             // ----- Look for abort result
             if ($v_result == 2) {
@@ -3785,7 +3785,7 @@ class PclZip
         }
 
         // ----- Look for pre-extract callback
-        if (isset($p_options[PCLZIP_CB_PRE_EXTRACT])) {
+        if (isset($p_options['PCLZIP_CB_PRE_EXTRACT'])) {
             // ----- Generate a local information
             $v_local_header = array();
             $this->privConvertHeader2FileInfo($p_entry, $v_local_header);
@@ -3794,7 +3794,7 @@ class PclZip
             // Here I do not use call_user_func() because I need to send a reference to the
             // header.
     //            eval('$v_result = '.$p_options[PCLZIP_CB_PRE_EXTRACT].'(PCLZIP_CB_PRE_EXTRACT, $v_local_header);');
-            $v_result = $p_options[PCLZIP_CB_PRE_EXTRACT](PCLZIP_CB_PRE_EXTRACT, $v_local_header);
+            $v_result = $p_options['PCLZIP_CB_PRE_EXTRACT'](PCLZIP_CB_PRE_EXTRACT, $v_local_header);
             if ($v_result == 0) {
                 // ----- Change the file status
                 $p_entry['status'] = "skipped";
@@ -3840,7 +3840,7 @@ class PclZip
         // ----- Change abort status
         if ($p_entry['status'] == "aborted") {
             $p_entry['status'] = "skipped";
-        } elseif (isset($p_options[PCLZIP_CB_POST_EXTRACT])) {
+        } elseif (isset($p_options['PCLZIP_CB_POST_EXTRACT'])) {
             // ----- Look for post-extract callback
             // ----- Generate a local information
             $v_local_header = array();
@@ -3854,7 +3854,7 @@ class PclZip
             // Here I do not use call_user_func() because I need to send a reference to the
             // header.
     //            eval('$v_result = '.$p_options[PCLZIP_CB_POST_EXTRACT].'(PCLZIP_CB_POST_EXTRACT, $v_local_header);');
-            $v_result = $p_options[PCLZIP_CB_POST_EXTRACT](PCLZIP_CB_POST_EXTRACT, $v_local_header);
+            $v_result = $p_options['PCLZIP_CB_POST_EXTRACT'](PCLZIP_CB_POST_EXTRACT, $v_local_header);
 
             // ----- Swap back the content to header
             $p_string = $v_local_header['content'];
@@ -4318,38 +4318,38 @@ class PclZip
             $v_found = false;
 
             // ----- Look for extract by name rule
-            if ((isset($p_options[PCLZIP_OPT_BY_NAME])) && ($p_options[PCLZIP_OPT_BY_NAME] != 0)) {
+            if ((isset($p_options['PCLZIP_OPT_BY_NAME'])) && ($p_options['PCLZIP_OPT_BY_NAME'] != 0)) {
                 // ----- Look if the filename is in the list
-                for ($j=0; ($j<sizeof($p_options[PCLZIP_OPT_BY_NAME])) && (!$v_found); $j++) {
+                for ($j=0; ($j<sizeof($p_options['PCLZIP_OPT_BY_NAME'])) && (!$v_found); $j++) {
                     // ----- Look for a directory
-                    if (substr($p_options[PCLZIP_OPT_BY_NAME][$j], -1) == "/") {
+                    if (substr($p_options['PCLZIP_OPT_BY_NAME'][$j], -1) == "/") {
                         // ----- Look if the directory is in the filename path
-                        if ((strlen($v_header_list[$v_nb_extracted]['stored_filename']) > strlen($p_options[PCLZIP_OPT_BY_NAME][$j])) && (substr($v_header_list[$v_nb_extracted]['stored_filename'], 0, strlen($p_options[PCLZIP_OPT_BY_NAME][$j])) == $p_options[PCLZIP_OPT_BY_NAME][$j])) {
+                        if ((strlen($v_header_list[$v_nb_extracted]['stored_filename']) > strlen($p_options['PCLZIP_OPT_BY_NAME'][$j])) && (substr($v_header_list[$v_nb_extracted]['stored_filename'], 0, strlen($p_options['PCLZIP_OPT_BY_NAME'][$j])) == $p_options['PCLZIP_OPT_BY_NAME'][$j])) {
                             $v_found = true;
-                        } elseif ((($v_header_list[$v_nb_extracted]['external']&0x00000010)==0x00000010) /* Indicates a folder */ && ($v_header_list[$v_nb_extracted]['stored_filename'].'/' == $p_options[PCLZIP_OPT_BY_NAME][$j])) {
+                        } elseif ((($v_header_list[$v_nb_extracted]['external']&0x00000010)==0x00000010) /* Indicates a folder */ && ($v_header_list[$v_nb_extracted]['stored_filename'].'/' == $p_options['PCLZIP_OPT_BY_NAME'][$j])) {
                             $v_found = true;
                         }
-                    } elseif ($v_header_list[$v_nb_extracted]['stored_filename'] == $p_options[PCLZIP_OPT_BY_NAME][$j]) {
+                    } elseif ($v_header_list[$v_nb_extracted]['stored_filename'] == $p_options['PCLZIP_OPT_BY_NAME'][$j]) {
                         // ----- Look for a filename
                         $v_found = true;
                     }
                 }
-            } elseif ((isset($p_options[PCLZIP_OPT_BY_PREG])) && ($p_options[PCLZIP_OPT_BY_PREG] != "")) {
+            } elseif ((isset($p_options['PCLZIP_OPT_BY_PREG'])) && ($p_options['PCLZIP_OPT_BY_PREG'] != "")) {
                 // ----- Look for extract by preg rule
-                if (preg_match($p_options[PCLZIP_OPT_BY_PREG], $v_header_list[$v_nb_extracted]['stored_filename'])) {
+                if (preg_match($p_options['PCLZIP_OPT_BY_PREG'], $v_header_list[$v_nb_extracted]['stored_filename'])) {
                         $v_found = true;
                 }
-            } elseif ((isset($p_options[PCLZIP_OPT_BY_INDEX])) && ($p_options[PCLZIP_OPT_BY_INDEX] != 0)) {
+            } elseif ((isset($p_options['PCLZIP_OPT_BY_INDEX'])) && ($p_options['PCLZIP_OPT_BY_INDEX'] != 0)) {
                 // ----- Look for extract by index rule
                 // ----- Look if the index is in the list
-                for ($j=$j_start; ($j<sizeof($p_options[PCLZIP_OPT_BY_INDEX])) && (!$v_found); $j++) {
-                    if (($i>=$p_options[PCLZIP_OPT_BY_INDEX][$j]['start']) && ($i<=$p_options[PCLZIP_OPT_BY_INDEX][$j]['end'])) {
+                for ($j=$j_start; ($j<sizeof($p_options['PCLZIP_OPT_BY_INDEX'])) && (!$v_found); $j++) {
+                    if (($i>=$p_options['PCLZIP_OPT_BY_INDEX'][$j]['start']) && ($i<=$p_options['PCLZIP_OPT_BY_INDEX'][$j]['end'])) {
                         $v_found = true;
                     }
-                    if ($i>=$p_options[PCLZIP_OPT_BY_INDEX][$j]['end']) {
+                    if ($i>=$p_options['PCLZIP_OPT_BY_INDEX'][$j]['end']) {
                         $j_start = $j+1;
                     }
-                    if ($p_options[PCLZIP_OPT_BY_INDEX][$j]['start']>$i) {
+                    if ($p_options['PCLZIP_OPT_BY_INDEX'][$j]['start']>$i) {
                         break;
                     }
                 }
@@ -4461,8 +4461,8 @@ class PclZip
 
             // ----- Zip file comment
             $v_comment = '';
-            if (isset($p_options[PCLZIP_OPT_COMMENT])) {
-                $v_comment = $p_options[PCLZIP_OPT_COMMENT];
+            if (isset($p_options['PCLZIP_OPT_COMMENT'])) {
+                $v_comment = $p_options['PCLZIP_OPT_COMMENT'];
             }
 
             // ----- Calculate the size of the central header

@@ -11,7 +11,7 @@ $objPHPExcel = new PHPExcel();
 
 //$var_soal = "$_REQUEST[ujian]";
 
-$hasil = mysql_query("SELECT * FROM cbt_soal WHERE XKodeSoal = '$_REQUEST[idsoal]'");
+$hasil = mysql_query("SELECT * FROM cbt_soal WHERE XKodeSoal = '{$_REQUEST['idsoal']}'");
 
 // Set properties
 $objPHPExcel->getProperties()->setCreator("Sigit Hariono")
@@ -101,7 +101,7 @@ $objPHPExcel->getActiveSheet()->setTitle('transaksi');
  
 // Set active sheet index to the first sheet, so Excel opens this as the first sheet
 $objPHPExcel->setActiveSheetIndex(0);
-$namasoal = "$_REQUEST[idsoal]";
+$namasoal = "{$_REQUEST['idsoal']}";
 // Redirect output to a client’s web browser (Excel5)
 header('Content-Type: application/vnd.ms-excel');
 header('Content-Disposition: attachment;filename="Soal_'.$namasoal.'.xls"');

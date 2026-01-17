@@ -20,7 +20,7 @@ if(isset($_REQUEST['modul'])){
                 <div class="col-lg-10" style="margin-top:10px;">
                     <div class="panel panel-green">
                         <div class="panel-heading">
-<?php echo "<a href=?modul=daftar_soal&soal=$_REQUEST[soal]><button type='button' class='btn btn-default'><i class='fa fa-arrow-left'></i> Kembali ke Bank Soal</button></a>"; ?>	
+<?php echo "<a href=?modul=daftar_soal&soal={$_REQUEST['soal']}><button type='button' class='btn btn-default'><i class='fa fa-arrow-left'></i> Kembali ke Bank Soal</button></a>"; ?>	
                            Download File Excel (Template Data Soal) 	
                         </div>
                         <div class="panel-body">
@@ -63,7 +63,7 @@ if(isset($_REQUEST['modul'])){
                         &nbsp;<input name="upload" type="submit" value="Import"  class="btn btn-info" style="margin-top:0px">
                         </td></tr></table>
                         </form>
-                        <div style="margin-top:10px;">Persentase Proses Upload <? echo $kata; ?> </div>
+                        <div style="margin-top:10px;">Persentase Proses Upload <?php echo $kata; ?> </div>
 <!-- Progress bar holder -->
 <div id="progress" style="width:75%; border:1px solid #ccc; padding:5px; margin-top:10px; height:33px"></div>
 <!-- Progress information -->
@@ -73,8 +73,8 @@ if(isset($_REQUEST['modul'])){
 if($_REQUEST['modul']=="uploadsoal"){
 // menggunakan class phpExcelReader
 include "excel_reader2.php";
-$xkodemapel = "$_REQUEST[txt_mapel]";
-$xkodesoal = "$_REQUEST[soal]";
+$xkodemapel = "{$_REQUEST['txt_mapel']}";
+$xkodesoal = "{$_REQUEST['soal']}";
 //$xkodekelas = "$_REQUEST[txt_level]";
 // membaca file excel yang diupload
 $data = new Spreadsheet_Excel_Reader($_FILES['userfile']['tmp_name']);

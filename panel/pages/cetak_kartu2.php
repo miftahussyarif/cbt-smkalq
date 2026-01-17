@@ -6,22 +6,21 @@
 <tr>
 <?php
 //koneksi database
-mysql_connect("localhost:3307", "root", "");
-mysql_select_db("cbt");//fungsi pagination
+require_once __DIR__ . "/../../config/server.php";
 $BatasAwal = 50;
 
-if (!empty($_GET['page']))  {
-$hal = $_GET['page'] - 1;
-$MulaiAwal = $BatasAwal * $hal;
-} else if (!empty($_GET['page']) and $_GET['page'] == 1) {
-$MulaiAwal = 0;
-} else if (empty($_GET['page'])) {
-$MulaiAwal = 0;
-}//tampil data
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+if ($page < 1) {
+	$page = 1;
+}
+$MulaiAwal = $BatasAwal * ($page - 1);
+//tampil data
 $kolom = 2;
 $i = 0;
-$query = mysql_query("SELECT * FROM cbt_siswa LIMIT $MulaiAwal , $BatasAwal");
-while ($record = mysql_fetch_array($query)) {
+$MulaiAwal = (int) $MulaiAwal;
+$BatasAwal = (int) $BatasAwal;
+$query = db_query($db, "SELECT * FROM cbt_siswa LIMIT $MulaiAwal, $BatasAwal", array());
+while ($record = $query->fetch()) {
 	   if ($i >= $kolom) {
         echo "<tr></tr>";
         $i = 0;
@@ -61,8 +60,8 @@ while ($record = mysql_fetch_array($query)) {
 </tr>
 </table>
 <?php
-$cekQuery = mysql_query("SELECT * FROM cbt_siswa");
-$jumlahData = mysql_num_rows($cekQuery);
+$cekQuery = db_query($db, "SELECT COUNT(*) FROM cbt_siswa", array());
+$jumlahData = (int) db_fetch_value($cekQuery);
 if ($jumlahData > $BatasAwal) {
 echo '<br/><center><div style="font-size:10pt;">Page : ';
 $a = explode(".", $jumlahData / $BatasAwal);
@@ -70,7 +69,7 @@ $b = $a[0];
 $c = $b + 1;
 for ($i = 1; $i <= $c; $i++) {
 echo '<a style="text-decoration:none;';
-if ($_GET['page'] == $i) {
+if ($page == $i) {
 echo 'color:red';
 }
 echo '" href="?page=' . $i . '">' . $i . '</a>, ';

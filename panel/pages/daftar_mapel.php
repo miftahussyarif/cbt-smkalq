@@ -1,26 +1,52 @@
 <?php
 	if(!isset($_COOKIE['beeuser'])){
 	header("Location: login.php");}
-include "../../config/server.php";
+require_once __DIR__ . "/../../config/server.php";
 if(isset($_REQUEST['aksi'])){
 //echo "delete from cbt_kelas where Urut = '$_REQUEST[urut]'";
-$sql = mysql_query("delete from cbt_mapel where Urut = '$_REQUEST[urut]'");
+	$urut = isset($_REQUEST['urut']) ? $_REQUEST['urut'] : '';
+	if ($urut !== '') {
+		db_query($db, "delete from cbt_mapel where Urut = ?", array($urut));
+	}
 }
 if(isset($_REQUEST['simpan'])){
 
-	$sql = mysql_query("update cbt_mapel set XKodeMapel = '$_REQUEST[txt_kokel]', XNamaMapel = '$_REQUEST[txt_nakel]', XPersenUH = '$_REQUEST[txt_UH]',
-	XPersenUTS = '$_REQUEST[txt_UTS]',XPersenUAS = '$_REQUEST[txt_UAS]',XKKM = '$_REQUEST[txt_KKM]',XMapelAgama='$_REQUEST[txt_mapelagama]'  where Urut = '$_REQUEST[id]'");
+	$id = isset($_REQUEST['id']) ? $_REQUEST['id'] : '';
+	$kode = isset($_REQUEST['txt_kokel']) ? $_REQUEST['txt_kokel'] : '';
+	$nama = isset($_REQUEST['txt_nakel']) ? $_REQUEST['txt_nakel'] : '';
+	$uh = isset($_REQUEST['txt_UH']) ? $_REQUEST['txt_UH'] : '';
+	$uts = isset($_REQUEST['txt_UTS']) ? $_REQUEST['txt_UTS'] : '';
+	$uas = isset($_REQUEST['txt_UAS']) ? $_REQUEST['txt_UAS'] : '';
+	$kkm = isset($_REQUEST['txt_KKM']) ? $_REQUEST['txt_KKM'] : '';
+	$mapelAgama = isset($_REQUEST['txt_mapelagama']) ? $_REQUEST['txt_mapelagama'] : '';
+
+	db_query(
+		$db,
+		"update cbt_mapel set XKodeMapel = ?, XNamaMapel = ?, XPersenUH = ?, XPersenUTS = ?, XPersenUAS = ?, XKKM = ?, XMapelAgama = ? where Urut = ?",
+		array($kode, $nama, $uh, $uts, $uas, $kkm, $mapelAgama, $id)
+	);
 
 }
 if(isset($_REQUEST['tambah'])){
 
-$sqlcek = mysql_num_rows(mysql_query("select * from cbt_mapel where XKodeMapel = '$_REQUEST[txt_kokel]'"));
-	if($sqlcek>0){
+$kode = isset($_REQUEST['txt_kokel']) ? $_REQUEST['txt_kokel'] : '';
+$nama = isset($_REQUEST['txt_nakel']) ? $_REQUEST['txt_nakel'] : '';
+$uh = isset($_REQUEST['txt_UH']) ? $_REQUEST['txt_UH'] : '';
+$uts = isset($_REQUEST['txt_UTS']) ? $_REQUEST['txt_UTS'] : '';
+$uas = isset($_REQUEST['txt_UAS']) ? $_REQUEST['txt_UAS'] : '';
+$kkm = isset($_REQUEST['txt_KKM']) ? $_REQUEST['txt_KKM'] : '';
+$mapelAgama = isset($_REQUEST['txt_mapelagama']) ? $_REQUEST['txt_mapelagama'] : '';
+
+$sqlcek = db_query($db, "select 1 from cbt_mapel where XKodeMapel = ? limit 1", array($kode));
+	if(db_fetch_one($sqlcek)){
 	$message = "Kode Mapel SUDAH ADA";
 	echo "<script type='text/javascript'>alert('$message');</script>";
 	} else {
-	$sql = mysql_query("insert into cbt_mapel (XKodeMapel, XNamaMapel, XPersenUH,
-	XPersenUTS,XPersenUAS ,XKKM,XMapelAgama) values ('$_REQUEST[txt_kokel]','$_REQUEST[txt_nakel]','$_REQUEST[txt_UH]','$_REQUEST[txt_UTS]','$_REQUEST[txt_UAS]','$_REQUEST[txt_KKM]','$_REQUEST[txt_mapelagama]')");
+	db_query(
+		$db,
+		"insert into cbt_mapel (XKodeMapel, XNamaMapel, XPersenUH, XPersenUTS, XPersenUAS, XKKM, XMapelAgama) values (?, ?, ?, ?, ?, ?, ?)",
+		array($kode, $nama, $uh, $uts, $uas, $kkm, $mapelAgama)
+	);
 	}
 }
 
@@ -105,8 +131,8 @@ Tambah Mapel</button>
                                 </thead>
                                 <tbody>
                                 <?php 
-								$sql = mysql_query("select * from cbt_mapel order by Urut");
-								while($s = mysql_fetch_array($sql)){ 
+								$sql = db_query($db, "select * from cbt_mapel order by Urut", array());
+								while($s = $sql->fetch()){ 
 								?>
                                 
                                     <tr class="odd gradeX">

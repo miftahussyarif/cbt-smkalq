@@ -111,7 +111,7 @@ img {
                                 <?php 
                                 $sqlkelas = mysql_query("select * from cbt_mapel order by XNamaMapel");
                                 while($sk = mysql_fetch_array($sqlkelas)){
-                                echo "<option value='$sk[XKodeMapel]'>$sk[XNamaMapel]</option>";
+                                echo "<option value='{$sk['XKodeMapel']}'>{$sk['XNamaMapel']}</option>";
                                 }
                                 ?>
                                 </select>

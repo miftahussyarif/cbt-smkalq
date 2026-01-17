@@ -5,7 +5,7 @@
 <?php
 include "../../config/server.php";
 if(isset($_REQUEST['aksion'])&&$_REQUEST['aksion']=="hapus"){
-	$sqlhapus = mysql_query("delete from  cbt_user where Urut = '$_REQUEST[urut]'");
+	$sqlhapus = mysql_query("delete from  cbt_user where Urut = '{$_REQUEST['urut']}'");
 }
 ?>  
 <html>

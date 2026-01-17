@@ -25,7 +25,7 @@ $namsek = $ad['XSekolah'];
 $kepsek = $ad['XKepSek'];
 $logsek = $ad['XLogo'];
 
-if(str_replace(" ","",$a['XFoto'])==""){$pic = "nouser.png";}else{$pic="$a[XFoto]";}
+if(str_replace(" ","",$a['XFoto'])==""){$pic = "nouser.png";}else{$pic="{$a['XFoto']}";}
 ?>
 <table style="width:10.2cm;border:1px solid black; padding-top:6px; font-family:Arial, Helvetica, sans-serif; font-size:12px" class="kartu" border="0">
 					<tbody>
@@ -44,7 +44,7 @@ if(str_replace(" ","",$a['XFoto'])==""){$pic = "nouser.png";}else{$pic="$a[XFoto
 			<tr height="10px"><td width="90">&nbsp;Nama Peserta</td><td width="8">:</td><td width="226" style="font-size:12px;font-weight:bold;"><?php echo $a['XNamaSiswa']; ?></td></tr>
 			<tr height="10px"><td>&nbsp;Jurusan</td><td>:</td><td style="font-size:12px;font-weight:bold;"><?php echo $a['XKodeJurusan']; ?></td></tr>    
 			<tr height="10px"><td>&nbsp;Sesi - Ruang</td><td>:</td><td style="font-size:12px;font-weight:bold;">
-			<?php echo "$a[XSesi] - $a[XRuang]"; ?></td></tr>                      
+			<?php echo "{$a['XSesi']} - {$a['XRuang']}"; ?></td></tr>                      
 			<tr height="10px"><td >&nbsp;Username</td><td>:</td><td style="font-size:12px;font-weight:bold;"><?php echo $a['XNomerUjian']; ?></td></tr>
 			<tr height="10px"><td>&nbsp;Password</td><td>:</td><td style="font-size:12px;font-weight:bold;"><?php echo $a['XPassword']; ?></td></tr>
 			<tr height="10px"><td rowspan="3" align="center"><img src="../../fotosiswa/<?php echo $pic; ?>" height="60px" border="thin solid red"></td>
@@ -65,7 +65,7 @@ $BatasAwal = 20;
 
 if(isset($_REQUEST['kelas'])&&isset($_REQUEST['jur'])){ 
 $cekQuery = mysql_query("
-SELECT * FROM cbt_siswa where XKodeKelas = '$_REQUEST[kelas]' and  XKodeJurusan = '$_REQUEST[jur]' ");
+SELECT * FROM cbt_siswa where XKodeKelas = '{$_REQUEST['kelas']}' and  XKodeJurusan = '{$_REQUEST['jur']}' ");
 } else {
 $cekQuery = mysql_query("SELECT * FROM cbt_siswa"); 
 }
@@ -80,8 +80,8 @@ $mulai = $i-1;
 $batas = ($mulai*$jumlahn);
 $startawal = $batas;
 $batasakhir = $batas+$jumlahn;
-$kokelz = "$_REQUEST[kelas]";
-$kojurz = "$_REQUEST[jur]";
+$kokelz = "{$_REQUEST['kelas']}";
+$kojurz = "{$_REQUEST['jur']}";
 
 ?>
 		<table width="100%" border="0" style="margin-top:8px;">

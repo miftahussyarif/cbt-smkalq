@@ -375,36 +375,48 @@ input[type="checkbox"] {
 </div>
 
 <?php
-include "cbt_con.php";
+require __DIR__ . '/config/server.php';
 
 //get pic id from ajax request
-if(isset($_POST["pic"]) && is_numeric($_POST["pic"]))
-{
-	$current_picture = filter_var($_POST["pic"], FILTER_SANITIZE_NUMBER_INT);
-}else{
-	$current_picture=1;
+if (isset($_POST["pic"]) && is_numeric($_POST["pic"])) {
+	$current_picture = (int) $_POST["pic"];
+} else {
+	$current_picture = 1;
 }
 
-//Connect to Database
+$next_id = null;
+$prev_id = null;
 
 //get next picture id
-$sql = mysql_query("SELECT id FROM pictures WHERE id > '$current_picture' ORDER BY id ASC LIMIT 1");
-$result = mysql_fetch_array($sql);
-if($result){
+$sql = db_query(
+	$db,
+	"SELECT id FROM pictures WHERE id > :current ORDER BY id ASC LIMIT 1",
+	array(':current' => $current_picture)
+);
+$result = db_fetch_one($sql);
+if ($result) {
 	$next_id = $result['id'];
 }
 
 //get previous picture id
-$sql = mysql_query("SELECT id FROM pictures WHERE id < $current_picture ORDER BY id DESC LIMIT 1");
-$result = mysql_fetch_array($sql);
-if($result){
+$sql = db_query(
+	$db,
+	"SELECT id FROM pictures WHERE id < :current ORDER BY id DESC LIMIT 1",
+	array(':current' => $current_picture)
+);
+$result = db_fetch_one($sql);
+if ($result) {
 	$prev_id = $result['id'];
 }
 
 //get details of current from database
-$sql = mysql_query("SELECT PictureTitle, PictureName FROM pictures WHERE id = $current_picture LIMIT 1");
-$result = mysql_fetch_array($sql);
-if($result){
+$sql = db_query(
+	$db,
+	"SELECT PictureTitle, PictureName FROM pictures WHERE id = :current LIMIT 1",
+	array(':current' => $current_picture)
+);
+$result = db_fetch_one($sql);
+if ($result) {
 	//construct next/previous button
 	$prev_button = (isset($prev_id) && $prev_id>0)?'<a href="#" data-id="'.$prev_id.'" class="get_pic"><img src="prev.png" border="0" /></a>':'';
 	$next_button = (isset($next_id) && $next_id>0)?'<a href="#" data-id="'.$next_id.'" class="get_pic"><img src="next.png" border="0" /></a>':'';
@@ -414,8 +426,8 @@ if($result){
 <div class="cc-selector">
 	<div id="kotaksoal">
   
-<?	//output html
-	echo "<span class='jawab'>aaa $result[PictureName]</span><img src='pictures/$result[PictureName]'>";
+<?php	//output html
+	echo "<span class='jawab'>aaa {$result['PictureName']}</span><img src='pictures/{$result['PictureName']}'>";
 ?>
     </div>
 </div>
@@ -427,9 +439,9 @@ if($result){
         <div class="action-wrapper">
             <div class="row1">
                 <div class="col-xs-4">
-                <? echo '<a href="#" data-id="'.$prev_id.'" class="get_pic">'; ?>
+                <?php echo '<a href="#" data-id="'.$prev_id.'" class="get_pic">'; ?>
                     <button id="btnPrevSoal" class="btn btn-default btn-prev" data-bind="click: gotoBack">SOAL SEBELUMNYA</button>
-                 <? echo '</a>'; ?>
+                 <?php echo '</a>'; ?>
                 </div>
                 <div class="col-xs-4 text-center">
                     <div class="unsure-checkbox" data-bind="with: testDetails()[currentNo()]">
@@ -440,15 +452,15 @@ if($result){
                     </div>
                 </div>
                 <div class="col-xs-4 text-right">
-                   <? echo '<a href="#" data-id="'.$next_id.'" class="get_pic">'; ?>  
-                   <button id="btnNextSoal" class="btn btn-primary btn-next activebutton" data-bind="css: { &#39;activebutton&#39;:(currentNo() &lt; totalQuestions - 1)}, visible: (currentNo() &lt; totalQuestions - 1),click: gotoNext">SOAL BERIKUTNYA</button><? echo '</a>'; ?>
+                   <?php echo '<a href="#" data-id="'.$next_id.'" class="get_pic">'; ?>  
+                   <button id="btnNextSoal" class="btn btn-primary btn-next activebutton" data-bind="css: { &#39;activebutton&#39;:(currentNo() &lt; totalQuestions - 1)}, visible: (currentNo() &lt; totalQuestions - 1),click: gotoNext">SOAL BERIKUTNYA</button><?php echo '</a>'; ?>
                     <button id="btnSelesai" class="btn btn-primary btn-next" data-bind="css: { &#39;activebutton&#39;:(currentNo() &gt;= totalQuestions - 1)}, visible: (currentNo() &gt;= totalQuestions - 1),click: gotoFinish" style="display: none;">SELESAI</button>
                 </div>
             </div>
         </div>
     </section>   </div> 	
 	
-<? } ?>  
+<?php } ?>  
 
 <script type="text/javascript" language="javascript">
                         $('.jawab').jfontsize({

@@ -18,7 +18,11 @@ if (!function_exists('cbt_ensure_pengawasan_table')) {
             KEY `idx_pengawasan_token` (`XTokenUjian`),
             KEY `idx_pengawasan_kodesoal` (`XKodeSoal`)
         ) ENGINE=InnoDB DEFAULT CHARSET=latin1";
-        mysql_query($sql);
+        global $db;
+        if (!isset($db)) {
+            return;
+        }
+        $db->exec($sql);
     }
 }
 ?>

@@ -375,8 +375,8 @@ box.addEventListener('change', function no_email_confirm() {
  		
         <li class="header">
             <div class="main"><span class="flex-putih">SOAL NO.</span>
-            <span class="flex-item" style="background-color:<? echo $cssb; ?>">
-            <? echo "2 $nosoal"; ?></span>
+            <span class="flex-item" style="background-color:<?php echo $cssb; ?>">
+            <?php echo "2 $nosoal"; ?></span>
             <span class="flex-biru"> <div id="h_timer"></div>
             </span>
             <span class="flex-abu">

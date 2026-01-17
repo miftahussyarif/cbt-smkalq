@@ -62,7 +62,7 @@ $(document).ready(function() {
   MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
 </script>
 <!-- script untuk refresh/reload mathjax setiap content baru 
-<iframe src="<?php echo "print_jawaban.php?soal=$_REQUEST[soal]&siswa=$_REQUEST[siswa]"; ?>" style="display:none;" name="frame"></iframe>
+<iframe src="<?php echo "print_jawaban.php?soal={$_REQUEST['soal']}&siswa={$_REQUEST['siswa']}"; ?>" style="display:none;" name="frame"></iframe>
 <button type="button" class="btn btn-default btn-sm" onClick="frames['frame'].print()" style="margin-top:10px; margin-bottom:5px"><i class="glyphicon glyphicon-print"></i> Cetak 
 </button>
 !-->
@@ -71,22 +71,38 @@ $(document).ready(function() {
                                         <button type="button" class="btn btn-success btn-small" style="margin-top:5px; margin-bottom:5px"><i class="fa fa-list"></i> Kembali ke Daftar</button></a>
 <br />
 <?php
-include "../../config/server.php";
+require_once __DIR__ . "/../../config/server.php";
 
-$var_soal = "$_REQUEST[soal]";
-$var_siswa = "$_REQUEST[siswa]";
-$var_token = "$_REQUEST[token]";
+$var_soal = isset($_REQUEST['soal']) ? $_REQUEST['soal'] : '';
+$var_siswa = isset($_REQUEST['siswa']) ? $_REQUEST['siswa'] : '';
+$var_token = isset($_REQUEST['token']) ? $_REQUEST['token'] : '';
 
 //Soal Pilihan Ganda
-$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$var_soal' and XJenisSoal = '1'")); 
-$sqltampil = mysql_query("select * from cbt_ujian where XKodeSoal = '$var_soal'"); 
-$t1 = mysql_fetch_array($sqltampil);
+$sqlsoal = (int) db_fetch_value(
+    db_query(
+        $db,
+        "SELECT COUNT(*) FROM cbt_soal WHERE XKodeSoal = :soal AND XJenisSoal = '1'",
+        array(':soal' => $var_soal)
+    )
+);
+$t1 = db_fetch_one(
+    db_query(
+        $db,
+        "SELECT * FROM cbt_ujian WHERE XKodeSoal = :soal LIMIT 1",
+        array(':soal' => $var_soal)
+    )
+);
 //$t = $t1['XJumSoal'];
 $t = $t1['XPilGanda'];
 
-$sqlbenar = mysql_query("select * from cbt_nilai where XKodeSoal = '$var_soal' and XNomerUjian = '$var_siswa'  and XTokenUjian = '$var_token'"); 
-$b1 = mysql_fetch_array($sqlbenar);
-$b = $b1['XBenar'];
+$b1 = db_fetch_one(
+    db_query(
+        $db,
+        "SELECT * FROM cbt_nilai WHERE XKodeSoal = :soal AND XNomerUjian = :siswa AND XTokenUjian = :token LIMIT 1",
+        array(':soal' => $var_soal, ':siswa' => $var_siswa, ':token' => $var_token)
+    )
+);
+$b = $b1 ? $b1['XBenar'] : 0;
 
 /*
 if($t > $sqlsoal){$jumsoal = $sqlsoal;} else {$jumsoal = $t;}
@@ -94,20 +110,37 @@ $nilai = ($b/$jumsoal)*100;
 $nilaine = number_format($nilai, 2, ',', '.');
 */
 if($t > $sqlsoal){$jumsoal = $sqlsoal;} else {$jumsoal = $t;}
-$nilai = ($b/$jumsoal)*100;
+$nilai = $jumsoal > 0 ? ($b/$jumsoal)*100 : 0;
 $nilaine = number_format($nilai, 2, ',', '.');
 
 
-$sqlujian = mysql_query("select * from cbt_ujian c left join cbt_mapel m on m.XKodeMapel = c.XKodeMapel where c.XKodeSoal = '$var_soal'  and c.XTokenUjian = '$var_token'"); 
-$u = mysql_fetch_array($sqlujian);
-$namamapel = $u['XNamaMapel'];
-$xtokenujian = $u['XTokenUjian'];
+$u = db_fetch_one(
+    db_query(
+        $db,
+        "SELECT * FROM cbt_ujian c LEFT JOIN cbt_mapel m ON m.XKodeMapel = c.XKodeMapel WHERE c.XKodeSoal = :soal AND c.XTokenUjian = :token LIMIT 1",
+        array(':soal' => $var_soal, ':token' => $var_token)
+    )
+);
+$namamapel = $u ? $u['XNamaMapel'] : '';
+$xtokenujian = $u ? $u['XTokenUjian'] : '';
 
 $nom = 1;			
 $betul = 0;					
 
-$sqlsiswa = mysql_query("SELECT * FROM `cbt_siswa` s left join cbt_kelas k on k.XKodeKelas = s.XKodeKelas WHERE XNomerUjian= '$var_siswa' ");
-$s = mysql_fetch_array($sqlsiswa);
+$s = db_fetch_one(
+    db_query(
+        $db,
+        "SELECT * FROM `cbt_siswa` s LEFT JOIN cbt_kelas k ON k.XKodeKelas = s.XKodeKelas WHERE XNomerUjian = :siswa LIMIT 1",
+        array(':siswa' => $var_siswa)
+    )
+);
+$s = $s ? $s : array(
+    'XNamaSiswa' => '',
+    'XNamaKelas' => '',
+    'XNIK' => '',
+    'XKodeJurusan' => '',
+    'XFoto' => '',
+);
 $namsis = $s['XNamaSiswa'];
 $namkel = $s['XNamaKelas'];
 $nomsis = $s['XNIK'];
@@ -116,13 +149,18 @@ $fotsis = $s['XFoto'];
 if(str_replace(" ","",$fotsis)==""){
 $foto = "nouser.png";} else { $foto = "$fotsis";}
 
-$sqljumlahx = mysql_query("select sum(XNilaiEsai) as hasil from cbt_jawaban where XKodeSoal = '$_REQUEST[soal]' and XUserJawab = '$_REQUEST[siswa]' and XTokenUjian = '$var_token'");
-$o = mysql_fetch_array($sqljumlahx);
-$nilaiawal = round($o['hasil'],2);
+$nilaiawal = (float) db_fetch_value(
+    db_query(
+        $db,
+        "SELECT SUM(XNilaiEsai) FROM cbt_jawaban WHERE XKodeSoal = :soal AND XUserJawab = :siswa AND XTokenUjian = :token",
+        array(':soal' => $var_soal, ':siswa' => $var_siswa, ':token' => $var_token)
+    )
+);
+$nilaiawal = round($nilaiawal,2);
 
 ?>
-<input type="hidden" id="soale" name="soale" value="<?php echo "$_REQUEST[soal]"; ?>" />
-<input type="hidden" id="siswae" name="siswae" value="<?php echo "$_REQUEST[siswa]"; ?>" />
+<input type="hidden" id="soale" name="soale" value="<?php echo "{$_REQUEST['soal']}"; ?>" />
+<input type="hidden" id="siswae" name="siswae" value="<?php echo "{$_REQUEST['siswa']}"; ?>" />
 <input type="hidden" id="tokene" name="tokene" value="<?php echo "$var_token"; ?>" />
 
 <div class="group">
@@ -181,18 +219,21 @@ $nilaiawal = round($o['hasil'],2);
 <table>
 <?php
 $nomer = 1;
-$sql = mysql_query("
-SELECT * FROM `cbt_jawaban` j left join cbt_soal s on s.XNomerSoal = j.XNomerSoal 
-left join cbt_ujian u on (u.XKodeSoal = s.XKodeSoal and u.XTokenUjian = j.XTokenUjian)
-WHERE j.XKodeSoal = '$var_soal' and  s.XKodeSoal = '$var_soal' and  j.XUserJawab = '$var_siswa' 
-and j.XJenisSoal = '2' and j.XTokenUjian = '$var_token' order by j.Urut");
+$sql = db_query(
+    $db,
+    "SELECT * FROM `cbt_jawaban` j LEFT JOIN cbt_soal s ON s.XNomerSoal = j.XNomerSoal
+    LEFT JOIN cbt_ujian u ON (u.XKodeSoal = s.XKodeSoal AND u.XTokenUjian = j.XTokenUjian)
+    WHERE j.XKodeSoal = :soal AND s.XKodeSoal = :soal AND j.XUserJawab = :siswa
+    AND j.XJenisSoal = '2' AND j.XTokenUjian = :token ORDER BY j.Urut",
+    array(':soal' => $var_soal, ':siswa' => $var_siswa, ':token' => $var_token)
+);
 
-while($r = mysql_fetch_array($sql)){
+while($r = $sql->fetch()){
 $jumpil = $r['XJumPilihan'];
 $nosoal = $r['XNomerSoal'];
 $nil = $r['XNilaiEsai'];
 
-echo "<tr><td width=50px>$nomer.</td><td>$r[XTanya] </td></tr>
+echo "<tr><td width=50px>$nomer.</td><td>{$r['XTanya']} </td></tr>
 <tr><td width=50px colspan=2>&nbsp;</td></tr>
 ";
 
@@ -202,7 +243,7 @@ echo "<tr><td width=50px>$nomer.</td><td>$r[XTanya] </td></tr>
 if(str_replace("  ","",$r['XGambarTanya']!=="")){
 echo "
 <tr><td width=30px colspan=2>&nbsp; </td></tr>
-<tr><td colspan=2><img src=../../pictures/$r[XGambarTanya] width=150px></td></tr>";}
+<tr><td colspan=2><img src=../../pictures/{$r['XGambarTanya']} width=150px></td></tr>";}
 echo "<tr><td width=50px colspan=2>&nbsp;</td></tr>";
 
 $jawab = $r['XJawabanEsai'];

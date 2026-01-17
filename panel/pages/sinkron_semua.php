@@ -73,28 +73,41 @@
 
 
 <?php
-if($_REQUEST['modul']=="sinkronsatu"){
+if(isset($_REQUEST['modul']) && $_REQUEST['modul']=="sinkronsatu"){
+require_once __DIR__ . "/../../config/server.php";
+require_once __DIR__ . "/../../config/server_pusat.php";
 
-include "../../config/server.php";
-$sql = mysql_query("truncate table cbt_paketsoal");
+$db->exec("truncate table cbt_paketsoal");
 $i = 1;
 
 //document.getElementById("information").innerHTML="  Sikronisasi : DATA 1 ... <b>'.$i.'</b> dari <b>'. $baris.'</b> Selesai.";
-		include "../../config/server_pusat.php";
-		$sqlcek = mysql_query("select * from cbt_paketsoal order by Urut");
-		$baris = mysql_num_rows($sqlcek);
+		$barisStmt = db_query($db_pusat, "select count(*) from cbt_paketsoal", array());
+		$baris = (int) db_fetch_value($barisStmt);
 		//echo "jumlah total paket data : $baris";
 		
-		while($r=mysql_fetch_array($sqlcek)){
-		//for ($i=1; $i<=$baris; $i++){
-					include "../../config/server.php";
-					$sql = mysql_query("insert into cbt_paketsoal 
+		$sqlcek = db_query($db_pusat, "select * from cbt_paketsoal order by Urut", array());
+		$insertPaket = $db->prepare("insert into cbt_paketsoal 
 					(XKodeMapel,XLevel,XKodeSoal,XJumPilihan,XTglBuat,XGuru,XKodeKelas,XKodeJurusan,XJumSoal,XPilGanda,XEsai,XPersenPil,XPersenEsai) values 			
-					('$r[XKodeMapel]','$r[XLevel]','$r[XKodeSoal]','$r[XJumPilihan]','$r[XTglBuat]',			
-					'$r[XGuru]','$r[XKodeKelas]','$r[XKodeJurusan]','$r[XJumSoal]',
-					'$r[XPilGanda]','$r[XEsai]','$r[XPersenPil]','$r[XPersenEsai]')");
+					(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+		while($r=$sqlcek->fetch()){
+		//for ($i=1; $i<=$baris; $i++){
+					$insertPaket->execute(array(
+						$r['XKodeMapel'],
+						$r['XLevel'],
+						$r['XKodeSoal'],
+						$r['XJumPilihan'],
+						$r['XTglBuat'],
+						$r['XGuru'],
+						$r['XKodeKelas'],
+						$r['XKodeJurusan'],
+						$r['XJumSoal'],
+						$r['XPilGanda'],
+						$r['XEsai'],
+						$r['XPersenPil'],
+						$r['XPersenEsai'],
+					));
 
-		$percent = intval($i/$baris * 100)."%";
+		$percent = $baris > 0 ? intval($i/$baris * 100)."%" : "0%";
 			// Javascript for updating the progress bar and information
 			echo '<script language="javascript">
 			document.getElementById("progress").innerHTML="<div style=\"width:'.$percent.';background-image:url(images/pbar-ani1.gif);\">&nbsp;</div>";
@@ -113,31 +126,50 @@ $i = 1;
         </script>
         
 <?php 		
-include "../../config/server.php";
-$sql = mysql_query("truncate table cbt_soal");
+ $db->exec("truncate table cbt_soal");
 $i = 1;
 
-		include "../../config/server_pusat.php";
-		$sqlcek = mysql_query("select * from cbt_soal order by Urut");
-		$baris = mysql_num_rows($sqlcek);
+		$barisStmt = db_query($db_pusat, "select count(*) from cbt_soal", array());
+		$baris = (int) db_fetch_value($barisStmt);
 		//echo "jumlah total paket data : $baris";
 		
 		
-		for ($i=1; $i<=$baris; $i++){
-					while($r=mysql_fetch_array($sqlcek)){
-					include "../../config/server.php";
-							 $hasil= mysql_query("INSERT INTO cbt_soal (XNomerSoal, XKodeMapel, XKodeSoal, XTanya, XJawab1, XGambarJawab1, XJawab2,XGambarJawab2, 
+		$sqlcek = db_query($db_pusat, "select * from cbt_soal order by Urut", array());
+		$insertSoal = $db->prepare("INSERT INTO cbt_soal (XNomerSoal, XKodeMapel, XKodeSoal, XTanya, XJawab1, XGambarJawab1, XJawab2,XGambarJawab2, 
 							 XJawab3,XGambarJawab3, XJawab4,XGambarJawab4, XJawab5,XGambarJawab5, XAudioTanya, XVideoTanya, XGambarTanya, XKunciJawaban,XJenisSoal,XAcakSoal,
 							 XAcakOpsi,XKategori) 
-							 VALUES ('$r[XNomerSoal]','$r[XKodeMapel]','$r[XKodeSoal]','$r[XTanya]','$r[XJawab1]','$r[XGambarJawab1]','$r[XJawab2]','$r[XGambarJawab2]',
-							'$r[XJawab3]','$r[XGambarJawab3]','$r[XJawab4]','$r[XGambarJawab4]','$r[XJawab5]','$r[XGambarJawab5]','$r[XAudioTanya]',
-							 '$r[XVideoTanya]','$r[XGambarTanya]','$r[XKunciJawaban]','$r[XJenisSoal]','$r[XAcakSoal]','$r[XAcakOpsi]','$r[XKategori]')");
+							 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+		while($r=$sqlcek->fetch()){
+							 $hasil = $insertSoal->execute(array(
+								 $r['XNomerSoal'],
+								 $r['XKodeMapel'],
+								 $r['XKodeSoal'],
+								 $r['XTanya'],
+								 $r['XJawab1'],
+								 $r['XGambarJawab1'],
+								 $r['XJawab2'],
+								 $r['XGambarJawab2'],
+								 $r['XJawab3'],
+								 $r['XGambarJawab3'],
+								 $r['XJawab4'],
+								 $r['XGambarJawab4'],
+								 $r['XJawab5'],
+								 $r['XGambarJawab5'],
+								 $r['XAudioTanya'],
+								 $r['XVideoTanya'],
+								 $r['XGambarTanya'],
+								 $r['XKunciJawaban'],
+								 $r['XJenisSoal'],
+								 $r['XAcakSoal'],
+								 $r['XAcakOpsi'],
+								 $r['XKategori'],
+							 ));
 
 		  if ($hasil) $sukses++;
 		  else $gagal++;
   
 			// Calculate the percentation
-			$percent = intval($i/$baris * 100)."%";
+			$percent = $baris > 0 ? intval($i/$baris * 100)."%" : "0%";
 
 //		$percent = intval($i/$baris * 100)."%";
 //			document.getElementById("information2").innerHTML="  Sikronisasi : DATA 1 ... <b>'.$i.'</b> dari <b>'. $baris.'</b> Selesai.";			
@@ -152,7 +184,7 @@ $i = 1;
 			flush();
 		// Tell user that the process is completed
 		   echo '<script language="javascript">document.getElementById("information").innerHTML=" Proses update database Mata Pelajaran : Completed"</script>';
-						}
+			$i++;
 		}
 		?>
 		<script>document.getElementById("statusdata2").style.display="block";
@@ -161,22 +193,27 @@ $i = 1;
 
        
 <?php 		
-include "../../config/server.php";
-$sql = mysql_query("truncate table cbt_mapel");
+ $db->exec("truncate table cbt_mapel");
 $i = 1;
 
-		include "../../config/server_pusat.php";
-		$sqlcek = mysql_query("select * from cbt_mapel order by Urut");
-		$baris = mysql_num_rows($sqlcek);
+		$barisStmt = db_query($db_pusat, "select count(*) from cbt_mapel", array());
+		$baris = (int) db_fetch_value($barisStmt);
 		//echo "jumlah total paket data : $baris";
 		
-		while($r=mysql_fetch_array($sqlcek)){
+		$sqlcek = db_query($db_pusat, "select * from cbt_mapel order by Urut", array());
+		$insertMapel = $db->prepare("INSERT INTO cbt_mapel ( XKodeMapel, XNamaMapel,XPersenUH,XPersenUTS,XPersenUAS,XKKM) VALUES (?, ?, ?, ?, ?, ?)");
+		while($r=$sqlcek->fetch()){
 		//for ($i=1; $i<=$baris; $i++){
-					include "../../config/server.php";
-					//$query =  mysql_query("INSERT INTO cbt_mapel ( XKodeMapel, XNamaMapel,XPersenUH,XPersenUTS,XPersenUAS,XKKM,XMapelAgama) VALUES ('$r[XKodeMapel]', '$r[XNamaMapel]', '$r[XPersenUH]', '$r[XPersenUTS]', '$r[XPersenUAS]', '$r[XKKM]', '$r[XMapelAgama]')");
-					$query =  mysql_query("INSERT INTO cbt_mapel ( XKodeMapel, XNamaMapel,XPersenUH,XPersenUTS,XPersenUAS,XKKM) VALUES ('$r[XKodeMapel]', '$r[XNamaMapel]', '$r[XPersenUH]', '$r[XPersenUTS]', '$r[XPersenUAS]', '$r[XKKM]')");
+					$insertMapel->execute(array(
+						$r['XKodeMapel'],
+						$r['XNamaMapel'],
+						$r['XPersenUH'],
+						$r['XPersenUTS'],
+						$r['XPersenUAS'],
+						$r['XKKM'],
+					));
 					
-			$percent = intval($i/$baris * 100)."%";
+			$percent = $baris > 0 ? intval($i/$baris * 100)."%" : "0%";
 //			document.getElementById("information2").innerHTML="  Sikronisasi : DATA 1 ... <b>'.$i.'</b> dari <b>'. $baris.'</b> Selesai.";			
 
 			// Javascript for updating the progress bar and information
@@ -198,28 +235,34 @@ $i = 1;
 
        
 <?php 		
-include "../../config/server.php";
-$sql = mysql_query("truncate table cbt_siswa");
+ $db->exec("truncate table cbt_siswa");
 $i = 1;
 
-		include "../../config/server_pusat.php";
-		$sqlcek = mysql_query("select * from cbt_siswa order by Urut");
-		$baris = mysql_num_rows($sqlcek);
+		$barisStmt = db_query($db_pusat, "select count(*) from cbt_siswa", array());
+		$baris = (int) db_fetch_value($barisStmt);
 		//echo "jumlah total paket data : $baris";
 		
-		while($r=mysql_fetch_array($sqlcek)){
+		$sqlcek = db_query($db_pusat, "select * from cbt_siswa order by Urut", array());
+		$insertSiswa = $db->prepare("INSERT INTO cbt_siswa (XNomerUjian, XNIK,XSesi,XRuang, XNamaSiswa,XKodeKelas, XJenisKelamin, XPassword, XKodeJurusan,
+		  XKodeLevel, XFoto,XSetId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+		while($r=$sqlcek->fetch()){
 		//for ($i=1; $i<=$baris; $i++){
-					include "../../config/server.php";
-					/*$query =  mysql_query("INSERT INTO cbt_siswa (XNomerUjian, XNIK,XSesi,XRuang, XNamaSiswa,XKodeKelas, XJenisKelamin, XPassword, XKodeJurusan,
-		  XKodeLevel, XFoto,XAgama,XSetId) 
-		  VALUES ('$r[XNomerUjian]','$r[XNIK]','$r[XSesi]','$r[XRuang]','$r[XNamaSiswa]','$r[XKodeKelas]','$r[XJenisKelamin]','$r[XPassword]','$r[XKodeJurusan]',
-		  '$r[XKodeLevel]','$r[XFoto]','$r[XAgama]','$r[XSetId]')");*/
-					$query =  mysql_query("INSERT INTO cbt_siswa (XNomerUjian, XNIK,XSesi,XRuang, XNamaSiswa,XKodeKelas, XJenisKelamin, XPassword, XKodeJurusan,
-		  XKodeLevel, XFoto,XSetId) 
-		  VALUES ('$r[XNomerUjian]','$r[XNIK]','$r[XSesi]','$r[XRuang]','$r[XNamaSiswa]','$r[XKodeKelas]','$r[XJenisKelamin]','$r[XPassword]','$r[XKodeJurusan]',
-		  '$r[XKodeLevel]','$r[XFoto]','$r[XSetId]')");
+					$insertSiswa->execute(array(
+						$r['XNomerUjian'],
+						$r['XNIK'],
+						$r['XSesi'],
+						$r['XRuang'],
+						$r['XNamaSiswa'],
+						$r['XKodeKelas'],
+						$r['XJenisKelamin'],
+						$r['XPassword'],
+						$r['XKodeJurusan'],
+						$r['XKodeLevel'],
+						$r['XFoto'],
+						$r['XSetId'],
+					));
 					
-			$percent = intval($i/$baris * 100)."%";
+			$percent = $baris > 0 ? intval($i/$baris * 100)."%" : "0%";
 //			document.getElementById("information2").innerHTML="  Sikronisasi : DATA 1 ... <b>'.$i.'</b> dari <b>'. $baris.'</b> Selesai.";			
 
 			// Javascript for updating the progress bar and information

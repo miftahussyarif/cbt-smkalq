@@ -29,19 +29,22 @@ $(document).ready(function(){
                                     <th>Benar</th>
                                     <th>Token</th>                                    
                                     <th>Analisa</th>                                    
-                                </tr> <?php include "../../config/server.php";
-$sqltoken = mysql_query("SELECT * FROM cbt_ujian where XStatusUjian = '1'");
-$t = mysql_fetch_array($sqltoken);
-$tokenujian = $t['XTokenUjian'];
+                                </tr> <?php
+require_once __DIR__ . "/../../config/server.php";
+$t = db_fetch_one(db_query($db, "SELECT XTokenUjian FROM cbt_ujian WHERE XStatusUjian = '1' LIMIT 1", array()));
+$tokenujian = $t ? $t['XTokenUjian'] : '';
 
-
-$sql = mysql_query("SELECT *,u.XStatusUjian as ujsta,c.XTokenUjian as tokenz,u.XNomerUjian as noujian
-FROM cbt_siswa s
-LEFT JOIN `cbt_siswa_ujian` u ON u.XNomerUjian = s.XNomerUjian
-LEFT JOIN cbt_ujian c ON (u.XKodeSoal = c.XKodeSoal and u.XTokenUjian = c.XTokenUjian)
-WHERE c.XStatusUjian = '1' and u.XTokenUjian = '$tokenujian' and c.XTokenUjian = '$tokenujian'"); 
+$sql = db_query(
+    $db,
+    "SELECT *, u.XStatusUjian AS ujsta, c.XTokenUjian AS tokenz, u.XNomerUjian AS noujian
+    FROM cbt_siswa s
+    LEFT JOIN `cbt_siswa_ujian` u ON u.XNomerUjian = s.XNomerUjian
+    LEFT JOIN cbt_ujian c ON (u.XKodeSoal = c.XKodeSoal AND u.XTokenUjian = c.XTokenUjian)
+    WHERE c.XStatusUjian = '1' AND u.XTokenUjian = :token AND c.XTokenUjian = :token",
+    array(':token' => $tokenujian)
+);
 $nom = 1;								
-while($s= mysql_fetch_array($sql)){ 
+while($s = $sql->fetch()){ 
 $nama = str_replace("  ","",$s['XNamaSiswa']); 
 $nouji = str_replace("  ","",$s['noujian']); 
 $kodekelas = str_replace("  ","",$s['XKodeKelas']); 
@@ -52,10 +55,20 @@ $soaluji = str_replace("  ","",$s['XKodeSoal']);
 if($staujian =='0'){$staujian = "Belum Login";}
 elseif($staujian =='1'){$staujian = "Sedang Dikerjakan";}
 elseif($staujian =='9'){$staujian = "Tes SELESAI";}
-	$sqldijawab = mysql_num_rows(mysql_query(" SELECT * FROM `cbt_jawaban` WHERE XTokenUjian = '$tokenujian' and XJawaban != '' and XUserJawab = '$nouji'"));
-	$sqljawaban = mysql_query(" SELECT count( XNilai ) AS HasilUjian FROM `cbt_jawaban` WHERE XNilai = '1' and XTokenUjian = '$tokenujian' and XUserJawab = '$nouji'");
-	$sqj = mysql_fetch_array($sqljawaban);
-	$jumbenar = $sqj['HasilUjian'];
+	$sqldijawab = (int) db_fetch_value(
+        db_query(
+            $db,
+            "SELECT COUNT(*) FROM `cbt_jawaban` WHERE XTokenUjian = :token AND XJawaban != '' AND XUserJawab = :user",
+            array(':token' => $tokenujian, ':user' => $nouji)
+        )
+    );
+	$jumbenar = (int) db_fetch_value(
+        db_query(
+            $db,
+            "SELECT COUNT(XNilai) FROM `cbt_jawaban` WHERE XNilai = '1' AND XTokenUjian = :token AND XUserJawab = :user",
+            array(':token' => $tokenujian, ':user' => $nouji)
+        )
+    );
 ?>
                                 <tr height="40px">
                                     <td width="5%">&nbsp;<?php echo $nom ; ?></td>

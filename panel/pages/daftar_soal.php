@@ -1,6 +1,7 @@
 <?php
 	if(!isset($_COOKIE['beeuser'])){
 	header("Location: login.php");}
+require_once __DIR__ . "/../../config/server.php";
 ?>
 
 <!DOCTYPE html>
@@ -118,7 +119,7 @@ $(document).ready(function(){
             </div>
             <!-- /.row -->
             
-<?php include "../../config/server.php"; ?>
+<?php require_once __DIR__ . "/../../config/server.php"; ?>
             <!-- /.row -->
             <div class="row">
                 <div class="col-lg-12">
@@ -150,14 +151,14 @@ $(document).ready(function(){
                                 <tbody>
                                 <?php 
 if($_COOKIE['beelogin']=='admin'){								
-$sql = mysql_query("select p.*,m.*,p.Urut as Urutan,p.XKodeKelas  as kokel from cbt_paketsoal p left join cbt_mapel m on m.XKodeMapel = p.XKodeMapel order by p.Urut desc");
+$sql = db_query($db, "SELECT p.*, m.*, p.Urut AS Urutan, p.XKodeKelas AS kokel FROM cbt_paketsoal p LEFT JOIN cbt_mapel m ON m.XKodeMapel = p.XKodeMapel ORDER BY p.Urut DESC", array());
 } else {
-$sql = mysql_query("select p.*,m.*,p.Urut as Urutan,p.XKodeKelas  as kokel from cbt_paketsoal p left join cbt_mapel m on m.XKodeMapel = p.XKodeMapel where p.XGuru = '$_COOKIE[beeuser]' order by p.Urut desc");								
+$sql = db_query($db, "SELECT p.*, m.*, p.Urut AS Urutan, p.XKodeKelas AS kokel FROM cbt_paketsoal p LEFT JOIN cbt_mapel m ON m.XKodeMapel = p.XKodeMapel WHERE p.XGuru = :guru ORDER BY p.Urut DESC", array(':guru' => $_COOKIE['beeuser']));								
 }								
-								while($s = mysql_fetch_array($sql)){ 
-					$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$s[XKodeSoal]'"));
-					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$s[XKodeSoal]' and XStatusUjian = '1'"));
-					$sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$s[XKodeSoal]'"));
+								while($s = $sql->fetch()){ 
+					$sqlsoal = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_soal WHERE XKodeSoal = :kodesoal", array(':kodesoal' => $s['XKodeSoal'])));
+					$sqlpakai = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_siswa_ujian WHERE XKodeSoal = :kodesoal AND XStatusUjian = '1'", array(':kodesoal' => $s['XKodeSoal'])));
+					$sqlsudah = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_jawaban WHERE XKodeSoal = :kodesoal", array(':kodesoal' => $s['XKodeSoal'])));
 					if($sqlsoal==0){$katakosong="disabled";}  else {$katakosong="";}	
 					if($sqlsudah>0||$sqlpakai>0){$katasudah="disabled";}  else {$katasudah="";}			
 					if($sqlpakai>0){$katapakai="disabled";}  else {$katapakai="";}			
@@ -372,21 +373,21 @@ $('#btnDelete<?php echo $s['Urutan']; ?>').on('click', function(e){
 
 $("#tambah<?php echo $s['Urutan']; ?>").click(function(){
 //alert("<?php echo $s['Urutan']; ?>");
- var txt_ujianx = $("#txt_ujianx<?php echo "$s[Urutan]"; ?>").val();
- var txt_jawabx = $("#txt_jawabx<?php echo "$s[Urutan]"; ?>").val();
- var txt_acakx = $("#txt_acakx<?php echo "$s[Urutan]"; ?>").val();
- var txt_kelasx = $("#txt_kelasx<?php echo "$s[Urutan]"; ?>").val();
- var txt_jurusanx = $("#txt_jurusanx<?php echo "$s[Urutan]"; ?>").val();
- var txt_mapelx = $("#txt_mapelx<?php echo "$s[Urutan]"; ?>").val();
- var txt_levelx = $("#txt_levelx<?php echo "$s[Urutan]"; ?>").val(); 
- var txt_namax = $("#txt_namax<?php echo "$s[Urutan]"; ?>").val();  
- var txt_jumsoalx = $("#txt_jumsoalx<?php echo "$s[Urutan]"; ?>").val(); 
- var txt_jawabx = $("#txt_jawabx<?php echo "$s[Urutan]"; ?>").val();  
+ var txt_ujianx = $("#txt_ujianx<?php echo "{$s['Urutan']}"; ?>").val();
+ var txt_jawabx = $("#txt_jawabx<?php echo "{$s['Urutan']}"; ?>").val();
+ var txt_acakx = $("#txt_acakx<?php echo "{$s['Urutan']}"; ?>").val();
+ var txt_kelasx = $("#txt_kelasx<?php echo "{$s['Urutan']}"; ?>").val();
+ var txt_jurusanx = $("#txt_jurusanx<?php echo "{$s['Urutan']}"; ?>").val();
+ var txt_mapelx = $("#txt_mapelx<?php echo "{$s['Urutan']}"; ?>").val();
+ var txt_levelx = $("#txt_levelx<?php echo "{$s['Urutan']}"; ?>").val(); 
+ var txt_namax = $("#txt_namax<?php echo "{$s['Urutan']}"; ?>").val();  
+ var txt_jumsoalx = $("#txt_jumsoalx<?php echo "{$s['Urutan']}"; ?>").val(); 
+ var txt_jawabx = $("#txt_jawabx<?php echo "{$s['Urutan']}"; ?>").val();  
 
- var txt_jumsoalz1 = $("#txt_jumsoalz1<?php echo "$s[Urutan]"; ?>").val();  
- var txt_jumsoalz2 = $("#txt_jumsoalz2<?php echo "$s[Urutan]"; ?>").val();  
- var txt_bobotsoalz1 = $("#txt_bobotsoalz1<?php echo "$s[Urutan]"; ?>").val();  
- var txt_bobotsoalz2 = $("#txt_bobotsoalz2<?php echo "$s[Urutan]"; ?>").val();  
+ var txt_jumsoalz1 = $("#txt_jumsoalz1<?php echo "{$s['Urutan']}"; ?>").val();  
+ var txt_jumsoalz2 = $("#txt_jumsoalz2<?php echo "{$s['Urutan']}"; ?>").val();  
+ var txt_bobotsoalz1 = $("#txt_bobotsoalz1<?php echo "{$s['Urutan']}"; ?>").val();  
+ var txt_bobotsoalz2 = $("#txt_bobotsoalz2<?php echo "{$s['Urutan']}"; ?>").val();  
 
   
 //alert(txt_ujianx);  
@@ -474,42 +475,45 @@ function confirmDialog2(message, onConfirm){
                         
                         <div class="panel-body">
                         <p> <span class="asd" class="asd">Entry </span><span>:
-								<?php $soale = "$s[XKodeSoal]"; 
-								$carisoal = mysql_num_rows(mysql_query("select * from cbt_paketsoal where XKodeSoal = '$soale' and XKodeJurusan = '$s[XKodeJurusan]' and 
-								XKodeKelas = '$s[kokel]' and XKodeMapel ='$s[XKodeMapel]'"));								
+								<?php $soale = "{$s['XKodeSoal']}"; 
+								$carisoal = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_paketsoal WHERE XKodeSoal = :kodesoal AND XKodeJurusan = :jurusan AND XKodeKelas = :kelas AND XKodeMapel = :mapel", array(
+								    ':kodesoal' => $soale,
+								    ':jurusan' => $s['XKodeJurusan'],
+								    ':kelas' => $s['kokel'],
+								    ':mapel' => $s['XKodeMapel'],
+								)));								
 								if($carisoal>0){
 								$urutz = date("ymdhi");
 								$soalez = preg_replace('/[0-9]+/', '', $soale);																
 								$soalez = "$soalez".$urutz;} 
 								else {$soalez = $soale;}
 								?>
-                                <input size="2" type="hidden" id="txt_ujianx<?php echo "$s[Urutan]"; ?>" value="<?php echo "$s[XKodeSoal]"; ?>"/>
-                            	<input type="text" id="txt_namax<?php echo "$s[Urutan]"; ?>" value="<?php echo "$soalez"; ?>"/>
+                                <input size="2" type="hidden" id="txt_ujianx<?php echo "{$s['Urutan']}"; ?>" value="<?php echo "{$s['XKodeSoal']}"; ?>"/>
+                            	<input type="text" id="txt_namax<?php echo "{$s['Urutan']}"; ?>" value="<?php echo "$soalez"; ?>"/>
                                </span></p>
                         
                             <p> <span class="asd" class="asd">Mata Pelajaran</span><span>:
-                            	<select name="txt_mapelx<?php echo "$s[Urutan]"; ?>" id="txt_mapelx<?php echo "$s[Urutan]"; ?>">
+                            	<select name="txt_mapelx<?php echo "{$s['Urutan']}"; ?>" id="txt_mapelx<?php echo "{$s['Urutan']}"; ?>">
                                 <?php 
-                                echo "<option value='$s[XKodeMapel]' selected>$s[XNamaMapel]</option>";
+                                echo "<option value='{$s['XKodeMapel']}' selected>{$s['XNamaMapel']}</option>";
                                 ?>
                                 <?php 
-                                $sqlkelas = mysql_query("select * from cbt_mapel where NOT XKodeMapel = '$s[XKodeMapel]' order by XNamaMapel");
-                                while($sk = mysql_fetch_array($sqlkelas)){
-                                echo "<option value='$sk[XKodeMapel]'>$sk[XNamaMapel]</option>";
+                                $sqlkelas = db_query($db, "SELECT * FROM cbt_mapel WHERE NOT XKodeMapel = :mapel ORDER BY XNamaMapel", array(':mapel' => $s['XKodeMapel']));
+                                while($sk = $sqlkelas->fetch()){
+                                echo "<option value='{$sk['XKodeMapel']}'>{$sk['XNamaMapel']}</option>";
                                 }
                                 ?>
                                 </select>
                                </span></p>
                         <?php 
-                         $sqladmin = mysql_query("select * from cbt_admin");
-                         $sa = mysql_fetch_array($sqladmin);
-						 $skul = $sa['XTingkat'];
+                         $sa = db_fetch_one(db_query($db, "SELECT XTingkat FROM cbt_admin LIMIT 1", array()));
+						 $skul = $sa ? $sa['XTingkat'] : '';
 						 ?>
 
                             
                             
                             <p><span class="asd" class="asd">Level</span><span>: 
-                            <select id="txt_levelx<?php echo "$s[Urutan]"; ?>">
+                            <select id="txt_levelx<?php echo "{$s['Urutan']}"; ?>">
                             <option value="SMP" <?php if($skul=='SMP'){echo "selected";} ?>>SMP</option>
                             <option value="MTs" <?php if($skul=='MTs'){echo "selected";} ?>>MTs</option>                            
                             <option value="SMU" <?php if($skul=='SMU'){echo "selected";} ?>>SMU</option>
@@ -519,14 +523,14 @@ function confirmDialog2(message, onConfirm){
                             </span></p>
                             
                             <p><span class="asd" class="asd">Jurusan</span><span>: 
-                            							<select id="txt_jurusanx<?php echo "$s[Urutan]"; ?>">
+                            							<select id="txt_jurusanx<?php echo "{$s['Urutan']}"; ?>">
                              <?php 
-                             echo "<option value='$s[XKodeJurusan]' selected>$s[XKodeJurusan]</option>";
+                             echo "<option value='{$s['XKodeJurusan']}' selected>{$s['XKodeJurusan']}</option>";
 							 ?>
                              <?php 
-							 $sqljur = mysql_query("select * from cbt_kelas where NOT XKodeJurusan = '$s[XKodeJurusan]' group by XKodeJurusan");
-							 while($j = mysql_fetch_array($sqljur)){
-                             echo "<option value='$j[XKodeJurusan]'>$j[XKodeJurusan]</option>";
+							 $sqljur = db_query($db, "SELECT * FROM cbt_kelas WHERE NOT XKodeJurusan = :jurusan GROUP BY XKodeJurusan", array(':jurusan' => $s['XKodeJurusan']));
+							 while($j = $sqljur->fetch()){
+                             echo "<option value='{$j['XKodeJurusan']}'>{$j['XKodeJurusan']}</option>";
 							 }
 							 ?>
                              </select>
@@ -535,12 +539,12 @@ function confirmDialog2(message, onConfirm){
                             <p>
                             <span class="asd" class="asd">
                             Kelas</span><span>: 
-							<select id="txt_kelasx<?php echo "$s[Urutan]"; ?>">
-                            <option value="<?php echo "$s[kokel]"; ?>" selected><?php echo "$s[kokel]"; ?></option>
+							<select id="txt_kelasx<?php echo "{$s['Urutan']}"; ?>">
+                            <option value="<?php echo "{$s['kokel']}"; ?>" selected><?php echo "{$s['kokel']}"; ?></option>
                              <?php 
-							 $sqlkelas = mysql_query("select * from cbt_kelas group by XKodeKelas");
-							 while($k = mysql_fetch_array($sqlkelas)){
-                             echo "<option value='$k[XKodeKelas]'>$k[XKodeKelas]</option>";
+							 $sqlkelas = db_query($db, "SELECT * FROM cbt_kelas GROUP BY XKodeKelas", array());
+							 while($k = $sqlkelas->fetch()){
+                             echo "<option value='{$k['XKodeKelas']}'>{$k['XKodeKelas']}</option>";
 							 }
 							 ?>
                              </select>
@@ -548,16 +552,16 @@ function confirmDialog2(message, onConfirm){
 
                             <p>
                             <span class="asd" class="asd">
-                            Opsi Pilihan Jawaban</span><span>: <input size="2" type="text" id="txt_jawabx<?php echo "$s[Urutan]"; ?>" value="<?php echo "$s[XJumPilihan]"; ?>"/> * Default 5 Pilihan
+                            Opsi Pilihan Jawaban</span><span>: <input size="2" type="text" id="txt_jawabx<?php echo "{$s['Urutan']}"; ?>" value="<?php echo "{$s['XJumPilihan']}"; ?>"/> * Default 5 Pilihan
                             </span></p>
                             
-<p><span class="asd" class="asd">Pilihan Ganda</span><span>: <input size="2" type="text" id="txt_jumsoalz1<?php echo "$s[Urutan]"; ?>" value="<?php echo "$s[XPilGanda]"; ?>"/> Jumlah Soal ditampilkan
+<p><span class="asd" class="asd">Pilihan Ganda</span><span>: <input size="2" type="text" id="txt_jumsoalz1<?php echo "{$s['Urutan']}"; ?>" value="<?php echo "{$s['XPilGanda']}"; ?>"/> Jumlah Soal ditampilkan
 </span></p>     
-<p><span class="asd" class="asd">Bobot Pilihan </span><span>: <input size="2" type="text" id="txt_bobotsoalz1<?php echo "$s[Urutan]"; ?>" value="<?php echo "$s[XPersenPil]"; ?>"/> * %
+<p><span class="asd" class="asd">Bobot Pilihan </span><span>: <input size="2" type="text" id="txt_bobotsoalz1<?php echo "{$s['Urutan']}"; ?>" value="<?php echo "{$s['XPersenPil']}"; ?>"/> * %
 </span></p>  
-<p><span class="asd" class="asd">Esai</span><span>: <input size="2" type="text" id="txt_jumsoalz2<?php echo "$s[Urutan]"; ?>" value="<?php echo "$s[XEsai]"; ?>"/> Jumlah Soal ditampilkan
+<p><span class="asd" class="asd">Esai</span><span>: <input size="2" type="text" id="txt_jumsoalz2<?php echo "{$s['Urutan']}"; ?>" value="<?php echo "{$s['XEsai']}"; ?>"/> Jumlah Soal ditampilkan
 </span></p>     
-<p><span class="asd" class="asd">Bobot Pilihan </span><span>: <input size="2" type="text" id="txt_bobotsoalz2<?php echo "$s[Urutan]"; ?>" value="<?php echo "$s[XPersenEsai]"; ?>"/> * %
+<p><span class="asd" class="asd">Bobot Pilihan </span><span>: <input size="2" type="text" id="txt_bobotsoalz2<?php echo "{$s['Urutan']}"; ?>" value="<?php echo "{$s['XPersenEsai']}"; ?>"/> * %
 </span></p>     
                             	                                                  
                         </div>

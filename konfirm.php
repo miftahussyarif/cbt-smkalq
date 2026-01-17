@@ -1,35 +1,76 @@
-.
-<?php include "config/server.php";
-
+<?php
+include "config/server.php";
 include "ip.php";
 
-$sqlcekdb = mysql_query("SELECT * FROM `cbt_siswa` limit 1");
-if (!$sqlcekdb) {
+try {
+    db_query($db, "SELECT 1 FROM `cbt_siswa` limit 1", array());
+} catch (PDOException $e) {
     header('Location:login.php?salah=2');
+    exit;
 }
 
-if (isset($_COOKIE['PESERTA']) && isset($_COOKIE['KUNCI'])) {
-    $user = "$_COOKIE[PESERTA]";
-    $pass = "$_COOKIE[KUNCI]";
-    $txtuser = $user;
-    $txtpass = $pass;
+$txtuser = '';
+$txtpass = '';
+
+if (isset($_COOKIE['PESERTA'], $_COOKIE['KUNCI'])) {
+    $txtuser = trim($_COOKIE['PESERTA']);
+    $txtpass = trim($_COOKIE['KUNCI']);
 } else {
-    //$user = "$_REQUEST[UserName]";
-    $txtuser = str_replace(" ", "", $_REQUEST['UserName']);
-    $txtpass = str_replace(" ", "", $_REQUEST['Password']);
-    setcookie('PESERTA', $txtuser);
-    setcookie('KUNCI', $txtpass);
-    $user = "$txtuser";
-    $pass = "$txtpass";
+    $txtuser = isset($_REQUEST['UserName']) ? str_replace(' ', '', $_REQUEST['UserName']) : '';
+    $txtpass = isset($_REQUEST['Password']) ? str_replace(' ', '', $_REQUEST['Password']) : '';
 
+    $cookie_options = array(
+        'path' => '/',
+        'httponly' => true,
+        'samesite' => 'Lax',
+        'secure' => !empty($_SERVER['HTTPS']),
+    );
+    setcookie('PESERTA', $txtuser, $cookie_options);
+    setcookie('KUNCI', $txtpass, $cookie_options);
 }
 
+$stmt = db_query(
+    $db,
+    "SELECT * FROM `cbt_siswa` WHERE XNomerUjian = :user LIMIT 1",
+    array('user' => $txtuser)
+);
+$sis = db_fetch_one($stmt);
 
-// echo "SELECT * FROM  `cbt_siswa` WHERE XNomerUjian = '$txtuser' and XPassword = '$txtpass' $_COOKIE[PESERTA] | $_COOKIE[KUNCI]";
+if (!$sis || !isset($sis['XPassword'])) {
+    header('Location:login.php?salah=1&jumlah=0');
+    exit;
+}
 
-$sqllogin = mysql_query("SELECT * FROM  `cbt_siswa` WHERE XNomerUjian = '$txtuser' and XPassword = '$txtpass'");
-$sis = mysql_fetch_array($sqllogin);
+$stored = (string) $sis['XPassword'];
+$valid = false;
+if (password_get_info($stored)['algo'] !== 0) {
+    $valid = password_verify($txtpass, $stored);
+} elseif (strlen($stored) === 32 && ctype_xdigit($stored)) {
+    $valid = hash_equals($stored, md5($txtpass));
+    if ($valid) {
+        $new_hash = password_hash($txtpass, PASSWORD_DEFAULT);
+        db_query(
+            $db,
+            "update cbt_siswa set XPassword = :hash where Urut = :urut",
+            array('hash' => $new_hash, 'urut' => $sis['Urut'])
+        );
+    }
+} else {
+    $valid = hash_equals($stored, $txtpass);
+    if ($valid) {
+        $new_hash = password_hash($txtpass, PASSWORD_DEFAULT);
+        db_query(
+            $db,
+            "update cbt_siswa set XPassword = :hash where Urut = :urut",
+            array('hash' => $new_hash, 'urut' => $sis['Urut'])
+        );
+    }
+}
 
+if (!$valid) {
+    header('Location:login.php?salah=1&jumlah=0');
+    exit;
+}
 
 $val_siswa = $sis['XNamaSiswa'];
 $xjeniskelamin = $sis['XJenisKelamin'];
@@ -43,11 +84,6 @@ if ($xjeniskelamin == "L") {
     $jekel = "PEREMPUAN";
 }
 //echo "SELECT * FROM  `cbt_siswa` WHERE XNomerUjian = '$txtuser' and XPassword = '$txtpass'";
-$jmlsqllogin = mysql_num_rows($sqllogin);
-if ($jmlsqllogin < 1) {
-    header('Location:login.php?salah=1&jumlah=' . $jmlsqllogin);
-}
-
 $tglujian = date("Y-m-d");
 $xjam1 = date("H:i:s");
 
@@ -55,21 +91,41 @@ $xjam1 = date("H:i:s");
 //  setcookie('PESERTA',$user);
 
 
-$sqluser = mysql_query("
+$sqluser = db_query(
+    $db,
+    "
 SELECT u.*,m.XNamaMapel FROM `cbt_ujian` u LEFT JOIN cbt_paketsoal p on p.XKodeKelas = u.XKodeKelas and p.XKodeMapel = u.XKodeMapel
 left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel 
-WHERE (u.XKodeKelas = '$xkelz' or u.XKodeKelas = 'ALL') and (u.XKodeJurusan = '$xjurz' or u.XKodeJurusan = 'ALL') and u.XSesi = '$xsesi' and u.XTglUjian = '$tglujian' and u.XJamUjian <= '$xjam1'
-and u.XStatusUjian = '1' ORDER BY u.XJamUjian DESC LIMIT 1");
+WHERE (u.XKodeKelas = :xkelz or u.XKodeKelas = 'ALL') and (u.XKodeJurusan = :xjurz or u.XKodeJurusan = 'ALL') and u.XSesi = :xsesi and u.XTglUjian = :tglujian and u.XJamUjian <= :xjam1
+and u.XStatusUjian = '1' ORDER BY u.XJamUjian DESC LIMIT 1",
+    array(
+        'xkelz' => $xkelz,
+        'xjurz' => $xjurz,
+        'xsesi' => $xsesi,
+        'tglujian' => $tglujian,
+        'xjam1' => $xjam1,
+    )
+);
 
-if (mysql_num_rows($sqluser) < 1) {
-    $sqluser = mysql_query("
+$s = db_fetch_one($sqluser);
+if (!$s) {
+    $sqluser = db_query(
+        $db,
+        "
     SELECT u.*,m.XNamaMapel FROM `cbt_ujian` u LEFT JOIN cbt_paketsoal p on p.XKodeKelas = u.XKodeKelas and p.XKodeMapel = u.XKodeMapel
     left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel 
-    WHERE (u.XKodeKelas = '$xkelz' or u.XKodeKelas = 'ALL') and (u.XKodeJurusan = '$xjurz' or u.XKodeJurusan = 'ALL') and u.XSesi = '$xsesi' and u.XTglUjian = '$tglujian' and u.XJamUjian > '$xjam1'
-    and u.XStatusUjian = '1' ORDER BY u.XJamUjian ASC LIMIT 1");
+    WHERE (u.XKodeKelas = :xkelz or u.XKodeKelas = 'ALL') and (u.XKodeJurusan = :xjurz or u.XKodeJurusan = 'ALL') and u.XSesi = :xsesi and u.XTglUjian = :tglujian and u.XJamUjian > :xjam1
+    and u.XStatusUjian = '1' ORDER BY u.XJamUjian ASC LIMIT 1",
+        array(
+            'xkelz' => $xkelz,
+            'xjurz' => $xjurz,
+            'xsesi' => $xsesi,
+            'tglujian' => $tglujian,
+            'xjam1' => $xjam1,
+        )
+    );
+    $s = db_fetch_one($sqluser);
 }
-
-$s = mysql_fetch_array($sqluser);
 $xkodesoal = isset($s['XKodeSoal']) ? $s['XKodeSoal'] : '';
 $xkodekelas = isset($s['XKodeKelas']) ? $s['XKodeKelas'] : '';
 $xtglujian = isset($s['XTglUjian']) ? $s['XTglUjian'] : '';
@@ -81,9 +137,13 @@ $xjamujian = isset($s['XJamUjian']) ? $s['XJamUjian'] : '';
 $xbatasmasuk = isset($s['XBatasMasuk']) ? $s['XBatasMasuk'] : '';
 $xnamamapel = isset($s['XNamaMapel']) ? $s['XNamaMapel'] : '';
 
-$sqlada0 = mysql_query("SELECT * FROM  `cbt_siswa_ujian` WHERE XNomerUjian = '$txtuser' and XTokenUjian = '$xtokenujian'");
-$ad0 = mysql_fetch_array($sqlada0);
-$user_ip2 = str_replace(" ", "", $ad0['XGetIP']);
+$sqlada0 = db_query(
+    $db,
+    "SELECT XGetIP FROM `cbt_siswa_ujian` WHERE XNomerUjian = :user and XTokenUjian = :token limit 1",
+    array('user' => $txtuser, 'token' => $xtokenujian)
+);
+$ad0 = db_fetch_one($sqlada0);
+$user_ip2 = $ad0 ? str_replace(" ", "", $ad0['XGetIP']) : '';
 $user_ip1 = $user_ip;
 //echo " $user_ip1 = $user_ip2 | $user_ip";
 if ($user_ip1 <> $user_ip2 && !$user_ip2 == "") {
@@ -240,16 +300,16 @@ img {
 
     <script src="js/inline.js"></script>
     <?php
-    include "config/server.php";
-    $sql = mysql_query("select * from cbt_admin");
-    $r = mysql_fetch_array($sql);
+    $sql = db_query($db, "select * from cbt_admin limit 1", array());
+    $r = db_fetch_one($sql);
     ?>
 
 <body class="font-medium" style="background-color:#c9c9c9">
-    <header style="background-color:<?php echo "$r[XWarna]"; ?>">
+    <header style="background-color:<?php echo isset($r['XWarna']) ? $r['XWarna'] : ''; ?>">
         <div class="group">
-            <div class="left" style="background-color:<?php echo "$r[XWarna]"; ?>"><a href=" "><img
-                        src="images/<?php echo "$r[XBanner]"; ?>" style=" margin-left:0px;"></a>
+            <div class="left" style="background-color:<?php echo isset($r['XWarna']) ? $r['XWarna'] : ''; ?>"><a
+                    href=" "><img src="images/<?php echo isset($r['XBanner']) ? $r['XBanner'] : ''; ?>"
+                        style=" margin-left:0px;"></a>
             </div>
             <div class="right">
                 <table width="100%" border="0" cellspacing="5px;" style="margin-top:10px">
@@ -310,18 +370,46 @@ img {
                 </div>
 
                 <?php
-                $sqlada = mysql_query("SELECT * FROM  `cbt_siswa_ujian` WHERE XNomerUjian = '$txtuser' and XTokenUjian = '$xtokenujian'");
-                $ad = mysql_fetch_array($sqlada);
-                $jumsis = $ad['XStatusUjian'];
+                $sqlada = db_query(
+                    $db,
+                    "SELECT XStatusUjian FROM `cbt_siswa_ujian` WHERE XNomerUjian = :user and XTokenUjian = :token ORDER BY XMulaiUjian DESC LIMIT 1",
+                    array('user' => $txtuser, 'token' => $xtokenujian)
+                );
+                $ad = db_fetch_one($sqlada);
+                $jumsis = $ad ? $ad['XStatusUjian'] : '';
 
+                $sqlada_count = db_query(
+                    $db,
+                    "SELECT count(1) as total FROM `cbt_siswa_ujian` WHERE XNomerUjian = :user and XTokenUjian = :token",
+                    array('user' => $txtuser, 'token' => $xtokenujian)
+                );
+                $ada = (int) db_fetch_value($sqlada_count);
 
-                $ada = mysql_num_rows($sqlada);
-
-                ?>
-                <?php
-                $sqlcekujian = mysql_num_rows(mysql_query("SELECT * FROM cbt_ujian where(XKodeKelas = '$xkelz' or XKodeKelas = 'ALL') and (XKodeJurusan = '$xjurz' or XKodeJurusan = 'ALL') and XStatusUjian = '1' and XSesi =  '$xsesi' and XTglUjian = '$tglujian' and XJamUjian <= '$xjam1'"));
-                $sqlcekujian_future = mysql_num_rows(mysql_query("SELECT * FROM cbt_ujian where(XKodeKelas = '$xkelz' or XKodeKelas = 'ALL') and (XKodeJurusan = '$xjurz' or XKodeJurusan = 'ALL') and XStatusUjian = '1' and XSesi =  '$xsesi' and XTglUjian = '$tglujian' and XJamUjian > '$xjam1'"));
-                if ($sqlcekujian > 0 || $sqlcekujian_future > 0) { ?>
+                $sqlcekujian = db_query(
+                    $db,
+                    "SELECT count(1) as total FROM cbt_ujian where (XKodeKelas = :xkelz or XKodeKelas = 'ALL') and (XKodeJurusan = :xjurz or XKodeJurusan = 'ALL') and XStatusUjian = '1' and XSesi = :xsesi and XTglUjian = :tglujian and XJamUjian <= :xjam1",
+                    array(
+                        'xkelz' => $xkelz,
+                        'xjurz' => $xjurz,
+                        'xsesi' => $xsesi,
+                        'tglujian' => $tglujian,
+                        'xjam1' => $xjam1,
+                    )
+                );
+                $sqlcekujian_future = db_query(
+                    $db,
+                    "SELECT count(1) as total FROM cbt_ujian where (XKodeKelas = :xkelz or XKodeKelas = 'ALL') and (XKodeJurusan = :xjurz or XKodeJurusan = 'ALL') and XStatusUjian = '1' and XSesi = :xsesi and XTglUjian = :tglujian and XJamUjian > :xjam1",
+                    array(
+                        'xkelz' => $xkelz,
+                        'xjurz' => $xjurz,
+                        'xsesi' => $xsesi,
+                        'tglujian' => $tglujian,
+                        'xjam1' => $xjam1,
+                    )
+                );
+                $sqlcekujian_count = (int) db_fetch_value($sqlcekujian);
+                $sqlcekujian_future_count = (int) db_fetch_value($sqlcekujian_future);
+                if ($sqlcekujian_count > 0 || $sqlcekujian_future_count > 0) { ?>
 
                     <div class="list-group-item">
                         <label class="list-group-item-heading">Mata Pelajaran </label>

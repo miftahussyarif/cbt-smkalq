@@ -431,34 +431,15 @@
 
 </script>
 <?php
-// Connect to MySQL
 include "../../config/server.php";
 
-if (isset($sqlconn)) {
-    //echo "Database $sqlconn";
-} else {
-    $pesan1 = "Tidak dapat Koneksi Database.";
+$val = false;
+try {
+    $stmt = db_query($db, "select 1 from `cbt_admin` LIMIT 1", array());
+    $val = db_fetch_value($stmt);
+} catch (PDOException $e) {
+    $val = false;
 }
-if (!$sqlconn) {
-    die('Could not connect: ' . mysql_error());
-}
-
-// Make my_db the current database
-$db_selected = mysql_select_db('beesmartv3', $sqlconn);
-
-if (!$db_selected) {
-    // If we couldn't, then it either doesn't exist, or we can't see it.
-    $sql = 'CREATE DATABASE beesmartv3';
-
-    if (mysql_query($sql, $sqlconn)) {
-        //    echo "Database my_db created successfully\n";
-
-
-    } else {
-        //    echo 'Error creating database: ' . mysql_error() . "\n";
-    }
-}
-$val = mysql_query('select 1 from `cbt_admin` LIMIT 1');
 ?>
 
 <div class="login-page">

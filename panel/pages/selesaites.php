@@ -1,7 +1,14 @@
-<?php 
-include "../../config/server.php";	
+<?php
+require_once __DIR__ . "/../../config/server.php";
 ?>
 <?php
-$sqlselesai = mysql_query("update cbt_ujian set XStatusUjian = '9' where Urut = '$_REQUEST[txt_ujian]'");
+$txt_ujian = isset($_REQUEST['txt_ujian']) ? $_REQUEST['txt_ujian'] : '';
+if ($txt_ujian !== '') {
+    db_query(
+        $db,
+        "UPDATE cbt_ujian SET XStatusUjian = '9' WHERE Urut = :urut",
+        array(':urut' => $txt_ujian)
+    );
+}
 ?>
 

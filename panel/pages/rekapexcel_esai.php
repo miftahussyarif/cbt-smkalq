@@ -83,7 +83,7 @@ $objPHPExcel->setActiveSheetIndex(0)
 			->setCellValue('J3', 'TOKEN');			
 
 
-$sqlujian = mysql_query("SELECT * from cbt_jawaban WHERE XKodeSoal = '$_REQUEST[soal]'");
+$sqlujian = mysql_query("SELECT * from cbt_jawaban WHERE XKodeSoal = '{$_REQUEST['soal']}'");
 $uj = mysql_fetch_array($sqlujian);
 $txt_kelas = $uj['XKodeKelas'];
 $txt_jurusan = $uj['XKodeKelas'];
@@ -107,12 +107,12 @@ $baris = 4;
 $no = 1;	
 while($p = mysql_fetch_array($hasil)){
 
-    $var_siswa = "$p[XNomerUjian]";
-	$var_nama = "$p[XNamaSiswa]";
-	$var_sesi = "$p[XSesi]";
-    $var_kelas = "$p[XKodeKelas]";
-	$var_jurusan = "$p[XKodeJurusan]";
-	$grup = "$p[XKodeKelas] - $p[XKodeJurusan]";
+    $var_siswa = "{$p['XNomerUjian']}";
+	$var_nama = "{$p['XNamaSiswa']}";
+	$var_sesi = "{$p['XSesi']}";
+    $var_kelas = "{$p['XKodeKelas']}";
+	$var_jurusan = "{$p['XKodeJurusan']}";
+	$grup = "{$p['XKodeKelas']} - {$p['XKodeJurusan']}";
 	
 	$sqlpaket = mysql_query("select * from  cbt_paketsoal where XKodeSoal = '$var_soal'"); 	
 	$p1 = mysql_fetch_array($sqlpaket);

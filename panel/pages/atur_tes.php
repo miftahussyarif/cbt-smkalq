@@ -117,7 +117,7 @@ include "../../config/server.php";
 $sql = mysql_query("select u.*,m.*,u.Urut as Urutan,u.XKodeKelas as kokel,u.XKodeSoal from cbt_ujian u left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel 
 left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal where u.XStatusUjian='1'");
 							while($s = mysql_fetch_array($sql)){ 
-				$sqlsoal  = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$s[XKodeSoal]'"));
+				$sqlsoal  = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '{$s['XKodeSoal']}'"));
 				if($sqlsoal<1){$kata="disabled";}  else {$kata="";}	
 							?>
                                     <tr class="odd gradeX">
@@ -272,7 +272,7 @@ function myFunction() {
                              <?php 
 							 $sqlkelas = mysql_query("select * from cbt_tes order by Urut");
 							 while($k = mysql_fetch_array($sqlkelas)){
-                             echo "<option value='$k[XKodeUjian]'>$k[XNamaUjian]</option>";
+                             echo "<option value='{$k['XKodeUjian']}'>{$k['XNamaUjian']}</option>";
 							 }
 							 ?>
                              </select>
@@ -293,7 +293,7 @@ function myFunction() {
                              <?php 
 							 $sqlsesi = mysql_query("select * from cbt_siswa group by XSesi");
 							 while($sk = mysql_fetch_array($sqlsesi)){
-                             echo "<option value='$sk[XSesi]'>$sk[XSesi]</option>";
+                             echo "<option value='{$sk['XSesi']}'>{$sk['XSesi']}</option>";
 							 }
 							 ?>
                              </select>

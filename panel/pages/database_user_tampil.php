@@ -18,7 +18,7 @@ $sql0 = mysql_query("select * from cbt_user order by Urut");
 	</tr>
 	<script type="text/javascript" src="../js/jquery.js"></script>
 	<script type="text/javascript" src="jquery-1.4.js"></script>
-	<?Php
+	<?php
 	$no = 1;
 	while ($xadm = mysql_fetch_array($sql0)) {
 		if ($xadm['login'] == "1") {
@@ -28,7 +28,7 @@ $sql0 = mysql_query("select * from cbt_user order by Urut");
 		} else {
 			$rol = "Guru";
 		}
-		echo "<tr height=40 style='border=0; border-bottom:thin solid #dcddde'><td>$no</td><td>$xadm[Username]</td><td>$xadm[Nama]</td>"; ?>
+		echo "<tr height=40 style='border=0; border-bottom:thin solid #dcddde'><td>$no</td><td>{$xadm['Username']}</td><td>{$xadm['Nama']}</td>"; ?>
 		<td><?php echo "$rol"; ?></td>
 		<td>
 

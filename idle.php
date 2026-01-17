@@ -1,42 +1,65 @@
-<?php include "cbt_con.php"; 
+<?php
+require __DIR__ . '/config/server.php';
 // ===============================
 // Status Ujian XStatusUjian = 1 Aktif
 // Status Ujian XStatusUjian = 0 BelumAktif
 // Status Ujian XStatusUjian = 9 Selesai
 
 $tgl = date("H:i:s");
-if(isset($_COOKIE['PESERTA'])){
-$user = $_COOKIE['PESERTA'];
-$sql = mysql_query("Update cbt_siswa_ujian set XLastUpdate = '$tgl' where XNomerUjian = '$user' and XStatusUjian = '1' ");
-}
-//cek data siswa ujian
-  $sqluser = mysql_query("SELECT * FROM  `cbt_siswa` s LEFT JOIN cbt_ujian u ON s.XKodeKelas = u.XKodeKelas WHERE XNomerUjian = 
-  '$user' and u.XStatusUjian = '1'");
-  $s = mysql_fetch_array($sqluser);
-  $val_siswa = $s['XNamaSiswa'];
-  $xkodesoal = $s['XKodeSoal'];
-  $xkodemapel = $s['XKodeMapel'];
-  $xjumlahsoal = $s['XJumSoal'];
-  $xtokenujian = $s['XTokenUjian'];  
-  
-$sqlceksiswa = mysql_query("select * from cbt_siswa_ujian where XNomerUjian = '$user' and XKodeSoal = '$xkodesoal'  and XTokenUjian = '$xtokenujian'"); 
-$s2 = mysql_fetch_array($sqlceksiswa);
+$user = isset($_COOKIE['PESERTA']) ? $_COOKIE['PESERTA'] : '';
+$s = null;
+$s2 = null;
 
-  $xjumlahjam = $s2['XLamaUjian'];
-  $xjam = substr($xjumlahjam,0,2);
-  $xmnt = substr($xjumlahjam,3,2);
-  $xdtk = substr($xjumlahjam,6,2);
-  $xstatusujian = $s2['XStatusUjian'];
- // echo "$xstatusujian<br>";
-  
-$jatahjam = $xjam;
-$jatahmnt = $xmnt;
-$menit = $jatahmnt+($jatahjam*60);
-$timestamp = strtotime($s2['XMulaiUjian']) + $menit*60;
-$tjam = date('H', $timestamp);
-$tmnt = date('i', $timestamp);
-$tdtk = date('s', $timestamp);
-$jamterakhirlogout = "$tjam:$tmnt:$tdtk";
+if ($user !== '') {
+    db_query(
+        $db,
+        "UPDATE cbt_siswa_ujian SET XLastUpdate = :tgl WHERE XNomerUjian = :user AND XStatusUjian = '1'",
+        array(':tgl' => $tgl, ':user' => $user)
+    );
+
+    //cek data siswa ujian
+    $sqluser = db_query(
+        $db,
+        "SELECT * FROM `cbt_siswa` s LEFT JOIN cbt_ujian u ON s.XKodeKelas = u.XKodeKelas WHERE XNomerUjian = :user AND u.XStatusUjian = '1'",
+        array(':user' => $user)
+    );
+    $s = db_fetch_one($sqluser);
+}
+
+$val_siswa = $s ? $s['XNamaSiswa'] : '';
+$xkodesoal = $s ? $s['XKodeSoal'] : '';
+$xkodemapel = $s ? $s['XKodeMapel'] : '';
+$xjumlahsoal = $s ? $s['XJumSoal'] : '';
+$xtokenujian = $s ? $s['XTokenUjian'] : '';
+
+if ($user !== '' && $xkodesoal !== '' && $xtokenujian !== '') {
+    $sqlceksiswa = db_query(
+        $db,
+        "SELECT * FROM cbt_siswa_ujian WHERE XNomerUjian = :user AND XKodeSoal = :kodesoal AND XTokenUjian = :token",
+        array(':user' => $user, ':kodesoal' => $xkodesoal, ':token' => $xtokenujian)
+    );
+    $s2 = db_fetch_one($sqlceksiswa);
+}
+
+$xjumlahjam = $s2 ? $s2['XLamaUjian'] : '';
+$xjam = $xjumlahjam !== '' ? substr($xjumlahjam, 0, 2) : '';
+$xmnt = $xjumlahjam !== '' ? substr($xjumlahjam, 3, 2) : '';
+$xdtk = $xjumlahjam !== '' ? substr($xjumlahjam, 6, 2) : '';
+$xstatusujian = $s2 ? $s2['XStatusUjian'] : '';
+// echo "$xstatusujian<br>";
+
+$jatahjam = (int) $xjam;
+$jatahmnt = (int) $xmnt;
+$menit = $jatahmnt + ($jatahjam * 60);
+$jamterakhirlogout = '';
+
+if ($s2 && isset($s2['XMulaiUjian'])) {
+    $timestamp = strtotime($s2['XMulaiUjian']) + $menit * 60;
+    $tjam = date('H', $timestamp);
+    $tmnt = date('i', $timestamp);
+    $tdtk = date('s', $timestamp);
+    $jamterakhirlogout = "$tjam:$tmnt:$tdtk";
+}
 ?>
 <?php
 

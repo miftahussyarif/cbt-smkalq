@@ -1,5 +1,5 @@
 <?php
-include "../../config/server.php";
+require_once __DIR__ . "/../../config/server.php";
 
 header('Content-Type: application/json');
 
@@ -79,38 +79,41 @@ if (count($errors) > 0) {
     exit;
 }
 
-$txt_nama = mysql_real_escape_string($txt_nama);
-$txt_ting = mysql_real_escape_string($txt_ting);
-$txt_alam = mysql_real_escape_string($txt_alam);
-$txt_telp = mysql_real_escape_string($txt_telp);
-$txt_facs = mysql_real_escape_string($txt_facs);
-$txt_emai = mysql_real_escape_string($txt_emai);
-$txt_webs = mysql_real_escape_string($txt_webs);
-$txt_ip = mysql_real_escape_string($txt_ip);
-$txt_adm = mysql_real_escape_string($txt_adm);
-$txt_col = mysql_real_escape_string($txt_col);
-$txt_kode = mysql_real_escape_string($txt_kode);
-$txt_nip1 = mysql_real_escape_string($txt_nip1);
-$txt_nip2 = mysql_real_escape_string($txt_nip2);
-
-$sql = mysql_query("update cbt_admin set 
-XSekolah = '$txt_nama',
-XTingkat = '$txt_ting',
-XAlamat = '$txt_alam',
-XTelp = '$txt_telp',
-XFax = '$txt_facs',
-XEmail = '$txt_emai',
-XWeb = '$txt_webs',
-XAdmin = '$txt_adm',
-XWarna = '$txt_col',
-XKodeSekolah = '$txt_kode',
-XNIPKepsek = '$txt_nip1',
-XNIPAdmin = '$txt_nip2',
-XKepSek = '$txt_ip'");
-
-if ($sql) {
+try {
+    db_query(
+        $db,
+        "UPDATE cbt_admin SET
+        XSekolah = :sekolah,
+        XTingkat = :tingkat,
+        XAlamat = :alamat,
+        XTelp = :telp,
+        XFax = :fax,
+        XEmail = :email,
+        XWeb = :web,
+        XAdmin = :admin,
+        XWarna = :warna,
+        XKodeSekolah = :kode,
+        XNIPKepsek = :nip1,
+        XNIPAdmin = :nip2,
+        XKepSek = :kepsek",
+        array(
+            ':sekolah' => $txt_nama,
+            ':tingkat' => $txt_ting,
+            ':alamat' => $txt_alam,
+            ':telp' => $txt_telp,
+            ':fax' => $txt_facs,
+            ':email' => $txt_emai,
+            ':web' => $txt_webs,
+            ':admin' => $txt_adm,
+            ':warna' => $txt_col,
+            ':kode' => $txt_kode,
+            ':nip1' => $txt_nip1,
+            ':nip2' => $txt_nip2,
+            ':kepsek' => $txt_ip,
+        )
+    );
     echo json_encode(array('ok' => true, 'message' => 'Ubah data berhasil!'));
-} else {
-    echo json_encode(array('ok' => false, 'errors' => array('__all__' => 'Gagal menyimpan data: ' . mysql_error())));
+} catch (Exception $e) {
+    echo json_encode(array('ok' => false, 'errors' => array('__all__' => 'Gagal menyimpan data: ' . $e->getMessage())));
 }
 ?>

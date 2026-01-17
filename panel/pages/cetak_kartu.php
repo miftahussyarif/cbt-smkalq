@@ -18,23 +18,31 @@ $(document).ready(function() {
 </head>
 <body>
 <!-- <iframe src="print_kartu.php" style="display:none;" name="frame"></iframe> !-->
-<iframe src="<?php echo "print_kartu.php?kelas=$_REQUEST[iki2]&jur=$_REQUEST[jur2]"; ?>" style="display:none;" name="frame"></iframe>
+<iframe src="<?php echo "print_kartu.php?kelas={$_REQUEST['iki2']}&jur={$_REQUEST['jur2']}"; ?>" style="display:none;" name="frame"></iframe>
 <button type="button" class="btn btn-default btn-sm" onClick="frames['frame'].print()" style="margin-top:10px; margin-bottom:4px"><i class="glyphicon glyphicon-print"></i> Cetak</button>
-<?php echo "Cetak Kartu Peserta Kelas : '$_REQUEST[iki2]', Jurusan : '$_REQUEST[jur2]'"; ?>
+<?php echo "Cetak Kartu Peserta Kelas : '{$_REQUEST['iki2']}', Jurusan : '{$_REQUEST['jur2']}'"; ?>
 <?php
 function kartu($am,$kokel,$kojur) {
-$sqlam = mysql_query("
-select * from (select * from cbt_siswa where XKodeKelas = '$kokel' and XKodeJurusan='$kojur' order by Urut  limit $am) as ambil order by Urut Desc limit 1");
-$a = mysql_fetch_array($sqlam);
+	global $db;
+	$am = (int) $am;
+	$sqlam = db_query(
+		$db,
+		"select * from (select * from cbt_siswa where XKodeKelas = ? and XKodeJurusan = ? order by Urut limit $am) as ambil order by Urut desc limit 1",
+		array($kokel, $kojur)
+	);
+	$a = db_fetch_one($sqlam);
+	if (!$a) {
+		return;
+	}
 
-$sqlad = mysql_query("select * from cbt_admin");
-$ad = mysql_fetch_array($sqlad);
-$namsek = $ad['XSekolah'];
-$kepsek = $ad['XKepSek'];
-$logsek = $ad['XLogo'];
+$sqlad = db_query($db, "select * from cbt_admin", array());
+$ad = db_fetch_one($sqlad);
+$namsek = $ad ? $ad['XSekolah'] : '';
+$kepsek = $ad ? $ad['XKepSek'] : '';
+$logsek = $ad ? $ad['XLogo'] : '';
 
 
-if(str_replace(" ","",$a['XFoto'])==""){$pic = "nouser.png";}else{$pic="$a[XFoto]";}
+if(str_replace(" ","",$a['XFoto'])==""){$pic = "nouser.png";}else{$pic="{$a['XFoto']}";}
 
 ?>
 <table style="width:100%;border:1px solid black; padding:55px; font-family:Arial, Helvetica, sans-serif; font-size:12px" class="kartu" border="0">
@@ -52,13 +60,13 @@ if(str_replace(" ","",$a['XFoto'])==""){$pic = "nouser.png";}else{$pic="$a[XFoto
 						</td>
 					</tr>
 			<tr height="20px"><td width="90">&nbsp;Nama Peserta </td><td width="8">:</td><td width="226" style="font-size:12px;font-weight:bold;">
-			<?php echo "$a[XNamaSiswa] "; ?></td></tr>
+			<?php echo "{$a['XNamaSiswa']} "; ?></td></tr>
 			<tr height="20px"><td>&nbsp;Jurusan </td><td>:</td><td style="font-size:12px;font-weight:bold;">
-			<?php echo "$a[XKodeJurusan] "; ?></td></tr>            
+			<?php echo "{$a['XKodeJurusan']} "; ?></td></tr>            
 			<tr height="20px"><td>&nbsp;Sesi - Ruang</td><td>:</td><td style="font-size:12px;font-weight:bold;">
-			<?php echo "$a[XSesi] - $a[XRuang]"; ?></td></tr>            
+			<?php echo "{$a['XSesi']} - {$a['XRuang']}"; ?></td></tr>            
 			<tr height="20px"><td height="25px">&nbsp;Username</td><td>:</td><td style="font-size:12px;font-weight:bold;">
-			<?php echo "$a[XNomerUjian]"; ?></td></tr>
+			<?php echo "{$a['XNomerUjian']}"; ?></td></tr>
 			<tr height="20px"><td>&nbsp;Password</td><td>:</td><td style="font-size:12px;font-weight:bold;"><?php echo $a['XPassword']; ?></td></tr>
 			<tr height="76px"><td rowspan="3" align="center"><img src="../../fotosiswa/<?php echo $pic; ?>" height="76px" border="thin solid red"></td>
 
@@ -71,17 +79,20 @@ if(str_replace(" ","",$a['XFoto'])==""){$pic = "nouser.png";}else{$pic="$a[XFoto
 }
 
 //koneksi database
-include "../../config/server.php";
+require_once __DIR__ . "/../../config/server.php";
 $BatasAwal = 50;
 
 if(isset($_REQUEST['iki2'])&&isset($_REQUEST['jur2'])){ 
-$cekQuery = mysql_query("
-SELECT * FROM cbt_siswa where XKodeKelas = '$_REQUEST[iki2]' and  XKodeJurusan = '$_REQUEST[jur2]' ");
+$cekQuery = db_query(
+	$db,
+	"SELECT COUNT(*) FROM cbt_siswa where XKodeKelas = ? and XKodeJurusan = ?",
+	array($_REQUEST['iki2'], $_REQUEST['jur2'])
+);
 } else {
-$cekQuery = mysql_query("SELECT * FROM cbt_siswa"); 
+$cekQuery = db_query($db, "SELECT COUNT(*) FROM cbt_siswa", array());
 }
 //$cekQuery = mysql_query("SELECT * FROM cbt_siswa");
-$jumlahData = mysql_num_rows($cekQuery);
+$jumlahData = (int) db_fetch_value($cekQuery);
 $jumlahn = 10;
 $n = ceil($jumlahData/$jumlahn);
 
@@ -93,8 +104,8 @@ $mulai = $i-1;
 $batas = ($mulai*$jumlahn);
 $startawal = $batas;
 $batasakhir = $batas+$jumlahn;
-$kokelz = "$_REQUEST[iki2]";
-$kojurz = "$_REQUEST[jur2]";
+$kokelz = "{$_REQUEST['iki2']}";
+$kojurz = "{$_REQUEST['jur2']}";
 //echo "$kokelz ... $kojurz";
 ?>
 			<table width="100%" border="0">

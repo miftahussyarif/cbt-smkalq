@@ -63,9 +63,9 @@ if ($rs && $rs['XNamaUjian'] != '') {
 	$namaUjian = strtoupper($namaUjian);
 }
 
-$sqk = mysql_query("select * from cbt_mapel where XKodeMapel = '$_REQUEST[mapz]'");
+$sqk = mysql_query("select * from cbt_mapel where XKodeMapel = '{$_REQUEST['mapz']}'");
 $rs = mysql_fetch_array($sqk);
-$rs1 = strtoupper("$rs[XNamaMapel]");
+$rs1 = strtoupper("{$rs['XNamaMapel']}");
 $NilaiKKMe = $rs['XKKM'];
 
    $this->Image('../../images/'.$logsek,1,1,2.0);
@@ -153,13 +153,13 @@ if (!$dataReady) {
 	$persenEsai = isset($pak['XPersenEsai']) ? (float)$pak['XPersenEsai'] : 0;
 	while($f= mysql_fetch_array($cekQuery1)){
 		$nilaiTampil = "";
-		$cekJawabSiswa = mysql_num_rows(mysql_query("select 1 from cbt_jawaban where XKodeSoal in ($kodeSoalListSql) and XTokenUjian in ($tokenListSql) and XUserJawab = '$f[XNomerUjian]' limit 1"));
+		$cekJawabSiswa = mysql_num_rows(mysql_query("select 1 from cbt_jawaban where XKodeSoal in ($kodeSoalListSql) and XTokenUjian in ($tokenListSql) and XUserJawab = '{$f['XNomerUjian']}' limit 1"));
 		if ($cekJawabSiswa > 0) {
-			$sqlBenar = mysql_query("select count(1) as benar from cbt_jawaban where XKodeSoal in ($kodeSoalListSql) and XTokenUjian in ($tokenListSql) and XUserJawab = '$f[XNomerUjian]' and XNilai = '1'");
+			$sqlBenar = mysql_query("select count(1) as benar from cbt_jawaban where XKodeSoal in ($kodeSoalListSql) and XTokenUjian in ($tokenListSql) and XUserJawab = '{$f['XNomerUjian']}' and XNilai = '1'");
 			$br = mysql_fetch_array($sqlBenar);
 			$jumBenar = (int)$br['benar'];
 
-			$sqlEsai = mysql_query("select sum(XNilaiEsai) as hasil from cbt_jawaban where XKodeSoal in ($kodeSoalListSql) and XTokenUjian in ($tokenListSql) and XUserJawab = '$f[XNomerUjian]'");
+			$sqlEsai = mysql_query("select sum(XNilaiEsai) as hasil from cbt_jawaban where XKodeSoal in ($kodeSoalListSql) and XTokenUjian in ($tokenListSql) and XUserJawab = '{$f['XNomerUjian']}'");
 			$es = mysql_fetch_array($sqlEsai);
 			$nilaiEsai = isset($es['hasil']) ? (float)$es['hasil'] : 0;
 

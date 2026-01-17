@@ -73,20 +73,20 @@ if(isset($_REQUEST['token'])){
 		$sql = mysql_query("select su.*,s.*,su.urut as yoi,u.XKodeMapel,m.XNamaMapel from cbt_siswa_ujian su left join cbt_siswa s on s.XNomerUjian=su.XNomerUjian
 		left join cbt_ujian u on u.XTokenUjian = su.XTokenUjian
 		left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel
-		where u.XStatusUjian = '1' and su.XTokenUjian = '$_REQUEST[token]' order by su.Urut");
+		where u.XStatusUjian = '1' and su.XTokenUjian = '{$_REQUEST['token']}' order by su.Urut");
 		while($s = mysql_fetch_array($sql)){
 		if($s['XStatusUjian']=='1'){$xsta = "Online";}
 		elseif($s['XStatusUjian']=='9'){$xsta = "Selesai";}
 		else {$xsta = "Belum Login";}
 		echo "
 										<tr>
-											<td>$s[yoi]</td>
-											<td>$s[XNomerUjian]</td>
-											<td>$s[XNamaSiswa]</td>
-											<td>$s[XNIK]</td>
-											<td>$s[XKodeKelas]</td>
-											<td>$s[XKodeJurusan]</td>
-											<td>$s[XNamaMapel]</td>
+											<td>{$s['yoi']}</td>
+											<td>{$s['XNomerUjian']}</td>
+											<td>{$s['XNamaSiswa']}</td>
+											<td>{$s['XNIK']}</td>
+											<td>{$s['XKodeKelas']}</td>
+											<td>{$s['XKodeJurusan']}</td>
+											<td>{$s['XNamaMapel']}</td>
 											<td>$xsta</td>
 										</tr>
 		"; 

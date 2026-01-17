@@ -1,31 +1,63 @@
 <?php
 	if(!isset($_COOKIE['beeuser'])){
 	header("Location: login.php");}
-include "../../config/server.php";
+require_once __DIR__ . "/../../config/server.php";
 if(isset($_REQUEST['aksi'])){
 //echo "delete from cbt_kelas where Urut = '$_REQUEST[urut]'";
-$sql = mysql_query("delete from cbt_siswa where Urut = '$_REQUEST[urut]'");
+	$urut = isset($_REQUEST['urut']) ? $_REQUEST['urut'] : '';
+	if ($urut !== '') {
+		db_query($db, "delete from cbt_siswa where Urut = ?", array($urut));
+	}
 }
 if(isset($_REQUEST['simpan'])){
 //echo "Urut = '$_REQUEST[txt_kodkel] - $_REQUEST[txt_namkel] - $_REQUEST[txt_kodlev] - $_REQUEST[txt_jur]' $_REQUEST[id]";
-$sql = mysql_query("update cbt_siswa set XNamaSiswa = '$_REQUEST[txt_nam]', XPassword = '$_REQUEST[txt_pas]', XNomerUjian = '$_REQUEST[txt_nom]',
-XKodeJurusan = '$_REQUEST[jur2]', XKodeKelas = '$_REQUEST[txt_kelas]', XKodeLevel = '$_REQUEST[txt_level]',
-XNIK = '$_REQUEST[txt_nisn]', XFoto='$_REQUEST[txt_potret]',XJenisKelamin = '$_REQUEST[txt_jekel]',
-XSesi = '$_REQUEST[txt_sesi]',XRuang = '$_REQUEST[txt_ruang]',XAgama = '$_REQUEST[txt_agama]',XPilihan = '$_REQUEST[txt_pilih]'
- where Urut = '$_REQUEST[id]'");
+	$id = isset($_REQUEST['id']) ? $_REQUEST['id'] : '';
+	$nama = isset($_REQUEST['txt_nam']) ? $_REQUEST['txt_nam'] : '';
+	$pass = isset($_REQUEST['txt_pas']) ? $_REQUEST['txt_pas'] : '';
+	$nomer = isset($_REQUEST['txt_nom']) ? $_REQUEST['txt_nom'] : '';
+	$jurusan = isset($_REQUEST['jur2']) ? $_REQUEST['jur2'] : '';
+	$kelas = isset($_REQUEST['txt_kelas']) ? $_REQUEST['txt_kelas'] : '';
+	$level = isset($_REQUEST['txt_level']) ? $_REQUEST['txt_level'] : '';
+	$nisn = isset($_REQUEST['txt_nisn']) ? $_REQUEST['txt_nisn'] : '';
+	$foto = isset($_REQUEST['txt_potret']) ? $_REQUEST['txt_potret'] : '';
+	$jekel = isset($_REQUEST['txt_jekel']) ? $_REQUEST['txt_jekel'] : '';
+	$sesi = isset($_REQUEST['txt_sesi']) ? $_REQUEST['txt_sesi'] : '';
+	$ruang = isset($_REQUEST['txt_ruang']) ? $_REQUEST['txt_ruang'] : '';
+	$agama = isset($_REQUEST['txt_agama']) ? $_REQUEST['txt_agama'] : '';
+	$pilihan = isset($_REQUEST['txt_pilih']) ? $_REQUEST['txt_pilih'] : '';
+
+	db_query(
+		$db,
+		"update cbt_siswa set XNamaSiswa = ?, XPassword = ?, XNomerUjian = ?, XKodeJurusan = ?, XKodeKelas = ?, XKodeLevel = ?, XNIK = ?, XFoto = ?, XJenisKelamin = ?, XSesi = ?, XRuang = ?, XAgama = ?, XPilihan = ? where Urut = ?",
+		array($nama, $pass, $nomer, $jurusan, $kelas, $level, $nisn, $foto, $jekel, $sesi, $ruang, $agama, $pilihan, $id)
+	);
 }
 
 if(isset($_REQUEST['tambah'])){
-	$sqlcek = mysql_num_rows(mysql_query("select * from cbt_siswa where (XNomerUjian = '$_REQUEST[txt_nom]' or XNIK = '$_REQUEST[txt_nisn]')"));
-	if($sqlcek>0){
+	$nomer = isset($_REQUEST['txt_nom']) ? $_REQUEST['txt_nom'] : '';
+	$nisn = isset($_REQUEST['txt_nisn']) ? $_REQUEST['txt_nisn'] : '';
+	$sqlcek = db_query($db, "select 1 from cbt_siswa where (XNomerUjian = ? or XNIK = ?) limit 1", array($nomer, $nisn));
+	if(db_fetch_one($sqlcek)){
 	$message = "NISN atau Nomer Ujian SUDAH ADA";
 	echo "<script type='text/javascript'>alert('$message');</script>";
 	} else {
-		if(!$_REQUEST['txt_nom']==""||!$_REQUEST['txt_nisn']==""){
-		$sql = mysql_query("insert into cbt_siswa (XNamaSiswa, XPassword, XNomerUjian, XKodeJurusan, XKodeKelas, XKodeLevel,
-		XNIK, XFoto,XJenisKelamin,XSesi,XRuang,XAgama,XPilihan) values 	
-		('$_REQUEST[txt_nam]','$_REQUEST[txt_pas]','$_REQUEST[txt_nom]','$_REQUEST[jur2]','$_REQUEST[txt_kelas]','$_REQUEST[txt_level]','$_REQUEST[txt_nisn]', 
-		'$_REQUEST[txt_potret]','$_REQUEST[txt_jekel]','$_REQUEST[txt_sesi]','$_REQUEST[txt_ruang]','$_REQUEST[txt_agama]','$_REQUEST[txt_pilih]')");
+		if($nomer !== "" || $nisn !== ""){
+			$nama = isset($_REQUEST['txt_nam']) ? $_REQUEST['txt_nam'] : '';
+			$pass = isset($_REQUEST['txt_pas']) ? $_REQUEST['txt_pas'] : '';
+			$jurusan = isset($_REQUEST['jur2']) ? $_REQUEST['jur2'] : '';
+			$kelas = isset($_REQUEST['txt_kelas']) ? $_REQUEST['txt_kelas'] : '';
+			$level = isset($_REQUEST['txt_level']) ? $_REQUEST['txt_level'] : '';
+			$foto = isset($_REQUEST['txt_potret']) ? $_REQUEST['txt_potret'] : '';
+			$jekel = isset($_REQUEST['txt_jekel']) ? $_REQUEST['txt_jekel'] : '';
+			$sesi = isset($_REQUEST['txt_sesi']) ? $_REQUEST['txt_sesi'] : '';
+			$ruang = isset($_REQUEST['txt_ruang']) ? $_REQUEST['txt_ruang'] : '';
+			$agama = isset($_REQUEST['txt_agama']) ? $_REQUEST['txt_agama'] : '';
+			$pilihan = isset($_REQUEST['txt_pilih']) ? $_REQUEST['txt_pilih'] : '';
+			db_query(
+				$db,
+				"insert into cbt_siswa (XNamaSiswa, XPassword, XNomerUjian, XKodeJurusan, XKodeKelas, XKodeLevel, XNIK, XFoto, XJenisKelamin, XSesi, XRuang, XAgama, XPilihan) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+				array($nama, $pass, $nomer, $jurusan, $kelas, $level, $nisn, $foto, $jekel, $sesi, $ruang, $agama, $pilihan)
+			);
 		}
 	}
 
@@ -75,7 +107,6 @@ if(isset($_REQUEST['tambah'])){
 </head>
 
 <body>
-<?php include "../../config/server.php"; ?>
             <div class="row">
                 <div class="col-lg-12">
                     <h1 class="page-header">Daftar Peserta</h1>
@@ -113,8 +144,8 @@ Tambah Siswa</button>
                                 </thead>
                                 <tbody>
                                 <?php 
-								$sql = mysql_query("select * from cbt_siswa order by XNomerUjian");
-								while($s = mysql_fetch_array($sql)){ 
+								$sql = db_query($db, "select * from cbt_siswa order by XNomerUjian", array());
+								while($s = $sql->fetch()){ 
 								$gbr=str_replace(" ","",$s['XFoto']);
 								if($gbr==""){$gbr="nouser.png";}
 								?>
@@ -141,12 +172,12 @@ Tambah Siswa</button>
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Peserta Ujian : $s[XNomerUjian]"; ?></h4>
+                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Peserta Ujian : {$s['XNomerUjian']}"; ?></h4>
                                         </div>
                                         <div class="modal-body" style="text-align:center">
                                         
                                                <?php 
-												if(file_exists("../../fotosiswa/$s[XFoto]")&&!$gbr==''){ ?>
+												if(file_exists("../../fotosiswa/{$s['XFoto']}")&&!$gbr==''){ ?>
                                                 <img src="../../fotosiswa/<?php echo $s['XFoto']; ?>" width="400px">
                                                 <?php 
 												} else {
@@ -204,18 +235,18 @@ Tambah Siswa</button>
                                 <tr height="30px"><td>Jurusan </td><td>:                                 
                                 <select id="jur2"  name="jur2">
 <?php 
-								$sqk = mysql_query("select * from cbt_kelas group by XKodeJurusan");
-								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XKodeJurusan]'>$rs[XKodeJurusan]</option>";
+								$sqk = db_query($db, "select XKodeJurusan from cbt_kelas group by XKodeJurusan", array());
+								while($rs = $sqk->fetch()){
+                             	echo "<option value='{$rs['XKodeJurusan']}'>{$rs['XKodeJurusan']}</option>";
 								} ?>                                
                                 </select>
 </td></tr> 
                                 <tr><td width="30%">Kelas </td><td>:
                                 <select id="iki2"  name="iki2">
 <?php 
-								$sqk = mysql_query("select * from cbt_kelas group by XKodeKelas");
-								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XKodeKelas]'>$rs[XKodeKelas]</option>";
+								$sqk = db_query($db, "select XKodeKelas from cbt_kelas group by XKodeKelas", array());
+								while($rs = $sqk->fetch()){
+                             	echo "<option value='{$rs['XKodeKelas']}'>{$rs['XKodeKelas']}</option>";
 								} ?>                                
                                 
                                 </select>
@@ -273,23 +304,23 @@ Tambah Siswa</button>
                 </tr>
 				<tr><td>
                 				<select id="txt_level"  name="txt_level" class="form-control" >
-								<?php $sqk = mysql_query("select * from cbt_kelas group by XKodeLevel");
-								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XKodeLevel]' class='form-control' >$rs[XKodeLevel]</option>";} ?>                                
+								<?php $sqk = db_query($db, "select XKodeLevel from cbt_kelas group by XKodeLevel", array());
+								while($rs = $sqk->fetch()){
+                             	echo "<option value='{$rs['XKodeLevel']}' class='form-control' >{$rs['XKodeLevel']}</option>";} ?>                                
                                 </select>     
                 </td><td>&nbsp;</td><td>
                 				<select id="txt_kelas"  name="txt_kelas" class="form-control" >
-								<?php $sqk = mysql_query("select * from cbt_kelas group by XKodeKelas");
-								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XKodeKelas]' class='form-control' >$rs[XKodeKelas]</option>";} ?>                                
+								<?php $sqk = db_query($db, "select XKodeKelas from cbt_kelas group by XKodeKelas", array());
+								while($rs = $sqk->fetch()){
+                             	echo "<option value='{$rs['XKodeKelas']}' class='form-control' >{$rs['XKodeKelas']}</option>";} ?>                                
                                 </select>              
                 </td>
                 </td><td>&nbsp;</td><td>
                 				<select id="jur2"  name="jur2" class="form-control">
 								<?php 
-								$sqk = mysql_query("select * from cbt_kelas group by XKodeJurusan");
-								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XKodeJurusan]'>$rs[XKodeJurusan]</option>";
+								$sqk = db_query($db, "select XKodeJurusan from cbt_kelas group by XKodeJurusan", array());
+								while($rs = $sqk->fetch()){
+                             	echo "<option value='{$rs['XKodeJurusan']}'>{$rs['XKodeJurusan']}</option>";
 								} ?>                                
                                 </select>                
                 </td>
@@ -339,17 +370,17 @@ Tambah Siswa</button>
                 </td><td>&nbsp;</td><td>
                  <select id="txt_sesi"  name="txt_sesi" class="form-control">
 								<?php 
-								$sqk = mysql_query("select * from cbt_siswa group by XSesi");
-								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XSesi]'>$rs[XSesi]</option>";
+								$sqk = db_query($db, "select XSesi from cbt_siswa group by XSesi", array());
+								while($rs = $sqk->fetch()){
+                             	echo "<option value='{$rs['XSesi']}'>{$rs['XSesi']}</option>";
 								} ?>                                
                                 </select>               
                 </td><td>&nbsp;</td><td>
                                 <select id="txt_ruang"  name="txt_ruang" class="form-control">
 								<?php 
-								$sqk = mysql_query("select * from cbt_siswa group by XRuang");
-								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XRuang]'>$rs[XRuang]</option>";
+								$sqk = db_query($db, "select XRuang from cbt_siswa group by XRuang", array());
+								while($rs = $sqk->fetch()){
+                             	echo "<option value='{$rs['XRuang']}'>{$rs['XRuang']}</option>";
 								} ?>                                
                                 </select>                   
                
@@ -357,9 +388,9 @@ Tambah Siswa</button>
               
                 				<select id="txt_agama"  name="txt_agama" class="form-control">
 								<?php 
-								$sqk = mysql_query("select * from cbt_siswa where not XAgama ='' group by XAgama");
-								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XAgama]'>$rs[XAgama]</option>";
+								$sqk = db_query($db, "select XAgama from cbt_siswa where XAgama <> '' group by XAgama", array());
+								while($rs = $sqk->fetch()){
+                             	echo "<option value='{$rs['XAgama']}'>{$rs['XAgama']}</option>";
 								} ?>                                 
                                 </select>                
                 </td>                                               
@@ -374,9 +405,9 @@ Tambah Siswa</button>
               
                 				<select id="txt_pilih"  name="txt_pilih" class="form-control">
 								<?php 
-								$sqk = mysql_query("select * from cbt_siswa where not XPilihan ='' group by XPilihan");
-								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XPilihan]'>$rs[XPilihan]</option>";
+								$sqk = db_query($db, "select XPilihan from cbt_siswa where XPilihan <> '' group by XPilihan", array());
+								while($rs = $sqk->fetch()){
+                             	echo "<option value='{$rs['XPilihan']}'>{$rs['XPilihan']}</option>";
 								} ?>                                 
                                 </select>                
                 </td>                                               

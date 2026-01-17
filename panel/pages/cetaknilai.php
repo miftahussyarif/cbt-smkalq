@@ -23,9 +23,9 @@ $namsek = strtoupper($ad['XSekolah']);
 $kepsek = $ad['XKepSek'];
 $logsek = $ad['XLogo'];
 
-$sqk = mysql_query("select * from cbt_mapel where XKodeMapel = '$_REQUEST[mapz]'");
+$sqk = mysql_query("select * from cbt_mapel where XKodeMapel = '{$_REQUEST['mapz']}'");
 $rs = mysql_fetch_array($sqk);
-$rs1 = strtoupper("$rs[XNamaMapel]");
+$rs1 = strtoupper("{$rs['XNamaMapel']}");
 
    $this->Image('../../images/'.$logsek,1,1,2.0); // logo
    $this->SetTextColor(0,0,0); // warna tulisan
@@ -118,12 +118,12 @@ $this->SetY(26.5);
  }
 if(isset($_REQUEST['kelas'])){ 
 
- $q = mysql_query("select * from cbt_siswa  where XKodeKelas = '$_REQUEST[kelas]' and  XKodeJurusan = '$_REQUEST[jur]'");
+ $q = mysql_query("select * from cbt_siswa  where XKodeKelas = '{$_REQUEST['kelas']}' and  XKodeJurusan = '{$_REQUEST['jur']}'");
  } else {
  $q = mysql_query("select * from cbt_siswa  ");
  } 
  $i = 0;
-	$per = mysql_query("SELECT * from cbt_mapel where XKodeMapel = '$_REQUEST[mapz]'");
+	$per = mysql_query("SELECT * from cbt_mapel where XKodeMapel = '{$_REQUEST['mapz']}'");
 	$p = mysql_fetch_array($per);
 	$perUH = $p['XPersenUH'];
 	$perUTS = $p['XPersenUTS'];
@@ -134,16 +134,16 @@ if(isset($_REQUEST['kelas'])){
  
  /********* Semester 1 ***************/
  
-	$utg = mysql_query("SELECT sum(XNilaiTugas) as totUG, count(XNilaiTugas) as jujumG FROM cbt_tugas where XNIK = '$d[XNIK]' and 
-	XKodeMapel = '$_REQUEST[mapz]' and XSemester = '1' and XSetId='$_COOKIE[beetahun]'");
+	$utg = mysql_query("SELECT sum(XNilaiTugas) as totUG, count(XNilaiTugas) as jujumG FROM cbt_tugas where XNIK = '{$d['XNIK']}' and 
+	XKodeMapel = '{$_REQUEST['mapz']}' and XSemester = '1' and XSetId='{$_COOKIE['beetahun']}'");
 	$tug = mysql_fetch_array($utg);
 	if(isset($tug['totUG'])){$totUG1 = number_format(($tug['totUG']/$tug['jujumG']), 2, ',', '.');
 	$TUG1 = ($tug['totUG']/$tug['jujumG']);
 	} else {$totUG1="";$TUG1="";}
 
 	$uh = mysql_query("
-	SELECT sum(XNilai) as totUH, count(XNilai) as jujum FROM `cbt_jawaban` j left join cbt_ujian u on u.XTokenUjian = j.XTokenUjian WHERE XUserJawab = '$d[XNomerUjian]' 
-	and u.XKodeUjian = 'UH' and u.XKodeMapel = '$_REQUEST[mapz]' and u.XSemester = '1' and u.XSetId='$_COOKIE[beetahun]'");
+	SELECT sum(XNilai) as totUH, count(XNilai) as jujum FROM `cbt_jawaban` j left join cbt_ujian u on u.XTokenUjian = j.XTokenUjian WHERE XUserJawab = '{$d['XNomerUjian']}' 
+	and u.XKodeUjian = 'UH' and u.XKodeMapel = '{$_REQUEST['mapz']}' and u.XSemester = '1' and u.XSetId='{$_COOKIE['beetahun']}'");
 	$tuh = mysql_fetch_array($uh);
 	
 
@@ -151,15 +151,15 @@ if(isset($_REQUEST['kelas'])){
 	$TUH1 = ($tuh['totUH']/$tuh['jujum']);
 	} else {$totUH1="";$TUH1 = "";}
 	
-	$uts = mysql_query("SELECT sum(XNilai) as totUTS FROM cbt_nilai where XNIK = '$d[XNIK]' and XKodeUjian = 'UTS' and XKodeMapel = 
-	'$_REQUEST[mapz]' and XSemester = '1' and XSetId='$_COOKIE[beetahun]'");
+	$uts = mysql_query("SELECT sum(XNilai) as totUTS FROM cbt_nilai where XNIK = '{$d['XNIK']}' and XKodeUjian = 'UTS' and XKodeMapel = 
+	'{$_REQUEST['mapz']}' and XSemester = '1' and XSetId='{$_COOKIE['beetahun']}'");
 	$tuts = mysql_fetch_array($uts);
 	if(isset($tuts['totUTS'])){$totUTS1 = number_format($tuts['totUTS'], 2, ',', '.');
 	$TUTS1 = $tuts['totUTS'];
 	} else {$totUTS1="";$TUTS1="";}	
 
-	$uas = mysql_query("SELECT sum(XNilai) as totUAS FROM cbt_nilai where XNIK = '$d[XNIK]' and XKodeUjian = 'UAS' and XKodeMapel = 
-	'$_REQUEST[mapz]' and XSemester = '1' and XSetId='$_COOKIE[beetahun]'");
+	$uas = mysql_query("SELECT sum(XNilai) as totUAS FROM cbt_nilai where XNIK = '{$d['XNIK']}' and XKodeUjian = 'UAS' and XKodeMapel = 
+	'{$_REQUEST['mapz']}' and XSemester = '1' and XSetId='{$_COOKIE['beetahun']}'");
 	$tuas = mysql_fetch_array($uas);
 	if(isset($tuas['totUAS'])){$totUAS1 = number_format($tuas['totUAS'], 2, ',', '.');
 	$TUAS1 = $tuas['totUAS'];
@@ -184,8 +184,8 @@ if(!$totUH1==""){
 
  /********* Semester 2 ***************/
 
-	$utg2 = mysql_query("SELECT sum(XNilaiTugas) as totUG2, count(XNilaiTugas) as jujumG2 FROM cbt_tugas where XNIK = '$d[XNIK]' and 
-	XKodeMapel = '$_REQUEST[mapz]' and XSemester = '2' and XSetId='$_COOKIE[beetahun]'");
+	$utg2 = mysql_query("SELECT sum(XNilaiTugas) as totUG2, count(XNilaiTugas) as jujumG2 FROM cbt_tugas where XNIK = '{$d['XNIK']}' and 
+	XKodeMapel = '{$_REQUEST['mapz']}' and XSemester = '2' and XSetId='{$_COOKIE['beetahun']}'");
 
 	$tug2 = mysql_fetch_array($utg2);
 	if(isset($tug2['totUG2'])){$totUG2 = number_format(($tug2['totUG2']/$tug2['jujumG2']), 2, ',', '.');
@@ -193,20 +193,20 @@ if(!$totUH1==""){
 	} else {$totUG2="";$TUG2 ="";}
 
 
-	$uh2 = mysql_query("SELECT sum(XNilai) as totUH2, count(XNilai) as jujum2 FROM cbt_nilai where XNIK = '$d[XNIK]' and XKodeUjian = 'UH' 
-	and	XKodeMapel = '$_REQUEST[mapz]' and XSemester = '2' and XSetId='$_COOKIE[beetahun]'");
+	$uh2 = mysql_query("SELECT sum(XNilai) as totUH2, count(XNilai) as jujum2 FROM cbt_nilai where XNIK = '{$d['XNIK']}' and XKodeUjian = 'UH' 
+	and	XKodeMapel = '{$_REQUEST['mapz']}' and XSemester = '2' and XSetId='{$_COOKIE['beetahun']}'");
 
 	$tuh2 = mysql_fetch_array($uh2);
 	if(isset($tuh2['totUH2'])){$totUH2 = number_format(($tuh2['totUH2']/$tuh2['jujum2']), 2, ',', '.');
 	$TUH2 = ($tuh2['totUH2']/$tuh2['jujum2']);} else {$totUH2="";$TUH2 ="";}
 
-	$uts2 = mysql_query("SELECT sum(XNilai) as totUTS2 FROM cbt_nilai where XNIK = '$d[XNIK]' and XKodeUjian = 'UTS' and XKodeMapel = '$_REQUEST[mapz]' and XSemester = '2' and XSetId='$_COOKIE[beetahun]'");
+	$uts2 = mysql_query("SELECT sum(XNilai) as totUTS2 FROM cbt_nilai where XNIK = '{$d['XNIK']}' and XKodeUjian = 'UTS' and XKodeMapel = '{$_REQUEST['mapz']}' and XSemester = '2' and XSetId='{$_COOKIE['beetahun']}'");
 	$tuts2 = mysql_fetch_array($uts2);
 	if(isset($tuts2['totUTS2'])){$totUTS2 = number_format($tuts2['totUTS2'], 2, ',', '.');
 	$TUTS2 = $tuts2['totUTS2'];
 	} else {$totUTS2="";$TUTS2="";}	
 
-	$uas2 = mysql_query("SELECT sum(XNilai) as totUAS2 FROM cbt_nilai where XNIK = '$d[XNIK]' and XKodeUjian = 'UAS' and XKodeMapel = '$_REQUEST[mapz]' and XSemester = '2' and XSetId='$_COOKIE[beetahun]'");
+	$uas2 = mysql_query("SELECT sum(XNilai) as totUAS2 FROM cbt_nilai where XNIK = '{$d['XNIK']}' and XKodeUjian = 'UAS' and XKodeMapel = '{$_REQUEST['mapz']}' and XSemester = '2' and XSetId='{$_COOKIE['beetahun']}'");
 	$tuas2 = mysql_fetch_array($uas2);
 	if(isset($tuas2['totUAS2'])){$totUAS2 = number_format($tuas2['totUAS2'], 2, ',', '.');
 	$TUAS2 = $tuas2['totUAS2'];

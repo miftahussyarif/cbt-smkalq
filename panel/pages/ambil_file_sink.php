@@ -34,7 +34,7 @@ echo "Jumlah : $jum1+$jum2+$jum3 = $total<br>";
 $i = 0;
 while($r=mysql_fetch_array($sql1)){
 	if(!$r['XGambarTanya']==''){
-	$filese = "$r[XGambarTanya]";	
+	$filese = "{$r['XGambarTanya']}";	
 	
 $i++;
 echo "$i. file |$filese|<br>";
@@ -81,7 +81,7 @@ $percent = intval($i/$jum1 * 100)."%";
 $i = 0;
 while($r=mysql_fetch_array($sql2)){
 	if(!$r['XAudioTanya']==''){
-	$filese = "$r[XAudioTanya]";	
+	$filese = "{$r['XAudioTanya']}";	
 	echo "file |$filese|<br>";
 $i++;
 echo "$i. file |$filese|<br>";
@@ -131,7 +131,7 @@ $percent2 = intval($i/$jum2 * 100)."%";
 
 while($r=mysql_fetch_array($sql3)){
 	if(!$r['XVideoTanya']==''){
-	$filese = "$r[XVideoTanya]";	
+	$filese = "{$r['XVideoTanya']}";	
 	echo "file |$filese|<br>";
 
 //$filese = "soal1.jpg";

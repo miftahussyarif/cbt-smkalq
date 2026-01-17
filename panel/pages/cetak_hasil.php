@@ -17,29 +17,38 @@ $(document).ready(function() {
 </script> 
 </head>
 <body>
-<iframe src="<?php echo "cetaknilai.php?kelas=$_REQUEST[iki3]&jur=$_REQUEST[jur3]&mapz=$_REQUEST[map3]"; ?>" style="display:none;" name="frame"></iframe>
+<iframe src="<?php echo "cetaknilai.php?kelas={$_REQUEST['iki3']}&jur={$_REQUEST['jur3']}&mapz={$_REQUEST['map3']}"; ?>" style="display:none;" name="frame"></iframe>
 <button type="button" class="btn btn-default btn-sm" onClick="frames['frame'].print()" style="margin-top:10px; margin-bottom:5px"><i class="glyphicon glyphicon-print"></i> Cetak 
 </button> 
-<?php echo "Cetak Hasil Try Out Kelas : '$_REQUEST[iki3]', Jurusan : '$_REQUEST[jur3]'"; ?>
+<?php echo "Cetak Hasil Try Out Kelas : '{$_REQUEST['iki3']}', Jurusan : '{$_REQUEST['jur3']}'"; ?>
 
 <?php
 
 //koneksi database
-include "../../config/server.php";
+require_once __DIR__ . "/../../config/server.php";
+$kelas = isset($_REQUEST['iki3']) ? $_REQUEST['iki3'] : '';
+$jurusan = isset($_REQUEST['jur3']) ? $_REQUEST['jur3'] : '';
+$mapel = isset($_REQUEST['map3']) ? $_REQUEST['map3'] : '';
+$kodeUjian = isset($_REQUEST['tes3']) ? $_REQUEST['tes3'] : '';
+$setId = isset($_COOKIE['beetahun']) ? $_COOKIE['beetahun'] : '';
 
 
-$sqlad = mysql_query("select * from cbt_admin");
-$ad = mysql_fetch_array($sqlad);
+$sqlad = db_query($db, "select * from cbt_admin", array());
+$ad = db_fetch_one($sqlad);
 $namsek = strtoupper($ad['XSekolah']);
 $kepsek = $ad['XKepSek'];
 $logsek = $ad['XLogo'];
 $BatasAwal = 50;
  if(isset($_REQUEST['iki3'])){ 
-$cekQuery = mysql_query("SELECT * FROM cbt_siswa where XKodeKelas = '$_REQUEST[iki3]' and  XKodeJurusan = '$_REQUEST[jur3]' ");
+$cekQuery = db_query(
+	$db,
+	"SELECT COUNT(*) FROM cbt_siswa where XKodeKelas = ? and XKodeJurusan = ?",
+	array($kelas, $jurusan)
+);
 }else{
-$cekQuery = mysql_query("SELECT * FROM cbt_siswa ");
+$cekQuery = db_query($db, "SELECT COUNT(*) FROM cbt_siswa", array());
 }
-$jumlahData = mysql_num_rows($cekQuery);
+$jumlahData = (int) db_fetch_value($cekQuery);
 $jumlahn = 20;
 $n = ceil($jumlahData/$jumlahn);
 $nomz = 1;
@@ -49,11 +58,11 @@ for($i=1;$i<=$n;$i++){ ?>
     <table border="0" width="100%">
     <tr>
     							<?php 
-								$sqk = mysql_query("select * from cbt_tes where XKodeUjian = '$_REQUEST[tes3]'");
-								$rs = mysql_fetch_array($sqk);
-                             	$rs1 = strtoupper("$rs[XNamaUjian]");
+								$sqk = db_query($db, "select * from cbt_tes where XKodeUjian = ?", array($kodeUjian));
+								$rs = db_fetch_one($sqk);
+                             	$rs1 = $rs ? strtoupper("{$rs['XNamaUjian']}") : "";
 								
-								if($_REQUEST['tes3']=='A'){$namaujian = "HASIL SEMUA UJIAN ";} else {$namaujian = "HASIL UJIAN TRYOUT";}
+								if($kodeUjian=='A'){$namaujian = "HASIL SEMUA UJIAN ";} else {$namaujian = "HASIL UJIAN TRYOUT";}
 								?>                                
 
     <td rowspan="4" width="150"><img src="../../images/<?php echo "$logsek"; ?>" width="100"></td>
@@ -61,9 +70,9 @@ for($i=1;$i<=$n;$i++){ ?>
     </tr>
     <tr>
    								 <?php 
-								$sqk = mysql_query("select * from cbt_mapel where XKodeMapel = '$_REQUEST[map3]'");
-								$rs = mysql_fetch_array($sqk);
-                             	$rs1 = strtoupper("$rs[XNamaMapel]");
+								$sqk = db_query($db, "select * from cbt_mapel where XKodeMapel = ?", array($mapel));
+								$rs = db_fetch_one($sqk);
+                             	$rs1 = $rs ? strtoupper("{$rs['XNamaMapel']}") : "";
 								?>   
     <td width="20%">Mata Pelajaran</td><td>: <b><?php echo $rs1; ?></b></td>
     </tr>
@@ -101,8 +110,8 @@ $batasakhir = $batas+$jumlahn;
 
 $s = $i-1;
 
-$per = mysql_query("SELECT * from cbt_mapel where XKodeMapel = '$_REQUEST[map3]'");
-$p = mysql_fetch_array($per);
+$per = db_query($db, "SELECT * from cbt_mapel where XKodeMapel = ?", array($mapel));
+$p = db_fetch_one($per);
 
 $perUH = $p['XPersenUH'];
 $perUTS = $p['XPersenUTS'];
@@ -111,17 +120,23 @@ $NilaiKKM = $p['XKKM'];
 ?>
 <?php
 if(isset($_REQUEST['iki3'])){ 
-$cekQuery1 = mysql_query("SELECT * FROM cbt_siswa where XKodeKelas = '$_REQUEST[iki3]' and  XKodeJurusan = '$_REQUEST[jur3]' limit $batas,$jumlahn");
+	$batas = (int) $batas;
+	$jumlahn = (int) $jumlahn;
+$cekQuery1 = db_query($db, "SELECT * FROM cbt_siswa where XKodeKelas = ? and XKodeJurusan = ? limit $batas,$jumlahn", array($kelas, $jurusan));
 }else{
-$cekQuery1 = mysql_query("SELECT * FROM cbt_siswa limit $batas,$jumlahn");
+$batas = (int) $batas;
+$jumlahn = (int) $jumlahn;
+$cekQuery1 = db_query($db, "SELECT * FROM cbt_siswa limit $batas,$jumlahn", array());
 }
 $jumlahTO = 0;
-while($f= mysql_fetch_array($cekQuery1)){
+while($f= $cekQuery1->fetch()){
 
-$sto1 = mysql_query("
-SELECT sum(XNilai) as totTO1, count(XNilai) as jujum2 FROM cbt_nilai where  (XKodeKelas = '$_REQUEST[iki3]' or XKodeKelas='ALL') and XNIK = '$f[XNIK]' and XKodeUjian = 'TO1' 
-and	XKodeMapel = '$_REQUEST[map3]' and XSetId='$_COOKIE[beetahun]'");
-$to1 = mysql_fetch_array($sto1);
+$sto1 = db_query(
+	$db,
+	"SELECT sum(XNilai) as totTO1 FROM cbt_nilai where (XKodeKelas = ? or XKodeKelas = 'ALL') and XNIK = ? and XKodeUjian = 'TO1' and XKodeMapel = ? and XSetId = ?",
+	array($kelas, $f['XNIK'], $mapel, $setId)
+);
+$to1 = db_fetch_one($sto1);
 $tot1 = $to1['totTO1'];
 if($tot1==""){ 
 $jumlahTO = $jumlahTO+0;
@@ -132,10 +147,12 @@ $TOP1 = number_format($tot1, 2, ',', '.');
 }
 echo "$tot1|";
 
-$sto2 = mysql_query("
-SELECT sum(XNilai) as totTO2, count(XNilai) as jujum2 FROM cbt_nilai where  (XKodeKelas = '$_REQUEST[iki3]' or XKodeKelas='ALL') and XNIK = '$f[XNIK]' and XKodeUjian = 'TO2' 
-and	XKodeMapel = '$_REQUEST[map3]' and XSetId='$_COOKIE[beetahun]'");
-$to2 = mysql_fetch_array($sto2);
+$sto2 = db_query(
+	$db,
+	"SELECT sum(XNilai) as totTO2 FROM cbt_nilai where (XKodeKelas = ? or XKodeKelas = 'ALL') and XNIK = ? and XKodeUjian = 'TO2' and XKodeMapel = ? and XSetId = ?",
+	array($kelas, $f['XNIK'], $mapel, $setId)
+);
+$to2 = db_fetch_one($sto2);
 $tot2 = $to2['totTO2'];
 if($tot2==""){ 
 $jumlahTO = $jumlahTO+0;
@@ -145,10 +162,12 @@ $jumlahTO = $jumlahTO+1;
 $TOP2 = number_format($tot2, 2, ',', '.');
 }
 
-$sto3 = mysql_query("
-SELECT sum(XNilai) as totTO3, count(XNilai) as jujum2 FROM cbt_nilai where  (XKodeKelas = '$_REQUEST[iki3]' or XKodeKelas='ALL') and XNIK = '$f[XNIK]' and XKodeUjian = 'TO3' 
-and	XKodeMapel = '$_REQUEST[map3]' and XSetId='$_COOKIE[beetahun]'");
-$to3 = mysql_fetch_array($sto3);
+$sto3 = db_query(
+	$db,
+	"SELECT sum(XNilai) as totTO3 FROM cbt_nilai where (XKodeKelas = ? or XKodeKelas = 'ALL') and XNIK = ? and XKodeUjian = 'TO3' and XKodeMapel = ? and XSetId = ?",
+	array($kelas, $f['XNIK'], $mapel, $setId)
+);
+$to3 = db_fetch_one($sto3);
 $tot3 = $to3['totTO3'];
 if($tot3==""){ 
 $jumlahTO = $jumlahTO+0;
@@ -158,10 +177,12 @@ $jumlahTO = $jumlahTO+1;
 $TOP3 = number_format($tot3, 2, ',', '.');
 }
 
-$sto4 = mysql_query("
-SELECT sum(XNilai) as totTO4, count(XNilai) as jujum2 FROM cbt_nilai where  (XKodeKelas = '$_REQUEST[iki3]' or XKodeKelas='ALL') and XNIK = '$f[XNIK]' and XKodeUjian = 'TO4' 
-and	XKodeMapel = '$_REQUEST[map3]' and XSetId='$_COOKIE[beetahun]'");
-$to4 = mysql_fetch_array($sto4);
+$sto4 = db_query(
+	$db,
+	"SELECT sum(XNilai) as totTO4 FROM cbt_nilai where (XKodeKelas = ? or XKodeKelas = 'ALL') and XNIK = ? and XKodeUjian = 'TO4' and XKodeMapel = ? and XSetId = ?",
+	array($kelas, $f['XNIK'], $mapel, $setId)
+);
+$to4 = db_fetch_one($sto4);
 $tot4 = $to4['totTO4'];
 if($tot4==""){ 
 $jumlahTO = $jumlahTO+0;
@@ -171,10 +192,12 @@ $jumlahTO = $jumlahTO+1;
 $TOP4 = number_format($tot4, 2, ',', '.');
 }
 
-$sto5 = mysql_query("
-SELECT sum(XNilai) as totTO5, count(XNilai) as jujum2 FROM cbt_nilai where  (XKodeKelas = '$_REQUEST[iki3]' or XKodeKelas='ALL') and XNIK = '$f[XNIK]' and XKodeUjian = 'TO5' 
-and	XKodeMapel = '$_REQUEST[map3]' and XSetId='$_COOKIE[beetahun]'");
-$to5 = mysql_fetch_array($sto5);
+$sto5 = db_query(
+	$db,
+	"SELECT sum(XNilai) as totTO5 FROM cbt_nilai where (XKodeKelas = ? or XKodeKelas = 'ALL') and XNIK = ? and XKodeUjian = 'TO5' and XKodeMapel = ? and XSetId = ?",
+	array($kelas, $f['XNIK'], $mapel, $setId)
+);
+$to5 = db_fetch_one($sto5);
 $tot5 = $to5['totTO5'];
 if($tot5==""){ 
 $jumlahTO = $jumlahTO+0;
@@ -187,7 +210,7 @@ $TOP5 = number_format($tot5, 2, ',', '.');
 $TAkhire = $tot1+$tot2+$tot3+$tot4+$tot5;
 if($TAkhire == 0){$TOTAkhire = "";} else {$TOTAkhire = number_format(($TAkhire/$jumlahTO), 2, ',', '.');}
 
-	  echo "<tr height=30px><td>&nbsp;$nomz </td><td>&nbsp;$f[XNIK]</td><td align=left>&nbsp;$f[XNamaSiswa]</td>
+	  echo "<tr height=30px><td>&nbsp;$nomz </td><td>&nbsp;{$f['XNIK']}</td><td align=left>&nbsp;{$f['XNamaSiswa']}</td>
 	  <td>&nbsp;$TOP1</td><td>&nbsp;$TOP2</td><td>&nbsp;$TOP3</td><td>&nbsp;$TOP4</td><td>&nbsp;$TOP5</td>
 	  <td>$TOTAkhire</td>
   	  <td></td>	  

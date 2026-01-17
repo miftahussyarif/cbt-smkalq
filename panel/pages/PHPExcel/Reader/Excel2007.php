@@ -454,7 +454,7 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 
                     $sharedStrings = array();
                     $xpath = self::getArrayItem($relsWorkbook->xpath("rel:Relationship[@Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings']"));
-                    $xmlStrings = simplexml_load_string($this->securityScan($this->getFromZipArchive($zip, "$dir/$xpath[Target]")), 'SimpleXMLElement', PHPExcel_Settings::getLibXmlLoaderOptions());  //~ http://schemas.openxmlformats.org/spreadsheetml/2006/main");
+                    $xmlStrings = simplexml_load_string($this->securityScan($this->getFromZipArchive($zip, "$dir/{$xpath['Target']}")), 'SimpleXMLElement', PHPExcel_Settings::getLibXmlLoaderOptions());  //~ http://schemas.openxmlformats.org/spreadsheetml/2006/main");
                     if (isset($xmlStrings) && isset($xmlStrings->si)) {
                         foreach ($xmlStrings->si as $val) {
                             if (isset($val->t)) {
@@ -494,7 +494,7 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
                     $styles     = array();
                     $cellStyles = array();
                     $xpath = self::getArrayItem($relsWorkbook->xpath("rel:Relationship[@Type='http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles']"));
-                    $xmlStyles = simplexml_load_string($this->securityScan($this->getFromZipArchive($zip, "$dir/$xpath[Target]")), 'SimpleXMLElement', PHPExcel_Settings::getLibXmlLoaderOptions());
+                    $xmlStyles = simplexml_load_string($this->securityScan($this->getFromZipArchive($zip, "$dir/{$xpath['Target']}")), 'SimpleXMLElement', PHPExcel_Settings::getLibXmlLoaderOptions());
                     //~ http://schemas.openxmlformats.org/spreadsheetml/2006/main");
 
                     $numFmts = null;
@@ -509,7 +509,7 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
                             $numFmt = PHPExcel_Style_NumberFormat::FORMAT_GENERAL;
                             if ($xf["numFmtId"]) {
                                 if (isset($numFmts)) {
-                                    $tmpNumFmt = self::getArrayItem($numFmts->xpath("sml:numFmt[@numFmtId=$xf[numFmtId]]"));
+                                    $tmpNumFmt = self::getArrayItem($numFmts->xpath("sml:numFmt[@numFmtId={$xf['numFmtId']}]"));
 
                                     if (isset($tmpNumFmt["formatCode"])) {
                                         $numFmt = (string) $tmpNumFmt["formatCode"];
@@ -548,7 +548,7 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
                         foreach ($xmlStyles->cellStyleXfs->xf as $xf) {
                             $numFmt = PHPExcel_Style_NumberFormat::FORMAT_GENERAL;
                             if ($numFmts && $xf["numFmtId"]) {
-                                $tmpNumFmt = self::getArrayItem($numFmts->xpath("sml:numFmt[@numFmtId=$xf[numFmtId]]"));
+                                $tmpNumFmt = self::getArrayItem($numFmts->xpath("sml:numFmt[@numFmtId={$xf['numFmtId']}]"));
                                 if (isset($tmpNumFmt["formatCode"])) {
                                     $numFmt = (string) $tmpNumFmt["formatCode"];
                                 } elseif ((int)$xf["numFmtId"] < 165) {
@@ -1166,7 +1166,7 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
                             if ($xmlSheet && $xmlSheet->rowBreaks && $xmlSheet->rowBreaks->brk && !$this->readDataOnly) {
                                 foreach ($xmlSheet->rowBreaks->brk as $brk) {
                                     if ($brk["man"]) {
-                                        $docSheet->setBreak("A$brk[id]", PHPExcel_Worksheet::BREAK_ROW);
+                                        $docSheet->setBreak("A{$brk['id']}", PHPExcel_Worksheet::BREAK_ROW);
                                     }
                                 }
                             }

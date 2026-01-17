@@ -66,16 +66,16 @@
                             <tbody>
 <?php 
 include "../../config/server.php";
-$sql = mysql_query("select * from cbt_siswa_ujian where XTokenUjian = '$_REQUEST[token]' order by Urut");
+$sql = mysql_query("select * from cbt_siswa_ujian where XTokenUjian = '{$_REQUEST['token']}' order by Urut");
 while($s = mysql_fetch_array($sql)){
 echo "
                                 <tr>
-                                    <td>$s[Urut]</td>
-                                    <td>$s[XNomerUjian]</td>
-                                    <td>$s[XNamaSiswa]</td>
-                                    <td>$s[XNIK]</td>
-                                    <td>$s[XKodeKelas]</td>
-                                    <td>$s[XKodeJurusan]</td>
+                                    <td>{$s['Urut']}</td>
+                                    <td>{$s['XNomerUjian']}</td>
+                                    <td>{$s['XNamaSiswa']}</td>
+                                    <td>{$s['XNIK']}</td>
+                                    <td>{$s['XKodeKelas']}</td>
+                                    <td>{$s['XKodeJurusan']}</td>
                                     <td>Hidden value 1</td>
                                 </tr>
 "; 

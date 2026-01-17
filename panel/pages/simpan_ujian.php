@@ -64,7 +64,7 @@ $val_jumsoal = $s['XJumSoal'];
 // Ambil Bank Soal
 //=========================
 
-$jumsoal = mysql_num_rows(mysql_query("select * from cbt_paketsoal where  XKodeSoal = '$s[txt_ujian]'"));
+$jumsoal = mysql_num_rows(mysql_query("select * from cbt_paketsoal where  XKodeSoal = '{$s['txt_ujian']}'"));
 $val_banksoal =  "$jumsoal"; 
 
 
@@ -76,8 +76,8 @@ if($val_jumsoal==0){$ambilsoal = $val_banksoal;} else {$ambilsoal = $val_jumsoal
 							  $sqlinsert = mysql_query("insert into cbt_ujian 
 							  (XKodeKelas,XKodeJurusan,XJumPilihan,XAcakSoal,XKodeMapel,XTokenUjian,XTglUjian,XJamUjian,XLamaUjian,XBatasMasuk,XJumSoal,XKodeSoal,XStatusUjian)
 							  values 
-							  ('$s[XKodeKelas]','$s[XKodeJurusan]','$s[XJumPilihan]','$s[XAcakSoal]','$s[XKodeMapel]','$_REQUEST[txt_token]','$tgl','$jam','$jame','$telatujian','$ambilsoal',
-							  '$s[XKodeSoal]','1')");
+							  ('{$s['XKodeKelas']}','{$s['XKodeJurusan']}','{$s['XJumPilihan']}','{$s['XAcakSoal']}','{$s['XKodeMapel']}','{$_REQUEST['txt_token']}','$tgl','$jam','$jame','$telatujian','$ambilsoal',
+							  '{$s['XKodeSoal']}','1')");
 
 
 }

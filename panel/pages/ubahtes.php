@@ -7,7 +7,7 @@ include "../../config/server.php";
 ?>
 <?php
 if(isset($_REQUEST['aksi'])&&$_REQUEST['aksi']=="selesai"){
-$sqlselesai = mysql_query("update cbt_ujian set XStatusUjian = '9' where Urut = '$_REQUEST[txt_ujian]'");
+$sqlselesai = mysql_query("update cbt_ujian set XStatusUjian = '9' where Urut = '{$_REQUEST['txt_ujian']}'");
 }
 ?>
 
@@ -15,7 +15,7 @@ $sqlselesai = mysql_query("update cbt_ujian set XStatusUjian = '9' where Urut = 
 <?php						  	
  $sqlubah = mysql_query("insert into cbt_tes (tes) values ('cuk')");
  $sqlubah = mysql_query("update cbt_ujian set XStatusUjian = '0'");
-								$sqlujian = mysql_query("select * from cbt_ujian where XKodeSoal = '$_REQUEST[txt_ujian]'");
+								$sqlujian = mysql_query("select * from cbt_ujian where XKodeSoal = '{$_REQUEST['txt_ujian']}'");
 								$am = mysql_fetch_array($sqlujian);
 								$jamujiane = str_replace(" ","",$am['XJamUjian']);
 																
@@ -80,7 +80,7 @@ $val_jumsoal = $s['XJumSoal']);
 // Ambil Bank Soal
 //=========================
 
-$jumsoal = mysql_num_rows(mysql_query("select * from cbt_paketsoal where  XKodeSoal = '$_REQUEST[txt_ujian]'"));
+$jumsoal = mysql_num_rows(mysql_query("select * from cbt_paketsoal where  XKodeSoal = '{$_REQUEST['txt_ujian']}'"));
 $val_banksoal =  "$jumsoal"; 
 
 
@@ -93,8 +93,8 @@ if($val_jumsoal==0){$ambilsoal = $val_banksoal;} else {$ambilsoal = $val_jumsoal
 							  $sqlinsert = mysql_query("insert into cbt_ujian 
 							  (XKodeKelas,XKodeMapel,XTokenUjian,XTglUjian,XJamUjian,XLamaUjian,XBatasMasuk,XJumSoal,XKodeSoal,XStatusUjian)
 							  values 
-							  ('$s[XKodeKelas]','$s[XKodeMapel]','$_REQUEST[txt_token]','$tgl','$jam','$jame','$telatujian','$ambilsoal',
-							  '$s[XKodeSoal]','1')");
+							  ('{$s['XKodeKelas']}','{$s['XKodeMapel']}','{$_REQUEST['txt_token']}','$tgl','$jam','$jame','$telatujian','$ambilsoal',
+							  '{$s['XKodeSoal']}','1')");
 
 
 }

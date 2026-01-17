@@ -41,7 +41,7 @@ $jumkol = $sql0+7;
 $sql = mysql_query("select * from cbt_soal where XKodeSoal = '$soal' and XJenisSoal = '1' order by XNomerSoal");
 $no =1;
 while($s = mysql_fetch_array($sql)){ 
-echo "<td bgcolor='#999'  style='border-right:thin solid #000; border-top:thin solid #000;  border-bottom:thin solid #000' width='50px'>$s[XNomerSoal]</td>
+echo "<td bgcolor='#999'  style='border-right:thin solid #000; border-top:thin solid #000;  border-bottom:thin solid #000' width='50px'>{$s['XNomerSoal']}</td>
 ";
 $no++;
 }						
@@ -60,8 +60,8 @@ $nom =1;
 while($sj = mysql_fetch_array($sqljwb)){ 
 
 echo "<tr height=30px style='border-bottom:thin solid #000; '><td style='border-right:thin solid #000; border-left:thin solid #000;  border-bottom:thin solid #000' align=right>$nom &nbsp;</td>
-<td style='border-right:thin solid #000;  border-bottom:thin solid #000 '>&nbsp; $sj[XNIK]</td>
-<td style='border-right:thin solid #000;  border-bottom:thin solid #000 '>&nbsp; $sj[XNamaSiswa]</td>";
+<td style='border-right:thin solid #000;  border-bottom:thin solid #000 '>&nbsp; {$sj['XNIK']}</td>
+<td style='border-right:thin solid #000;  border-bottom:thin solid #000 '>&nbsp; {$sj['XNamaSiswa']}</td>";
 		$sql0 = mysql_query("select * from cbt_soal where XKodeSoal ='$soal'  and XJenisSoal = '1' order by XNomerSoal");
 		while($s0 = mysql_fetch_array($sql0)){ 
 				if($s0['XKategori']==1){$bg = "#20bc10";}
@@ -70,14 +70,14 @@ echo "<tr height=30px style='border-bottom:thin solid #000; '><td style='border-
 												
 		echo "<td align=center width=50px style='border-right:thin solid #000;color:$bg;  border-bottom:thin solid #000' >";
 						
-	$sql1 = mysql_query("select * from cbt_jawaban where XUserJawab = '$sj[XUserJawab]' and XNomerSoal = '$s0[XNomerSoal]' and XKodeSoal = '$soal' ");
+	$sql1 = mysql_query("select * from cbt_jawaban where XUserJawab = '{$sj['XUserJawab']}' and XNomerSoal = '{$s0['XNomerSoal']}' and XKodeSoal = '$soal' ");
 					while($s1 = mysql_fetch_array($sql1)){ 
-					echo "<b>$s1[XNilai]</b>";
+					echo "<b>{$s1['XNilai']}</b>";
 					}				
 			
 					echo "</td>";			
 
-					$sql2 = mysql_query("select sum(XNilai) as skor2 from cbt_jawaban where XUserJawab = '$sj[XUserJawab]' and XKodeSoal = '$soal' and XJenisSoal = '1'");
+					$sql2 = mysql_query("select sum(XNilai) as skor2 from cbt_jawaban where XUserJawab = '{$sj['XUserJawab']}' and XKodeSoal = '$soal' and XJenisSoal = '1'");
 					$s2 = mysql_fetch_array($sql2);
 					$skor = $s2['skor2'];
 

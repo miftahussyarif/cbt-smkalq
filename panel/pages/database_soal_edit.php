@@ -49,11 +49,11 @@ include "../../config/server.php";
 if(isset($_REQUEST['aksi'])&&$_REQUEST['aksi']=='hapus'){
 
 $id=$_REQUEST['nomer'];
-$sqlambil = mysql_query("select * from cbt_paketsoal where XKodeSoal = '$_REQUEST[soal]'  and Urut = '$id'");
+$sqlambil = mysql_query("select * from cbt_paketsoal where XKodeSoal = '{$_REQUEST['soal']}'  and Urut = '$id'");
 $sa = mysql_fetch_array($sqlambil);
 $jumz = $sa['XJumPilihan'];
 
-$sql = mysql_query("select * from cbt_soal where XKodeSoal = '$_REQUEST[soal]'  and Urut = '$id'");
+$sql = mysql_query("select * from cbt_soal where XKodeSoal = '{$_REQUEST['soal']}'  and Urut = '$id'");
 $s = mysql_num_rows($sql);
 $soal = str_replace(" ","",$_REQUEST['soal']);
 	if($s>0){
@@ -69,14 +69,14 @@ echo "Munculkan form ini";
 ?>
 
 <?php
-$sql0 = mysql_query("select * from cbt_soal where XKodeSoal= '$_REQUEST[soal]'");
+$sql0 = mysql_query("select * from cbt_soal where XKodeSoal= '{$_REQUEST['soal']}'");
 ?>
-<?php echo "<a href=?modul=tambah_soal&jum=$_REQUEST[jum]&tambahan=ok&soal=$_REQUEST[soal]><button type='button' class='btn btn-info'><i class='fa fa-plus-circle'></i> Tambah Soal</button></a>"; ?>
+<?php echo "<a href=?modul=tambah_soal&jum={$_REQUEST['jum']}&tambahan=ok&soal={$_REQUEST['soal']}><button type='button' class='btn btn-info'><i class='fa fa-plus-circle'></i> Tambah Soal</button></a>"; ?>
 <br>
 <div class="panel panel-info">
 	<div class="panel-heading">
     <?php echo "<a href=?modul=daftar_soal><button type='button' class='btn btn-default'><i class='fa fa-arrow-circle-left'></i> Kembali ke Bank Soal</button></a>"; ?>
-    <?php echo "<a href=?modul=tambah_soal&jum=$_REQUEST[jum]&tambahan=ok&soal=$_REQUEST[soal]><button type='button' class='btn btn-info'><i class='fa fa-plus-circle'></i> Tambah Soal</button></a>"; ?>
+    <?php echo "<a href=?modul=tambah_soal&jum={$_REQUEST['jum']}&tambahan=ok&soal={$_REQUEST['soal']}><button type='button' class='btn btn-info'><i class='fa fa-plus-circle'></i> Tambah Soal</button></a>"; ?>
     </div>
 	
     <div class="panel-body">
@@ -102,21 +102,21 @@ if($xadm['XJenisSoal']==1){$jensoal = "Pilihan Ganda";} else { $jensoal = "Esai"
 if($xadm['XKategori']==1){$katsoal = "Mudah";} elseif($xadm['XKategori']==2){$katsoal = "Sedang";} else { $katsoal = "Susah";}
 if($xadm['XAcakSoal']=="A"){$acaksoal = "Acak";} else { $acaksoal = "Tidak";}
 
-$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$xadm[XKodeSoal]'"));
+$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '{$xadm['XKodeSoal']}'"));
 $str = $xadm['XTanya'];
 echo "<tr height=40 style='border=0; border-bottom:thin solid #dcddde'>
 <td>$no</td>
-<td>$xadm[XKodeSoal]</a></td>
+<td>{$xadm['XKodeSoal']}</a></td>
 <td>$str</td>
 <td>$jensoal</td>
 <td>$katsoal</td>
 <td>$acaksoal</td>
 
 <td>
-<button type='button' class='btn btn-default'  data-toggle='modal' data-target='#myModalR$xadm[Urut]' alt='Lihat'><i class='fa fa-eye'></i> </button>
-<a href=?modul=edit_data_soal&jum=$_REQUEST[jum]&soal=$xadm[XKodeSoal]&nomer=$xadm[Urut]>
+<button type='button' class='btn btn-default'  data-toggle='modal' data-target='#myModalR{$xadm['Urut']}' alt='Lihat'><i class='fa fa-eye'></i> </button>
+<a href=?modul=edit_data_soal&jum={$_REQUEST['jum']}&soal={$xadm['XKodeSoal']}&nomer={$xadm['Urut']}>
 <button type='button' class='btn btn-info'><i class='fa fa-edit'></i></button></a>&nbsp;
-<a href=?modul=edit_soal&aksi=hapus&jum=$_REQUEST[jum]&soal=$xadm[XKodeSoal]&nomer=$xadm[Urut]>
+<a href=?modul=edit_soal&aksi=hapus&jum={$_REQUEST['jum']}&soal={$xadm['XKodeSoal']}&nomer={$xadm['Urut']}>
 <button type='button' class='btn btn-danger'><i class='fa fa-times'></i></button></a>
 "; ?>
 <?php echo "</td></tr>"; ?>  
@@ -137,29 +137,29 @@ echo "<tr height=40 style='border=0; border-bottom:thin solid #dcddde'>
 									
 									if(isset($jumz)){echo "anu $jumz";} 
 									
-									$sqlprev = mysql_query("select * from cbt_soal where XKodeSoal = '$xadm[XKodeSoal]' and Urut = '$xadm[Urut]'");
+									$sqlprev = mysql_query("select * from cbt_soal where XKodeSoal = '{$xadm['XKodeSoal']}' and Urut = '{$xadm['Urut']}'");
 									$sp = mysql_fetch_array($sqlprev);
 									
 									
 									if(str_replace(" ","",$sp['XGambarJawab1'])==''){$ambilfile1 = "";}else{									
-										if(file_exists("../../pictures/$sp[XGambarJawab1]")){$ambilfile1 = "<img src=../../pictures/$sp[XGambarJawab1] width='150px'>";} else 
-										{$ambilfile1 = "<img src=images/kross.png> $sp[XGambarJawab1] tidak belum diUpload";}
+										if(file_exists("../../pictures/{$sp['XGambarJawab1']}")){$ambilfile1 = "<img src=../../pictures/{$sp['XGambarJawab1']} width='150px'>";} else 
+										{$ambilfile1 = "<img src=images/kross.png> {$sp['XGambarJawab1']} tidak belum diUpload";}
 									}
 									if(str_replace(" ","",$sp['XGambarJawab2'])==''){$ambilfile2 = "";}else{									
-										if(file_exists("../../pictures/$sp[XGambarJawab2]")){$ambilfile2 = "<img src=../../pictures/$sp[XGambarJawab2] width='150px'>";} else 
-										{$ambilfile2 = "<img src=images/kross.png> $sp[XGambarJawab2] tidak belum diUpload";}
+										if(file_exists("../../pictures/{$sp['XGambarJawab2']}")){$ambilfile2 = "<img src=../../pictures/{$sp['XGambarJawab2']} width='150px'>";} else 
+										{$ambilfile2 = "<img src=images/kross.png> {$sp['XGambarJawab2']} tidak belum diUpload";}
 									}
 									if(str_replace(" ","",$sp['XGambarJawab3'])==''){$ambilfile3 = "";}else{									
-										if(file_exists("../../pictures/$sp[XGambarJawab3]")){$ambilfile3 = "<img src=../../pictures/$sp[XGambarJawab3] width='150px'>";} else 
+										if(file_exists("../../pictures/{$sp['XGambarJawab3']}")){$ambilfile3 = "<img src=../../pictures/{$sp['XGambarJawab3']} width='150px'>";} else 
 										{$ambilfile3 = "<img src=images/kross.png> File Gambar tidak ada [Upload File]";}
 									}
 									if(str_replace(" ","",$sp['XGambarJawab4'])==''){$ambilfile4 = "";}else{									
-										if(file_exists("../../pictures/$sp[XGambarJawab4]")){$ambilfile4 = "<img src=../../pictures/$sp[XGambarJawab4] width='150px'>";} else 
+										if(file_exists("../../pictures/{$sp['XGambarJawab4']}")){$ambilfile4 = "<img src=../../pictures/{$sp['XGambarJawab4']} width='150px'>";} else 
 										{$ambilfile4 = "<img src=images/kross.png> File Gambar tidak ada [Upload File]";}
 									}
 
 									if(str_replace(" ","",$sp['XGambarJawab5'])==''){$ambilfile5 = "";}else{									
-										if(file_exists("../../pictures/$sp[XGambarJawab5]")){$ambilfile5 = "<img src=../../pictures/$sp[XGambarJawab5] width='150px'>";} else 
+										if(file_exists("../../pictures/{$sp['XGambarJawab5']}")){$ambilfile5 = "<img src=../../pictures/{$sp['XGambarJawab5']} width='150px'>";} else 
 										{$ambilfile5 = "<img src=images/kross.png> File Gambar tidak ada [Upload File]";}
 									}
 										
@@ -167,35 +167,35 @@ echo "<tr height=40 style='border=0; border-bottom:thin solid #dcddde'>
 									
 									if($_REQUEST['jum']=='1'){$katsoal = "Esai/Uraiai";
 									echo "
-									<p>Pertanyaan : $_REQUEST[jum] asdasd</p>									
-									<p>$sp[XTanya]</p>";
+									<p>Pertanyaan : {$_REQUEST['jum']} asdasd</p>									
+									<p>{$sp['XTanya']}</p>";
 
 									} 									
 									elseif($_REQUEST['jum']=='4'){ 						
 									$katsoal = "Pilihan Ganda (4 Pilihan Jawaban)";			
 									echo "
-									<p>Pertanyaan : $_REQUEST[jum]  cvbnvbn</p>									
-									<p>$sp[XTanya]</p>
+									<p>Pertanyaan : {$_REQUEST['jum']}  cvbnvbn</p>									
+									<p>{$sp['XTanya']}</p>
 									<p>Jawaban : <br>
 									<ul>
-									<li><span>1. </span><span>$ambilfile1</span><span> $sp[XJawab1]</span></li>
-									<li><span>2. </span><span>$ambilfile2</span><span> $sp[XJawab2]</span></li>									
-									<li><span>3. </span><span>$ambilfile3</span><span> $sp[XJawab3]</span></li>
-									<li><span>4. </span><span>$ambilfile4</span><span> $sp[XJawab4]</span></li>	
+									<li><span>1. </span><span>$ambilfile1</span><span> {$sp['XJawab1']}</span></li>
+									<li><span>2. </span><span>$ambilfile2</span><span> {$sp['XJawab2']}</span></li>									
+									<li><span>3. </span><span>$ambilfile3</span><span> {$sp['XJawab3']}</span></li>
+									<li><span>4. </span><span>$ambilfile4</span><span> {$sp['XJawab4']}</span></li>	
 									</ul></p>
 									";
 									} elseif($_REQUEST['jum']=='5'){ 
 									$katsoal = "Pilihan Ganda (5 Pilihan Jawaban)";			
 									echo "
-									<p>Pertanyaan : $_REQUEST[jum]  cvbnvbn</p>									
-									<p>$sp[XTanya]</p>
+									<p>Pertanyaan : {$_REQUEST['jum']}  cvbnvbn</p>									
+									<p>{$sp['XTanya']}</p>
 									<p>Jawaban : <br>
 									<ul>
-									<li><span>1. </span><span>$ambilfile1</span><span> $sp[XJawab1]</span></li>
-									<li><span>2. </span><span>$ambilfile2</span><span> $sp[XJawab2]</span></li>									
-									<li><span>3. </span><span>$ambilfile3</span><span> $sp[XJawab3]</span></li>
-									<li><span>4. </span><span>$ambilfile4</span><span> $sp[XJawab4]</span></li>	
-									<li><span>5. </span><span>$ambilfile5</span><span> $sp[XJawab5]</span></li>										
+									<li><span>1. </span><span>$ambilfile1</span><span> {$sp['XJawab1']}</span></li>
+									<li><span>2. </span><span>$ambilfile2</span><span> {$sp['XJawab2']}</span></li>									
+									<li><span>3. </span><span>$ambilfile3</span><span> {$sp['XJawab3']}</span></li>
+									<li><span>4. </span><span>$ambilfile4</span><span> {$sp['XJawab4']}</span></li>	
+									<li><span>5. </span><span>$ambilfile5</span><span> {$sp['XJawab5']}</span></li>										
 									</ul></p>
 									";
 									}

@@ -28,7 +28,7 @@
  * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
  * @version    ##VERSION##, ##DATE##
  */
-include "../../config/server.php";
+require_once __DIR__ . "/../../config/server.php";
 /** Error reporting */
 error_reporting(E_ALL);
 ini_set('display_errors', TRUE);
@@ -113,62 +113,91 @@ $objPHPExcel->setActiveSheetIndex(0)
 			->setCellValue('M3', 'Total Nilai')
 			->setCellValue('N3', 'TOKEN');			
 						
-$sqlujian = mysql_query("SELECT * from cbt_ujian WHERE XKodeSoal = '$_REQUEST[soal]'");
-$uj = mysql_fetch_array($sqlujian);
-$txt_kelas = $uj['XKodeKelas'];
-$txt_jurusan = $uj['XKodeJurusan'];
-$var_mapel = $uj['XKodeMapel'];
-$var_soal = $uj['XKodeSoal'];
-$var_jumsoal = $uj['XJumSoal'];
-$var_token = $uj['XTokenUjian'];
+$soal = isset($_REQUEST['soal']) ? $_REQUEST['soal'] : '';
+$uj = db_fetch_one(
+    db_query(
+        $db,
+        "SELECT * FROM cbt_ujian WHERE XKodeSoal = :soal LIMIT 1",
+        array(':soal' => $soal)
+    )
+);
+$txt_kelas = $uj ? $uj['XKodeKelas'] : '';
+$txt_jurusan = $uj ? $uj['XKodeJurusan'] : '';
+$var_mapel = $uj ? $uj['XKodeMapel'] : '';
+$var_soal = $uj ? $uj['XKodeSoal'] : '';
+$var_jumsoal = $uj ? $uj['XJumSoal'] : 0;
+$var_token = $uj ? $uj['XTokenUjian'] : '';
 
-if($txt_kelas == 'ALL' && $txt_jurusan == 'ALL'){
-$hasil = mysql_query("SELECT * FROM cbt_siswa "); }
-elseif($txt_kelas == 'ALL' && $txt_jurusan !== 'ALL'){
-$hasil = mysql_query("SELECT * FROM cbt_siswa where XKodeJurusan = '$txt_jurusan'"); }
-elseif( $txt_kelas !== 'ALL' && $txt_jurusan == 'ALL'){
-$hasil = mysql_query("SELECT * FROM cbt_siswa where XKodeKelas = '$txt_kelas'"); 
+if ($txt_kelas == 'ALL' && $txt_jurusan == 'ALL') {
+    $hasil = db_query($db, "SELECT * FROM cbt_siswa", array());
+} elseif ($txt_kelas == 'ALL' && $txt_jurusan !== 'ALL') {
+    $hasil = db_query($db, "SELECT * FROM cbt_siswa WHERE XKodeJurusan = :jurusan", array(':jurusan' => $txt_jurusan));
+} elseif ($txt_kelas !== 'ALL' && $txt_jurusan == 'ALL') {
+    $hasil = db_query($db, "SELECT * FROM cbt_siswa WHERE XKodeKelas = :kelas", array(':kelas' => $txt_kelas));
 } else {
-$hasil = mysql_query("SELECT * FROM cbt_siswa where XKodeKelas = '$txt_kelas'");
+    $hasil = db_query($db, "SELECT * FROM cbt_siswa WHERE XKodeKelas = :kelas", array(':kelas' => $txt_kelas));
 }
+
+$p1 = db_fetch_one(
+    db_query(
+        $db,
+        "SELECT p.*, m.XNamaMapel FROM cbt_paketsoal p LEFT JOIN cbt_mapel m ON m.XKodeMapel = p.XKodeMapel WHERE p.XKodeSoal = :soal LIMIT 1",
+        array(':soal' => $var_soal)
+    )
+);
+$per_pil = $p1 ? $p1['XPersenPil'] : 0;
+$per_esai = $p1 ? $p1['XPersenEsai'] : 0;
+$var_pil = $p1 ? $p1['XPilGanda'] : 0;
+$var_esai = $p1 ? $p1['XEsai'] : 0;
+$namamapel = $p1 ? $p1['XNamaMapel'] : '';
 
 
 $baris = 4;
 $no = 1;	
-while($p = mysql_fetch_array($hasil)){
+while($p = $hasil->fetch()){
 
-    $var_siswa = "$p[XNomerUjian]";
-	$var_nama = "$p[XNamaSiswa]";
-	$var_sesi = "$p[XSesi]";
-    $var_kelas = "$p[XKodeKelas]";
-	$var_jurusan = "$p[XKodeJurusan]";
-	$grup = "$p[XKodeKelas] - $p[XKodeJurusan]";
+    $var_siswa = "{$p['XNomerUjian']}";
+	$var_nama = "{$p['XNamaSiswa']}";
+	$var_sesi = "{$p['XSesi']}";
+    $var_kelas = "{$p['XKodeKelas']}";
+	$var_jurusan = "{$p['XKodeJurusan']}";
+	$grup = "{$p['XKodeKelas']} - {$p['XKodeJurusan']}";
 	
-	$sqlpaket = mysql_query("select * from cbt_paketsoal p LEFT JOIN cbt_mapel m on m.XKodeMapel=p.XKodeMapel where p.XKodeSoal = '$var_soal'"); 	
-	$p1 = mysql_fetch_array($sqlpaket);
-	$per_pil = $p1['XPersenPil'];
-	$per_esai = $p1['XPersenEsai'];	
-	$var_pil = $p1['XPilGanda'];	
-	$var_esai = $p1['XEsai'];		
-	$namamapel = $p1['XNamaMapel'];	
-	
-
 $var_siswa = $p['XNomerUjian'];
 $var_sesi = $p['XSesi'];
 
 //ambil nilai esai masing2 siswa
-$sqljumlah = mysql_query("select sum(XNilaiEsai) as hasil from cbt_jawaban where XKodeSoal = '$var_soal' and XUserJawab = '$var_siswa' and XTokenUjian = '$var_token'");
-$o = mysql_fetch_array($sqljumlah);
-$nilai_esai = $o['hasil'];
+$nilai_esai = (float) db_fetch_value(
+    db_query(
+        $db,
+        "SELECT SUM(XNilaiEsai) FROM cbt_jawaban WHERE XKodeSoal = :soal AND XUserJawab = :siswa AND XTokenUjian = :token",
+        array(':soal' => $var_soal, ':siswa' => $var_siswa, ':token' => $var_token)
+    )
+);
 
 
-$sqldijawab = mysql_num_rows(mysql_query("SELECT * FROM `cbt_jawaban` WHERE XKodeSoal = '$var_soal' and XUserJawab = '$var_siswa' and XJawaban != ''"));
-	$sqljawaban = mysql_query(" SELECT count( XNilai ) AS HasilUjian,XTokenUjian FROM `cbt_jawaban` WHERE XKodeSoal = '$var_soal' and XUserJawab = '$var_siswa' and XNilai = 
-	'1' ");
-	$sqj = mysql_fetch_array($sqljawaban);
-	$tokenujian = $sqj['XTokenUjian'];
-	$jumbenar = $sqj['HasilUjian'];
-	$nilai_pil = ($jumbenar/$var_pil)*100;	
+$sqldijawab = (int) db_fetch_value(
+    db_query(
+        $db,
+        "SELECT COUNT(*) FROM `cbt_jawaban` WHERE XKodeSoal = :soal AND XUserJawab = :siswa AND XJawaban != ''",
+        array(':soal' => $var_soal, ':siswa' => $var_siswa)
+    )
+);
+	$jumbenar = (int) db_fetch_value(
+        db_query(
+            $db,
+            "SELECT COUNT(XNilai) FROM `cbt_jawaban` WHERE XKodeSoal = :soal AND XUserJawab = :siswa AND XNilai = '1'",
+            array(':soal' => $var_soal, ':siswa' => $var_siswa)
+        )
+    );
+	$tokenujian = (string) db_fetch_value(
+        db_query(
+            $db,
+            "SELECT MIN(XTokenUjian) FROM `cbt_jawaban` WHERE XKodeSoal = :soal AND XUserJawab = :siswa AND XNilai = '1'",
+            array(':soal' => $var_soal, ':siswa' => $var_siswa)
+        )
+    );
+	$nilai_pil = $var_pil > 0 ? ($jumbenar / $var_pil) * 100 : 0;
 	$total_pil = $nilai_pil*($per_pil/100);	
 	$total_esai = $nilai_esai*($per_esai/100);	
 	$total_nilai = $total_pil+$total_esai;	
@@ -206,7 +235,7 @@ $objPHPExcel->getActiveSheet()->setTitle($namamapel);
 $objPHPExcel->setActiveSheetIndex(0);
 
 
-// Redirect output to a client’s web browser (Excel2007)
+// Redirect output to a client's web browser (Excel2007)
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header('Content-Disposition: attachment;filename="HasilUjian.xlsx"');
 header('Cache-Control: max-age=0');

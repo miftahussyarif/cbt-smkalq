@@ -4,9 +4,16 @@
 ?>
 
 <?php
+require_once __DIR__ . "/../../config/server.php";
 if(isset($_REQUEST['aksi'])&&$_REQUEST['aksi']=="simpan"){
-$sss= str_replace("'","\'",$_REQUEST['tanyasoal']);
-	$sql0 = mysql_query("update cbt_soal set XTanya = '$sss' where XKodeSoal = '$_REQUEST[soal]' and Urut = '$_REQUEST[nom]'");
+	$sss = isset($_REQUEST['tanyasoal']) ? $_REQUEST['tanyasoal'] : '';
+	$soalKode = isset($_REQUEST['soal']) ? $_REQUEST['soal'] : '';
+	$nom = isset($_REQUEST['nom']) ? $_REQUEST['nom'] : '';
+	db_query(
+		$db,
+		"update cbt_soal set XTanya = ? where XKodeSoal = ? and Urut = ?",
+		array($sss, $soalKode, $nom)
+	);
 	//echo "update cbt_soal set XTanya = '$sss' where XKodeSoal = '$_REQUEST[txt_soal]' and Urut = '$_REQUEST[txt_nom]'";
 }
 ?>	
@@ -357,21 +364,29 @@ $jnoc(document).ready(function(e) {
 
 <body><form action="#" method="post">
 <?php	
-$sqltanya = mysql_query("select * from cbt_paketsoal where XKodeSoal= '$_REQUEST[soal]' and XGuru = '$_COOKIE[beeuser]'");
-	$so=mysql_fetch_array($sqltanya); ?>
+$soalKode = isset($_REQUEST['soal']) ? $_REQUEST['soal'] : '';
+$guru = isset($_COOKIE['beeuser']) ? $_COOKIE['beeuser'] : '';
+$sqltanya = db_query($db, "select * from cbt_paketsoal where XKodeSoal = ? and XGuru = ?", array($soalKode, $guru));
+$so = db_fetch_one($sqltanya);
+if (!$so) {
+	$so = array('XKodeMapel' => '');
+}
+?>
 
 <div class="panel panel-info">
 	<div class="panel-heading">
     Data Bank Soal  &nbsp; &nbsp; | &nbsp; &nbsp; 
-	<?php echo "<a href=?modul=edit_soal&jum=$_REQUEST[pil]&soal=$_REQUEST[soal]><button type='button' class='btn btn-info'><i class='fa fa-arrow-left'></i> Kembali ke Bank Soal</button></a>"; ?>	
+	<?php echo "<a href=?modul=edit_soal&jum={$_REQUEST['pil']}&soal={$_REQUEST['soal']}><button type='button' class='btn btn-info'><i class='fa fa-arrow-left'></i> Kembali ke Bank Soal</button></a>"; ?>	
           
 
     </div>
 	
     <div class="panel-body">
-<?php    $sqlsoal = mysql_query("SELECT MAX(XNomerSoal) as maksi FROM `cbt_soal` WHERE XKodeSoal = '$_REQUEST[soal]'");
-$sm = mysql_fetch_array($sqlsoal);
-$maks = $sm['maksi']+1; ?>
+<?php
+$sqlsoal = db_query($db, "SELECT MAX(XNomerSoal) as maksi FROM `cbt_soal` WHERE XKodeSoal = ?", array($soalKode));
+$sm = db_fetch_one($sqlsoal);
+$maks = isset($sm['maksi']) ? ((int) $sm['maksi'] + 1) : 1;
+?>
 
 <table width="100%" border="0" align="center" cellpadding="0" cellspacing="0">
 <tr><td colspan="2"  style="font-size:18px">&nbsp;  </td>

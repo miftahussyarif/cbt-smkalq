@@ -434,7 +434,7 @@ CREATE TABLE `cbt_upload_file` (
 CREATE TABLE `cbt_user` (
   `Urut` int(11) NOT NULL,
   `Username` varchar(20) NOT NULL,
-  `Password` varchar(50) NOT NULL,
+  `Password` varchar(255) NOT NULL,
   `NIP` varchar(30) NOT NULL,
   `Nama` varchar(200) NOT NULL,
   `HP` varchar(20) NOT NULL,

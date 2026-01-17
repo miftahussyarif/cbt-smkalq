@@ -20,7 +20,7 @@ function kartu($am) {
 $sqlam = mysql_query("select * from cbt_siswa where Urut = '$am'");
 $a = mysql_fetch_array($sqlam);
 
-if(str_replace(" ","",$a['XFoto'])==""){$pic = "nouser.png";}else{$pic="$a[XFoto]";}
+if(str_replace(" ","",$a['XFoto'])==""){$pic = "nouser.png";}else{$pic="{$a['XFoto']}";}
 ?>
 <table style="width:10.2cm;border:1px solid black; padding:55px; font-family:Arial, Helvetica, sans-serif; font-size:12px" class="kartu" border="0">
 					<tbody>

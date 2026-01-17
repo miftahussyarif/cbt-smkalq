@@ -1,6 +1,7 @@
 <?php
 	if(!isset($_COOKIE['beeuser'])){
 	header("Location: login.php");}
+require_once __DIR__ . "/../../config/server.php";
 ?>
 
 <!DOCTYPE html>
@@ -70,7 +71,7 @@ $(document).ready(function(){
 });
 </script>
 <body>
-<?php include "../../config/server.php"; ?>
+<?php require_once __DIR__ . "/../../config/server.php"; ?>
             <div class="row">
                 <div class="col-lg-12">
                     <h3 class="page-header">Analisa Soal</h3>
@@ -107,11 +108,11 @@ $(document).ready(function(){
                                 </thead>
                                 <tbody>
                                 <?php 
-								$sql = mysql_query("select p.*,m.*,p.Urut as Urutan,p.XKodeKelas  as kokel from cbt_paketsoal p left join cbt_mapel m on m.XKodeMapel = p.XKodeMapel where p.XGuru='$_COOKIE[beeuser]' order by p.Urut desc");
-								while($s = mysql_fetch_array($sql)){ 
-					$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$s[XKodeSoal]'"));
-					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$s[XKodeSoal]' and XStatusUjian = '1'"));
-					$sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$s[XKodeSoal]'"));
+								$sql = db_query($db, "SELECT p.*, m.*, p.Urut AS Urutan, p.XKodeKelas AS kokel FROM cbt_paketsoal p LEFT JOIN cbt_mapel m ON m.XKodeMapel = p.XKodeMapel WHERE p.XGuru = :guru ORDER BY p.Urut DESC", array(':guru' => $_COOKIE['beeuser']));
+								while($s = $sql->fetch()){ 
+					$sqlsoal = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_soal WHERE XKodeSoal = :kodesoal", array(':kodesoal' => $s['XKodeSoal'])));
+					$sqlpakai = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_siswa_ujian WHERE XKodeSoal = :kodesoal AND XStatusUjian = '1'", array(':kodesoal' => $s['XKodeSoal'])));
+					$sqlsudah = (int) db_fetch_value(db_query($db, "SELECT COUNT(*) FROM cbt_jawaban WHERE XKodeSoal = :kodesoal", array(':kodesoal' => $s['XKodeSoal'])));
 					if($sqlsoal<1){$kata="disabled";}  else {$kata="";}	
 					if($sqlsudah>0||$sqlpakai>0){$kata="disabled";}  else {$kata="";}			
 					if($sqlpakai>0){$katapakai="disabled";}  else {$katapakai="";}			
@@ -146,12 +147,12 @@ $(document).ready(function(){
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Peserta Ujian : $s[XNomerUjian]"; ?></h4>
+                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Peserta Ujian : {$s['XNomerUjian']}"; ?></h4>
                                         </div>
                                         <div class="modal-body" style="text-align:center">
                                         
                                                <?php 
-												if(file_exists("../../fotosiswa/$s[XFoto]")&&!$gbr==''){ ?>
+												if(file_exists("../../fotosiswa/{$s['XFoto']}")&&!$gbr==''){ ?>
                                                 <img src="../../fotosiswa/<?php echo $s['XFoto']; ?>" width="400px">
                                                 <?php 
 												} else {

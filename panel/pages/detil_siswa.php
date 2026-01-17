@@ -11,7 +11,7 @@
 								<?php 
 								if(isset($_REQUEST['idstu'])){
 									$siswa = mysql_real_escape_string($_REQUEST['idstu']);
-									$sql = mysql_query("select * from cbt_siswa where XNomerUjian = '$_REQUEST[idstu]'");
+									$sql = mysql_query("select * from cbt_siswa where XNomerUjian = '{$_REQUEST['idstu']}'");
 									$s = mysql_fetch_array($sql); 
 									$gbr=str_replace(" ","",$s['XFoto']);
 									?>
@@ -20,7 +20,7 @@
                                           <tr>
                                             <td rowspan="6" width="25%">
                                             	<?php 
-												if(file_exists("../../fotosiswa/$s[XFoto]")&&!$gbr==''){ ?>
+												if(file_exists("../../fotosiswa/{$s['XFoto']}")&&!$gbr==''){ ?>
                                                 <img src="../../fotosiswa/<?php echo $s['XFoto']; ?>" width="200px">
                                                 <?php 
 												} else {
@@ -29,7 +29,7 @@
 												?>
                                                 
                                                 </td>
-                                            <td width="25%">Nama <?php echo "$_REQUEST[idstu]|$gbr-$siswa|"; ?></td>
+                                            <td width="25%">Nama <?php echo "{$_REQUEST['idstu']}|$gbr-$siswa|"; ?></td>
                                             <td width="50%">: <?php echo $s['XNamaSiswa']; ?></td>
                                           </tr>
                                           <tr>

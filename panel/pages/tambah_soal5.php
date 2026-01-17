@@ -6,7 +6,7 @@
 <?php
 if(isset($_REQUEST['aksi'])&&$_REQUEST['aksi']=="simpan"){
 $sss= str_replace("'","\'",$_REQUEST['tanyasoal']);
-	$sql0 = mysql_query("update cbt_soal set XTanya = '$sss' where XKodeSoal = '$_REQUEST[soal]' and Urut = '$_REQUEST[nom]'");
+	$sql0 = mysql_query("update cbt_soal set XTanya = '$sss' where XKodeSoal = '{$_REQUEST['soal']}' and Urut = '{$_REQUEST['nom']}'");
 	//echo "update cbt_soal set XTanya = '$sss' where XKodeSoal = '$_REQUEST[txt_soal]' and Urut = '$_REQUEST[txt_nom]'";
 }
 ?>	
@@ -184,13 +184,13 @@ $jnoc(document).ready(function(e) {
 
 <body><form action="#" method="post">
 <?php	
-$sqltanya = mysql_query("select * from cbt_paketsoal where XKodeSoal= '$_REQUEST[soal]'");
+$sqltanya = mysql_query("select * from cbt_paketsoal where XKodeSoal= '{$_REQUEST['soal']}'");
 	$so=mysql_fetch_array($sqltanya); ?>
 
 <div class="panel panel-info">
 	<div class="panel-heading">
     Data Bank Soal  &nbsp; &nbsp; | &nbsp; &nbsp; 
-	<?php echo "<a href=?modul=edit_soal&jum=$_REQUEST[jum]&soal=$_REQUEST[soal]><button type='button' class='btn btn-info'><i class='fa fa-arrow-left'></i> Kembali ke Daftar Soal</button></a>"; ?>	
+	<?php echo "<a href=?modul=edit_soal&jum={$_REQUEST['jum']}&soal={$_REQUEST['soal']}><button type='button' class='btn btn-info'><i class='fa fa-arrow-left'></i> Kembali ke Daftar Soal</button></a>"; ?>	
           
 
     </div>
@@ -203,7 +203,7 @@ $sqltanya = mysql_query("select * from cbt_paketsoal where XKodeSoal= '$_REQUEST
 <button type="submit" class="btn btn-success btn-small" id="kirim"><i class='fa fa-save'></i> Simpan Soal</button>     
     <input type="hidden" id="soal" name="soal" value="<?php echo $_REQUEST['soal']; ?>" />
     <input type="hidden" id="map" name="map" value="<?php echo $so['XKodeMapel']; ?>" />
-<?php    $sqlsoal = mysql_query("SELECT MAX(XNomerSoal) as maksi FROM `cbt_soal` WHERE XKodeSoal = '$_REQUEST[soal]'");
+<?php    $sqlsoal = mysql_query("SELECT MAX(XNomerSoal) as maksi FROM `cbt_soal` WHERE XKodeSoal = '{$_REQUEST['soal']}'");
 $sm = mysql_fetch_array($sqlsoal);
 $maks = $sm['maksi']+1; ?>
 <input type="hidden" id="nomax" name="nomax" value="<?php echo $maks ; ?>" />

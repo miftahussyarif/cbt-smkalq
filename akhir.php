@@ -1,67 +1,92 @@
-<?php include "config/server.php";
+<?php
+require __DIR__ . '/config/server.php';
 // ===============================
 // Status Ujian XStatusUjian = 1 Aktif
 // Status Ujian XStatusUjian = 0 BelumAktif
 // Status Ujian XStatusUjian = 9 Selesai
 
-if (isset($_COOKIE['PESERTA'])) {
-	$user = $_COOKIE['PESERTA'];
-} else {
+$user = isset($_COOKIE['PESERTA']) ? $_COOKIE['PESERTA'] : '';
+if ($user === '') {
 	header('Location:login.php');
+	exit;
 }
 
 $tgl = date("H:i:s");
 $tgl2 = date("Y-m-d");
 
-$sqltoken = mysql_query("SELECT * FROM `cbt_siswa_ujian` s left join cbt_ujian u on u.XKodeSoal = s.XKodeSoal
-		WHERE s.XNomerUjian = '$user' and s.XStatusUjian = '1'");
-$st = mysql_fetch_array($sqltoken);
-$xtokenujian = $st['XTokenUjian'];
+$xtokenujian = '';
+$sqltoken = db_query(
+	$db,
+	"SELECT s.XTokenUjian FROM `cbt_siswa_ujian` s LEFT JOIN cbt_ujian u ON u.XKodeSoal = s.XKodeSoal WHERE s.XNomerUjian = :user AND s.XStatusUjian = '1' LIMIT 1",
+	array(':user' => $user)
+);
+$st = db_fetch_one($sqltoken);
+if ($st) {
+	$xtokenujian = $st['XTokenUjian'];
+}
 
-
-
-$sqlgabung = mysql_query("
-		SELECT * FROM `cbt_siswa_ujian` s LEFT JOIN cbt_jawaban j ON j.XUserJawab = s.XNomerUjian and j.XTokenUjian = s.XTokenUjian left join cbt_siswa s1 on s1.XNomerUjian =
-		s.XNomerUjian WHERE s.XNomerUjian = '$user' and s.XStatusUjian = '1'");
+$sqlgabung = db_query(
+	$db,
+	"SELECT * FROM `cbt_siswa_ujian` s LEFT JOIN cbt_jawaban j ON j.XUserJawab = s.XNomerUjian AND j.XTokenUjian = s.XTokenUjian LEFT JOIN cbt_siswa s1 ON s1.XNomerUjian = s.XNomerUjian WHERE s.XNomerUjian = :user AND s.XStatusUjian = '1' LIMIT 1",
+	array(':user' => $user)
+);
 
 //=======================
-$s0 = mysql_fetch_array($sqlgabung);
-$xkodesoal = $s0['XKodeSoal'];
-$xtokenujian = $s0['XTokenUjian'];
-$xnomerujian = $s0['XNomerUjian'];
-$xnik = $s0['XNIK'];
-$xkodeujian = $s0['XKodeUjian'];
-$xkodemapel = $s0['XKodeMapel'];
-$xkodekelas = $s0['XKodeKelas'];
-$xkodejurusan = $s0['XKodeJurusan'];
-$xsemester = $s0['XSemester'];
+$s0 = db_fetch_one($sqlgabung);
+$xkodesoal = $s0 ? $s0['XKodeSoal'] : '';
+$xnomerujian = $s0 ? $s0['XNomerUjian'] : '';
+$xnik = $s0 ? $s0['XNIK'] : '';
+$xkodeujian = $s0 ? $s0['XKodeUjian'] : '';
+$xkodemapel = $s0 ? $s0['XKodeMapel'] : '';
+$xkodekelas = $s0 ? $s0['XKodeKelas'] : '';
+$xkodejurusan = $s0 ? $s0['XKodeJurusan'] : '';
+$xsemester = $s0 ? $s0['XSemester'] : '';
+if ($s0 && $s0['XTokenUjian'] !== '') {
+	$xtokenujian = $s0['XTokenUjian'];
+}
 
-$sqlsoal = mysql_query("SELECT * FROM cbt_ujian  WHERE XKodeSoal = '$xkodesoal'");
-$sa = mysql_fetch_array($sqlsoal);
-//$xkodeujian = $sa['XKodeUjian'];
-$xjumsoal = $sa['XJumSoal'];
-$xjumpil = $sa['XPilGanda'];
+$sa = null;
+$xjumsoal = 0;
+$xjumpil = 0;
 $xjumbenar = 0;
 $xjumsalah = 0;
 $nilai_tampil = "0,00";
 $has_esai = false;
 
-if ($xjumsoal > 0) {
+if ($xkodesoal !== '') {
+	$sqlsoal = db_query(
+		$db,
+		"SELECT * FROM cbt_ujian WHERE XKodeSoal = :kodesoal LIMIT 1",
+		array(':kodesoal' => $xkodesoal)
+	);
+	$sa = db_fetch_one($sqlsoal);
+	if ($sa) {
+		$xjumsoal = (int) $sa['XJumSoal'];
+		$xjumpil = isset($sa['XPilGanda']) ? (int) $sa['XPilGanda'] : 0;
+	}
+}
 
-	$sqlnilai = mysql_query(" SELECT * FROM cbt_paketsoal WHERE XKodeSoal = '$xkodesoal'");
-	$sqn = mysql_fetch_array($sqlnilai);
-	$per_pil = $sqn['XPersenPil'];
-	$per_esai = $sqn['XPersenEsai'];
-	$xjumesai = isset($sqn['XEsai']) ? (int)$sqn['XEsai'] : 0;
-	if ($xjumesai < 1 && isset($sa['XEsai'])) {
-		$xjumesai = (int)$sa['XEsai'];
+if ($xjumsoal > 0 && $xkodesoal !== '') {
+	$sqlnilai = db_query(
+		$db,
+		"SELECT * FROM cbt_paketsoal WHERE XKodeSoal = :kodesoal LIMIT 1",
+		array(':kodesoal' => $xkodesoal)
+	);
+	$sqn = db_fetch_one($sqlnilai);
+	$per_pil = $sqn ? $sqn['XPersenPil'] : 0;
+	$per_esai = $sqn ? $sqn['XPersenEsai'] : 0;
+	$xjumesai = $sqn && isset($sqn['XEsai']) ? (int) $sqn['XEsai'] : 0;
+	if ($xjumesai < 1 && $sa && isset($sa['XEsai'])) {
+		$xjumesai = (int) $sa['XEsai'];
 	}
 
-
-
-	$xjumbenarz = mysql_query("select count(XNilai) as benar from cbt_jawaban where XUserJawab = '$user' and XJenisSoal = '1' and XKodeSoal = '$xkodesoal' and XTokenUjian = '$xtokenujian' and XNilai = '1'");
-	$r = mysql_fetch_array($xjumbenarz);
-	$xjumbenar = $r['benar'];
+	$xjumbenar = (int) db_fetch_value(
+		db_query(
+			$db,
+			"SELECT COUNT(XNilai) FROM cbt_jawaban WHERE XUserJawab = :user AND XJenisSoal = '1' AND XKodeSoal = :kodesoal AND XTokenUjian = :token AND XNilai = '1'",
+			array(':user' => $user, ':kodesoal' => $xkodesoal, ':token' => $xtokenujian)
+		)
+	);
 	$xjumsalah = $xjumpil - $xjumbenar;
 	if ($xjumsalah < 0) {
 		$xjumsalah = 0;
@@ -73,33 +98,83 @@ if ($xjumsoal > 0) {
 	}
 	$nilai_tampil = number_format($nilaix, 2, ',', '.');
 	$has_esai = ($xjumesai > 0);
-	if (isset($_COOKIE['beetahun'])) {
-		$setAY = $_COOKIE['beetahun'];
-	} else {
-		$setAY = "2016/2017";
-	}
+	$setAY = isset($_COOKIE['beetahun']) ? $_COOKIE['beetahun'] : "2016/2017";
 
-	//cek apakah nilai untuk token ini sudah ada atau tidak 
-	$sqlceknilai = mysql_num_rows(mysql_query("select * from cbt_nilai where XNomerUjian = '$xnomerujian' and XKodeSoal = '$xkodesoal' and XTokenUjian = '$xtokenujian' 
-		  and XSemester = '$xsemester' and XSetId = '$setAY' and XKodeMapel = '$xkodemapel' and XNIK = '$xnik'"));
+	//cek apakah nilai untuk token ini sudah ada atau tidak
+	$sqlceknilai = (int) db_fetch_value(
+		db_query(
+			$db,
+			"SELECT COUNT(*) FROM cbt_nilai WHERE XNomerUjian = :nomer AND XKodeSoal = :kodesoal AND XTokenUjian = :token AND XSemester = :semester AND XSetId = :setid AND XKodeMapel = :mapel AND XNIK = :nik",
+			array(
+				':nomer' => $xnomerujian,
+				':kodesoal' => $xkodesoal,
+				':token' => $xtokenujian,
+				':semester' => $xsemester,
+				':setid' => $setAY,
+				':mapel' => $xkodemapel,
+				':nik' => $xnik,
+			)
+		)
+	);
 
 	if ($sqlceknilai > 0) {
-		$sqlmasuk = mysql_query("update cbt_nilai set XJumSoal='$xjumsoal',XBenar='$xjumbenar',XSalah='$xjumsalah',XNilai='$nilaix',XTotalNilai=,'$nilaix'
-		  where XNomerUjian = '$xnomerujian' and XKodeSoal = '$xkodesoal' and XTokenUjian = '$xtokenujian' and XSemester = '$xsemester' and XSetId = '$setAY' 
-		  and XKodeMapel = '$xkodemapel' and XNIK = '$xnik'");
+		db_query(
+			$db,
+			"UPDATE cbt_nilai SET XJumSoal = :jumsoal, XBenar = :benar, XSalah = :salah, XNilai = :nilai, XTotalNilai = :total WHERE XNomerUjian = :nomer AND XKodeSoal = :kodesoal AND XTokenUjian = :token AND XSemester = :semester AND XSetId = :setid AND XKodeMapel = :mapel AND XNIK = :nik",
+			array(
+				':jumsoal' => $xjumsoal,
+				':benar' => $xjumbenar,
+				':salah' => $xjumsalah,
+				':nilai' => $nilaix,
+				':total' => $nilaix,
+				':nomer' => $xnomerujian,
+				':kodesoal' => $xkodesoal,
+				':token' => $xtokenujian,
+				':semester' => $xsemester,
+				':setid' => $setAY,
+				':mapel' => $xkodemapel,
+				':nik' => $xnik,
+			)
+		);
 	} else {
-		$sqlmasuk = mysql_query("insert into cbt_nilai (
-		  XKodeUjian,XTokenUjian,XTgl,XJumSoal,XBenar,XSalah,XNilai,XKodeMapel,XKodeKelas,XKodeSoal,XNomerUjian,XNIK,XSemester,XSetId,XPersenPil,XPersenEsai,XTotalNilai) 
-		  values 
-		  ('$xkodeujian','$xtokenujian','$tgl2','$xjumsoal','$xjumbenar','$xjumsalah','$nilaix','$xkodemapel','$xkodekelas','$xkodesoal','$xnomerujian','$xnik','$xsemester',
-		  '$setAY','$per_pil','$per_esai','$nilaix')");
+		db_query(
+			$db,
+			"INSERT INTO cbt_nilai (XKodeUjian, XTokenUjian, XTgl, XJumSoal, XBenar, XSalah, XNilai, XKodeMapel, XKodeKelas, XKodeSoal, XNomerUjian, XNIK, XSemester, XSetId, XPersenPil, XPersenEsai, XTotalNilai)
+			VALUES (:kodeujian, :token, :tgl, :jumsoal, :benar, :salah, :nilai, :kodemapel, :kodekelas, :kodesoal, :nomer, :nik, :semester, :setid, :per_pil, :per_esai, :total)",
+			array(
+				':kodeujian' => $xkodeujian,
+				':token' => $xtokenujian,
+				':tgl' => $tgl2,
+				':jumsoal' => $xjumsoal,
+				':benar' => $xjumbenar,
+				':salah' => $xjumsalah,
+				':nilai' => $nilaix,
+				':kodemapel' => $xkodemapel,
+				':kodekelas' => $xkodekelas,
+				':kodesoal' => $xkodesoal,
+				':nomer' => $xnomerujian,
+				':nik' => $xnik,
+				':semester' => $xsemester,
+				':setid' => $setAY,
+				':per_pil' => $per_pil,
+				':per_esai' => $per_esai,
+				':total' => $nilaix,
+			)
+		);
 	}
 
-	if (isset($xtokenujian)) {
-		$sql = mysql_query("Update cbt_siswa_ujian set XStatusUjian = '9' where XNomerUjian = '$user' and XStatusUjian = '1'  and XTokenUjian = '$xtokenujian'");
+	if ($xtokenujian !== '') {
+		db_query(
+			$db,
+			"UPDATE cbt_siswa_ujian SET XStatusUjian = '9' WHERE XNomerUjian = :user AND XStatusUjian = '1' AND XTokenUjian = :token",
+			array(':user' => $user, ':token' => $xtokenujian)
+		);
 	}
-	$sql = mysql_query("Update cbt_siswa_ujian set XStatusUjian = '9',XLastUpdate = '$tgl' where XNomerUjian = '$user' and XStatusUjian = '1'");
-
+	db_query(
+		$db,
+		"UPDATE cbt_siswa_ujian SET XStatusUjian = '9', XLastUpdate = :tgl WHERE XNomerUjian = :user AND XStatusUjian = '1'",
+		array(':tgl' => $tgl, ':user' => $user)
+	);
 }
 ?>
 <style>
@@ -231,16 +306,19 @@ if ($xjumsoal > 0) {
 	<title>Untitled Document</title>
 </head>
 <?php
-include "config/server.php";
-$sql = mysql_query("select * from cbt_admin");
-$r = mysql_fetch_array($sql);
+require_once __DIR__ . "/config/server.php";
+$sql = db_query($db, "SELECT * FROM cbt_admin LIMIT 1", array());
+$r = db_fetch_one($sql);
+if (!$r) {
+	$r = array('XWarna' => '', 'XBanner' => '');
+}
 ?>
 
 <body class="font-medium" style="background-color:#c9c9c9">
-	<header style="background-color:<?php echo "$r[XWarna]"; ?>">
+	<header style="background-color:<?php echo "{$r['XWarna']}"; ?>">
 		<div class="group">
-			<div class="left" style="background-color:<?php echo "$r[XWarna]"; ?>"><a href=" "><img
-						src="images/<?php echo "$r[XBanner]"; ?>" style=" margin-left:0px;"></a>
+			<div class="left" style="background-color:<?php echo "{$r['XWarna']}"; ?>"><a href=" "><img
+						src="images/<?php echo "{$r['XBanner']}"; ?>" style=" margin-left:0px;"></a>
 			</div>
 			<div class="right1">
 				<table width="100%" border="0" style="margin-top:10px">

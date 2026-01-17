@@ -36,27 +36,27 @@ include "../../config/server.php";
 				<tr><td>
                 				<select id="txt_level"  name="txt_level" class="form-control" >
 								<?php 
-								echo "<option value='$r[XKodeLevel]' selected >$r[XKodeLevel]</option>";
+								echo "<option value='{$r['XKodeLevel']}' selected >{$r['XKodeLevel']}</option>";
 								$sqk = mysql_query("select * from cbt_kelas group by XKodeLevel");
 								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XKodeLevel]' class='form-control' >$rs[XKodeLevel]</option>";} ?>                                
+                             	echo "<option value='{$rs['XKodeLevel']}' class='form-control' >{$rs['XKodeLevel']}</option>";} ?>                                
                                 </select>     
                 </td><td>&nbsp;</td><td>
                 				<select id="txt_kelas"  name="txt_kelas" class="form-control" >
 								<?php 
-								echo "<option value='$r[XKodeKelas]' selected >$r[XKodeKelas]</option>";
+								echo "<option value='{$r['XKodeKelas']}' selected >{$r['XKodeKelas']}</option>";
 								$sqk = mysql_query("select * from cbt_kelas group by XKodeKelas");
 								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XKodeKelas]' class='form-control' >$rs[XKodeKelas]</option>";} ?>                                
+                             	echo "<option value='{$rs['XKodeKelas']}' class='form-control' >{$rs['XKodeKelas']}</option>";} ?>                                
                                 </select>              
                 </td>
                 </td><td>&nbsp;</td><td>
                 				<select id="jur2"  name="jur2" class="form-control">
 								<?php 
-								echo "<option value='$r[XKodeJurusan]' selected >$r[XKodeJurusan]</option>";
+								echo "<option value='{$r['XKodeJurusan']}' selected >{$r['XKodeJurusan']}</option>";
 								$sqk = mysql_query("select * from cbt_kelas group by XKodeJurusan");
 								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XKodeJurusan]'>$rs[XKodeJurusan]</option>";
+                             	echo "<option value='{$rs['XKodeJurusan']}'>{$rs['XKodeJurusan']}</option>";
 								} ?>                                
                                 </select>                
                 </td>
@@ -105,29 +105,29 @@ include "../../config/server.php";
                 </td><td>&nbsp;</td><td>
                  <select id="txt_sesi"  name="txt_sesi" class="form-control">
 								<?php 
-								echo "<option value='$r[XSesi]' selected>$r[XSesi]</option>";
+								echo "<option value='{$r['XSesi']}' selected>{$r['XSesi']}</option>";
 								$sqk = mysql_query("select * from cbt_siswa group by XSesi");
 								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XSesi]'>$rs[XSesi]</option>";
+                             	echo "<option value='{$rs['XSesi']}'>{$rs['XSesi']}</option>";
 								} ?>                                
                                 </select>               
                 </td><td>&nbsp;</td><td>
                                 <select id="txt_ruang"  name="txt_ruang" class="form-control">
 								<?php 
-								echo "<option value='$r[XRuang]' selected >$r[XRuang]</option>";
+								echo "<option value='{$r['XRuang']}' selected >{$r['XRuang']}</option>";
 								$sqk = mysql_query("select * from cbt_siswa group by XRuang");
 								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XRuang]'>$rs[XRuang]</option>";
+                             	echo "<option value='{$rs['XRuang']}'>{$rs['XRuang']}</option>";
 								} ?>                                
                                 </select>                   
                
                 </td> <td>
                                 <select id="txt_agama"  name="txt_agama" class="form-control">
 								<?php 
-								echo "<option value='$r[XAgama]' selected >$r[XAgama]</option>";
+								echo "<option value='{$r['XAgama']}' selected >{$r['XAgama']}</option>";
 								$sqk = mysql_query("select * from cbt_siswa where not XAgama ='' group by XAgama");
 								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XAgama]'>$rs[XAgama]</option>";
+                             	echo "<option value='{$rs['XAgama']}'>{$rs['XAgama']}</option>";
 								} ?>                                
                                 </select>                   
                
@@ -145,10 +145,10 @@ include "../../config/server.php";
               
                 				<select id="txt_pilih"  name="txt_pilih" class="form-control">
 								<?php 
-								echo "<option value='$r[XPilihan]' selected >$r[XPilihan]</option>";
+								echo "<option value='{$r['XPilihan']}' selected >{$r['XPilihan']}</option>";
 								$sqk = mysql_query("select * from cbt_siswa where not XPilihan ='' group by XPilihan");
 								while($rs = mysql_fetch_array($sqk)){
-                             	echo "<option value='$rs[XPilihan]'>$rs[XPilihan]</option>";
+                             	echo "<option value='{$rs['XPilihan']}'>{$rs['XPilihan']}</option>";
 								} ?>                                 
                                 </select>                
                 </td>                                               

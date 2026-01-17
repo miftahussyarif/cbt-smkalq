@@ -8,9 +8,20 @@ if (!isset($_COOKIE['beeuser'])) {
 
 <head>
 <?php
-include "../../config/server.php";
-$sql = mysql_query("select * from cbt_admin");
-$xadm = mysql_fetch_array($sql);
+require_once __DIR__ . "/../../config/server.php";
+$sql = db_query($db, "SELECT * FROM cbt_admin LIMIT 1", array());
+$xadm = db_fetch_one($sql);
+if (!$xadm) {
+    $xadm = array(
+        'XSekolah' => '',
+        'XLogo' => '',
+        'XPicAdmin' => '',
+        'XBanner' => '',
+        'XTingkat' => '',
+        'XWarna' => '',
+        'XAdmin' => '',
+    );
+}
 $skull = $xadm['XSekolah'];
 $skul_pic = $xadm['XLogo'];
 $admpic = $xadm['XPicAdmin'];
@@ -23,14 +34,16 @@ $status_server = 1;
 
                 <?php
                 $serv = php_uname('n');
-                //$link = mysql_connect('localhost', 'root', '');
-                if (!$sqlconn) {
-                    $status_server = '0';
-                    die('Could not connect: ' . mysql_error());
+                try {
+                    $a = $db->getAttribute(PDO::ATTR_SERVER_VERSION);
+                    $dash_pos = strpos($a, "-");
+                    $b = $dash_pos === false ? $a : substr($a, 0, $dash_pos);
+                    $b = str_replace(".", "", $b);
+                } catch (Exception $e) {
+                    $status_server = 0;
+                    $a = '';
+                    $b = '';
                 }
-                $a = mysql_get_server_info();
-                $b = substr($a, 0, strpos($a, "-"));
-                $b = str_replace(".", "", $b);
                 ?>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -256,11 +269,11 @@ if (!isset($_REQUEST['modul']) || $_REQUEST['modul'] == '') {
 } elseif ($_REQUEST['modul'] == "daftar_soal") {
     $bread = "Bank Soal";
 } elseif ($_REQUEST['modul'] == "upl_soal") {
-    $bread = "<a href=?modul=buat_soal&soal=$_REQUEST[soal]>Bank Soal</a> &#8226; Upload File Template";
+    $bread = "<a href=?modul=buat_soal&soal={$_REQUEST['soal']}>Bank Soal</a> &#8226; Upload File Template";
 } elseif ($_REQUEST['modul'] == "edit_soal") {
-    $bread = "<a href=?modul=buat_soal&soal=$_REQUEST[soal]>Bank Soal</a> &#8226; Daftar Edit Soal";
+    $bread = "<a href=?modul=buat_soal&soal={$_REQUEST['soal']}>Bank Soal</a> &#8226; Daftar Edit Soal";
 } elseif ($_REQUEST['modul'] == "edit_data_soal") {
-    $bread = "<a href=?modul=buat_soal&soal=$_REQUEST[soal]>Bank Soal</a> &#8226; <a href=?modul=edit_soal&soal=$_REQUEST[soal]>Daftar Soal</a>  &#8226; Edit Soal";
+    $bread = "<a href=?modul=buat_soal&soal={$_REQUEST['soal']}>Bank Soal</a> &#8226; <a href=?modul=edit_soal&soal={$_REQUEST['soal']}>Daftar Soal</a>  &#8226; Edit Soal";
 }
 ?>
 
@@ -606,36 +619,36 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
                                 <tr height="30px"><td>Jurusan </td><td>:                                 
                                 <select id="jur1"  name="jur1">
 <?php
-$sqk = mysql_query("select * from cbt_kelas group by XKodeJurusan");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeJurusan]'>$rs[XKodeJurusan]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_kelas GROUP BY XKodeJurusan", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeJurusan']}'>{$rs['XKodeJurusan']}</option>";
 } ?>                                
                                 </select>
 </td></tr> 
                                 <tr height="30px"><td width="30%">Kelas </td><td>:
                                 <select id="iki1"  name="iki1">
 <?php
-$sqk = mysql_query("select * from cbt_kelas group by XKodeKelas");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeKelas]'>$rs[XKodeKelas]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_kelas GROUP BY XKodeKelas", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeKelas']}'>{$rs['XKodeKelas']}</option>";
 } ?>                                
                                 </select>
                                 </td></tr>
                                 <tr height="30px"><td width="30%">Sesi </td><td>:
                                 <select id="sesi1"  name="sesi1">
 <?php
-$sqk = mysql_query("select * from cbt_siswa group by XSesi");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XSesi]'>$rs[XSesi]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_siswa GROUP BY XSesi", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XSesi']}'>{$rs['XSesi']}</option>";
 } ?>                                
                                 </select>
                                 </td></tr>
                                 <tr height="30px"><td width="30%">Ruang </td><td>:
                                 <select id="ruang1"  name="ruang1">
 <?php
-$sqk = mysql_query("select * from cbt_siswa group by XRuang");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XRuang]'>$rs[XRuang]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_siswa GROUP BY XRuang", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XRuang']}'>{$rs['XRuang']}</option>";
 } ?>                                
                                 </select>
                                 </td></tr>
@@ -676,18 +689,18 @@ while ($rs = mysql_fetch_array($sqk)) {
                                 <tr height="30px"><td>Jurusan </td><td>:                                 
                                 <select id="jur2"  name="jur2">
 <?php
-$sqk = mysql_query("select * from cbt_kelas group by XKodeJurusan");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeJurusan]'>$rs[XKodeJurusan]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_kelas GROUP BY XKodeJurusan", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeJurusan']}'>{$rs['XKodeJurusan']}</option>";
 } ?>                                
                                 </select>
 </td></tr> 
                                 <tr><td width="30%">Kelas </td><td>:
                                 <select id="iki2"  name="iki2">
 <?php
-$sqk = mysql_query("select * from cbt_kelas group by XKodeKelas");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeKelas]'>$rs[XKodeKelas]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_kelas GROUP BY XKodeKelas", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeKelas']}'>{$rs['XKodeKelas']}</option>";
 } ?>                                
                                 </select>
                                 </td></tr>
@@ -728,11 +741,11 @@ while ($rs = mysql_fetch_array($sqk)) {
 <tr height="30px"><td>Jenis Tes</td><td>:                                 
                                 <select id="tes3"  name="tes3">
 <?php
-$sqk = mysql_query("select * from cbt_tes where XKodeUjian in ('UH','UTS','UAS') order by Urut");
+$sqk = db_query($db, "SELECT * FROM cbt_tes WHERE XKodeUjian IN ('UH','UTS','UAS') ORDER BY Urut", array());
 echo "<option value='A' selected>Semua</option>";
-while($rs = mysql_fetch_array($sqk)){
-echo "<option value='$rs[XKodeUjian]'>$rs[XNamaUjian]</option>";
-} 
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeUjian']}'>{$rs['XNamaUjian']}</option>";
+}
 ?>                                
                                 </select>
 </td></tr>        
@@ -748,27 +761,27 @@ echo "<option value=2>Genap</option>";
                                 <tr height="30px"><td>Jurusan </td><td>:                                 
                                 <select id="jur3"  name="jur3">
 <?php
-$sqk = mysql_query("select * from cbt_kelas group by XKodeJurusan");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeJurusan]'>$rs[XKodeJurusan]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_kelas GROUP BY XKodeJurusan", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeJurusan']}'>{$rs['XKodeJurusan']}</option>";
 } ?>                                
                                 </select>
 </td></tr> 
                                 <tr><td width="30%">Kelas </td><td>:
                                 <select id="iki3"  name="iki3">
 <?php
-$sqk = mysql_query("select * from cbt_kelas group by XKodeKelas");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeKelas]'>$rs[XKodeKelas]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_kelas GROUP BY XKodeKelas", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeKelas']}'>{$rs['XKodeKelas']}</option>";
 } ?>                                
                                 </select>
                                 </td></tr>
                                 <tr height="30px"><td>Mata Pelajaran </td><td>:                                 
                                 <select id="map3"  name="map3">
 <?php
-$sqk = mysql_query("select * from cbt_mapel");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeMapel]'>$rs[XNamaMapel]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_mapel", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeMapel']}'>{$rs['XNamaMapel']}</option>";
 } ?>                                
                                 </select>
 </td></tr> 
@@ -808,9 +821,9 @@ while ($rs = mysql_fetch_array($sqk)) {
 <tr height="30px"><td>Jenis Tes</td><td>:
                                 <select id="tes_single"  name="tes_single">
 <?php
-$sqk = mysql_query("select * from cbt_tes order by Urut");
-while($rs = mysql_fetch_array($sqk)){
-echo "<option value='$rs[XKodeUjian]'>$rs[XNamaUjian]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_tes ORDER BY Urut", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeUjian']}'>{$rs['XNamaUjian']}</option>";
 }
 ?>
                                 </select>
@@ -827,27 +840,27 @@ echo "<option value=2>Genap</option>";
                                 <tr height="30px"><td>Jurusan </td><td>:
                                 <select id="jur_single"  name="jur_single">
 <?php
-$sqk = mysql_query("select * from cbt_kelas group by XKodeJurusan");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeJurusan]'>$rs[XKodeJurusan]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_kelas GROUP BY XKodeJurusan", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeJurusan']}'>{$rs['XKodeJurusan']}</option>";
 } ?>
                                 </select>
 </td></tr>
                                 <tr><td width="30%">Kelas </td><td>:
                                 <select id="iki_single"  name="iki_single">
 <?php
-$sqk = mysql_query("select * from cbt_kelas group by XKodeKelas");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeKelas]'>$rs[XKodeKelas]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_kelas GROUP BY XKodeKelas", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeKelas']}'>{$rs['XKodeKelas']}</option>";
 } ?>
                                 </select>
                                 </td></tr>
                                 <tr height="30px"><td>Mata Pelajaran </td><td>:
                                 <select id="map_single"  name="map_single">
 <?php
-$sqk = mysql_query("select * from cbt_mapel");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeMapel]'>$rs[XNamaMapel]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_mapel", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeMapel']}'>{$rs['XNamaMapel']}</option>";
 } ?>
                                 </select>
 </td></tr>
@@ -887,7 +900,7 @@ while ($rs = mysql_fetch_array($sqk)) {
 <tr height="30px"><td>Jenis Tes</td><td>:                                 
                                 <select id="tes3"  name="tes3">
 <?php
-$sqk = mysql_query("select * from cbt_tes");
+$sqk = db_query($db, "SELECT * FROM cbt_tes", array());
 echo "<option value='TO' >Try Out</option>";
 //while($rs = mysql_fetch_array($sqk)){
 //echo "<option value=$rs[XKodeUjian]>$rs[XNamaUjian]</option>";
@@ -909,27 +922,27 @@ echo "<option value=2>Genap</option>";
                                 <tr height="30px"><td>Jurusan </td><td>:                                 
                                 <select id="jur3"  name="jur3">
 <?php
-$sqk = mysql_query("select * from cbt_kelas group by XKodeJurusan");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeJurusan]'>$rs[XKodeJurusan]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_kelas GROUP BY XKodeJurusan", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeJurusan']}'>{$rs['XKodeJurusan']}</option>";
 } ?>                                
                                 </select>
 </td></tr> 
                                 <tr><td width="30%">Kelas </td><td>:
                                 <select id="iki3"  name="iki3">
 <?php
-$sqk = mysql_query("select * from cbt_kelas group by XKodeKelas");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeKelas]'>$rs[XKodeKelas]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_kelas GROUP BY XKodeKelas", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeKelas']}'>{$rs['XKodeKelas']}</option>";
 } ?>                                
                                 </select>
                                 </td></tr>
                                 <tr height="30px"><td>Mata Pelajaran </td><td>:                                 
                                 <select id="map3"  name="map3">
 <?php
-$sqk = mysql_query("select * from cbt_mapel");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeMapel]'>$rs[XNamaMapel]</option>";
+$sqk = db_query($db, "SELECT * FROM cbt_mapel", array());
+while ($rs = $sqk->fetch()) {
+    echo "<option value='{$rs['XKodeMapel']}'>{$rs['XNamaMapel']}</option>";
 } ?>                                
                                 </select>
 </td></tr> 

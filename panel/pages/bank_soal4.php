@@ -4,9 +4,27 @@
 ?>
 
 <?php
+require_once __DIR__ . "/../../config/server.php";
+$soalKode = isset($_REQUEST['soal']) ? $_REQUEST['soal'] : '';
+$nomer = isset($_REQUEST['nomer']) ? $_REQUEST['nomer'] : '';
+$sqlPaket = db_query($db, "select * from cbt_paketsoal where XKodeSoal = ?", array($soalKode));
+$so = db_fetch_one($sqlPaket);
+if (!$so) {
+	$so = array('XJumPilihan' => 0);
+}
+$sqlSoal = null;
+$s = null;
+if ($soalKode !== '' && $nomer !== '') {
+	$sqlSoal = db_query($db, "select * from cbt_soal where XKodeSoal = ? and Urut = ?", array($soalKode, $nomer));
+	$s = db_fetch_one($sqlSoal);
+}
+if (!$s) {
+	$s = array();
+}
 if(isset($_REQUEST['aksi'])&&$_REQUEST['aksi']=="simpan"){
-$sss= str_replace("'","\'",$_REQUEST['tanyasoal']);
-	$sql0 = mysql_query("update cbt_soal set XTanya = '$sss' where XKodeSoal = '$_REQUEST[soal]' and Urut = '$_REQUEST[nom]'");
+$sss = isset($_REQUEST['tanyasoal']) ? $_REQUEST['tanyasoal'] : '';
+$nom = isset($_REQUEST['nom']) ? $_REQUEST['nom'] : '';
+	db_query($db, "update cbt_soal set XTanya = ? where XKodeSoal = ? and Urut = ?", array($sss, $soalKode, $nom));
 	//echo "update cbt_soal set XTanya = '$sss' where XKodeSoal = '$_REQUEST[txt_soal]' and Urut = '$_REQUEST[txt_nom]'";
 }
 ?>	
@@ -100,10 +118,8 @@ $(document).ready(function(){
 
  var ed = tinyMCE.get('tanyasoal');
 
-<?php	
-$sqltanya = mysql_query("select * from cbt_paketsoal where XKodeSoal= '$_REQUEST[soal]'");
-$so=mysql_fetch_array($sqltanya);
-$jumso = $so['XJumPilihan'];
+<?php
+$jumso = isset($so['XJumPilihan']) ? (int) $so['XJumPilihan'] : 0;
 ?>
 var a = tinymce.get('tanyasoal').getContent();
 var b1 = tinymce.get('jawab1').getContent();
@@ -191,21 +207,16 @@ $jnoc(document).ready(function(e) {
 <body>
 
 <form  method="post"> 
-<?php	
-$sqltanya = mysql_query("select * from cbt_paketsoal where XKodeSoal= '$_REQUEST[soal]'");
-	$so=mysql_fetch_array($sqltanya); ?>
+<?php	?>
 
 <div class="panel panel-info">
 	<div class="panel-heading">
     Data Bank Soal (4 Opsi Pilihan Jawaban) &nbsp; &nbsp; | &nbsp; &nbsp; 
-	<?php echo "<a href=?modul=edit_soal&jum=$_REQUEST[jum]&soal=$_REQUEST[soal]><button type='button' class='btn btn-info'><i class='fa fa-arrow-left'></i> Kembali ke Bank Soal</button></a>"; ?>	
+	<?php echo "<a href=?modul=edit_soal&jum={$_REQUEST['jum']}&soal={$_REQUEST['soal']}><button type='button' class='btn btn-info'><i class='fa fa-arrow-left'></i> Kembali ke Bank Soal</button></a>"; ?>	
           
 
     </div>
-<?php
-	$sql0 = mysql_query("select * from cbt_soal where XKodeSoal= '$_REQUEST[soal]' and Urut = '$_REQUEST[nomer]'");
-	$s=mysql_fetch_array($sql0);
-?>	
+<?php ?>
 <div class="panel-body">
 <table width="100%" border="0" align="center" cellpadding="0" cellspacing="0">
 <tr><td colspan="2"  style="font-size:18px"><b> &nbsp;ID Soal <?php echo $_REQUEST['nomer']; ?></b></td>
@@ -248,7 +259,7 @@ $sqltanya = mysql_query("select * from cbt_paketsoal where XKodeSoal= '$_REQUEST
     <td colspan="3" align="right">
     <textarea name="tanyasoal"  id="tanyasoal" style="font-size:18px; width:100%; height:300px"><?php 
 
-	echo "$s[XTanya]"; ?></textarea>
+	echo "{$s['XTanya']}"; ?></textarea>
         <input type="hidden" id="map" name="map" value="<?php echo $s['XKodeMapel']; ?>" />
     
     </td>
@@ -364,9 +375,9 @@ $sqltanya = mysql_query("select * from cbt_paketsoal where XKodeSoal= '$_REQUEST
 </script>
 
 <?php 
-if($s['XAudioTanya']==""){$ico_audx="images/no_aud.png";$file_audx="";}else {$ico_audx="images/mp3.png";$file_audx="$s[XAudioTanya]";}
-if($s['XVideoTanya']==""){$ico_vidx="images/no_vid.png";$file_vidx="";}else {$ico_vidx="images/vid.png";$file_vidx="$s[XVideoTanya]";}
-if($s['XGambarTanya']==""){$ico_gbrx="images/no_pic.png";$file_gbrx="";}else {$ico_gbrx="../../pictures/$s[XGambarTanya]";$file_gbrx="$s[XGambarTanya]";}
+if($s['XAudioTanya']==""){$ico_audx="images/no_aud.png";$file_audx="";}else {$ico_audx="images/mp3.png";$file_audx="{$s['XAudioTanya']}";}
+if($s['XVideoTanya']==""){$ico_vidx="images/no_vid.png";$file_vidx="";}else {$ico_vidx="images/vid.png";$file_vidx="{$s['XVideoTanya']}";}
+if($s['XGambarTanya']==""){$ico_gbrx="images/no_pic.png";$file_gbrx="";}else {$ico_gbrx="../../pictures/{$s['XGambarTanya']}";$file_gbrx="{$s['XGambarTanya']}";}
 ?>
        <table cellpadding="10" width="70%" align="center" cellspacing="10">
          <tr height="40"><td align="center">Gambar Soal</td><td align="center">Audio Soal</td><td align="center">Video Soal</td></tr>
@@ -402,7 +413,7 @@ $jwb = "XJawab$i";
 $jawaban = "$s[$jwb]"; 
 $gjwb = "XGambarJawab$i";
 $gambarjawaban = "$s[$gjwb]"; 
-$kuncijwb = "$s[XKunciJawaban]"; 
+$kuncijwb = "{$s['XKunciJawaban']}"; 
 ?>
 <?php $var = $i +3 ; ?>
 <script type="text/javascript" >
@@ -477,8 +488,6 @@ else {
  </div>
 </td>
 <td align="right" colspan="2"><textarea name="tanya"  id="jawab<?php echo $i; ?>" style="font-size:18px; width:95%; height:150px"><?php 
-	$sql0 = mysql_query("select * from cbt_soal where XKodeSoal= '$_REQUEST[soal]' and Urut = '$_REQUEST[nomer]'");
-	$s=mysql_fetch_array($sql0);
 	echo "$jawaban"; ?></textarea></td>
   </tr>
 <tr><td colspan="4"><hr></td></tr>
@@ -497,12 +506,12 @@ else {
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Peserta Ujian : $s[XNomerUjian]"; ?></h4>
+                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Peserta Ujian : {$s['XNomerUjian']}"; ?></h4>
                                         </div>
                                         <div class="modal-body" style="text-align:center">
                                         
                                                <?php 
-												if(file_exists("../../fotosiswa/$s[XFoto]")&&!$gbr==''){ ?>
+												if(file_exists("../../fotosiswa/{$s['XFoto']}")&&!$gbr==''){ ?>
                                                 <img src="../../fotosiswa/<?php echo $s['XFoto']; ?>" width="400px">
                                                 <?php 
 												} else {

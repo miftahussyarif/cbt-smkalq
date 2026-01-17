@@ -225,15 +225,18 @@ img {
 <body class="font-medium">
 
     <?php
-    include "config/server.php";
-    $sql = mysql_query("select * from cbt_admin");
-    $r = mysql_fetch_array($sql);
+    require_once __DIR__ . "/config/server.php";
+    $sql = db_query($db, "SELECT * FROM cbt_admin LIMIT 1", array());
+    $r = db_fetch_one($sql);
+    if (!$r) {
+        $r = array('XWarna' => '', 'XBanner' => '');
+    }
     ?>
 
-    <header style="background-color:<?php echo "$r[XWarna]"; ?>">
+    <header style="background-color:<?php echo "{$r['XWarna']}"; ?>">
         <div class="group">
-            <div class="left" style="background-color:<?php echo "$r[XWarna]"; ?>"><a href=" "><img
-                        src="images/<?php echo "$r[XBanner]"; ?>" style=" margin-left:0px;"></a>
+            <div class="left" style="background-color:<?php echo "{$r['XWarna']}"; ?>"><a href=" "><img
+                        src="images/<?php echo "{$r['XBanner']}"; ?>" style=" margin-left:0px;"></a>
             </div>
             <div class="right">
                 <table width="100%" border="0" style="margin-top:10px">

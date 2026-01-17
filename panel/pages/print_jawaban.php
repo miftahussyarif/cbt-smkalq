@@ -52,21 +52,21 @@ FROM cbt_siswa s
 LEFT JOIN `cbt_siswa_ujian` u ON u.XNomerUjian = s.XNomerUjian
 LEFT JOIN cbt_ujian c ON (u.XKodeSoal = c.XKodeSoal and u.XTokenUjian = c.XTokenUjian)
 LEFT JOIN cbt_paketsoal p ON (u.XKodeSoal = c.XKodeSoal and u.XTokenUjian = c.XTokenUjian)
-WHERE c.XKodeSoal = '$_REQUEST[soal]' and p.XKodeSoal = '$_REQUEST[soal]' and u.XNomerUjian = '$_REQUEST[siswa]'");
+WHERE c.XKodeSoal = '{$_REQUEST['soal']}' and p.XKodeSoal = '{$_REQUEST['soal']}' and u.XNomerUjian = '{$_REQUEST['siswa']}'");
 $baris = 4;
 $no = 0;	
 while($p = mysql_fetch_array($hasil)){
-	$var_token = "$p[XTokenUjian]";
-	$var_soal = "$p[XKodeSoal]";
-	$var_mapel = "$p[XKodeMapel]";	
-	$var_jumsoal = "$p[XJumSoal]";
-	$var_pil = "$p[XPilGanda]";	
-	$var_esai = "$p[XEsai]";	
-	$per_pil = "$p[XPersenPil]";	
-	$per_esai = "$p[XPersenEsai]";	
-	$tglujian = "$p[XTglUjian]";		
+	$var_token = "{$p['XTokenUjian']}";
+	$var_soal = "{$p['XKodeSoal']}";
+	$var_mapel = "{$p['XKodeMapel']}";	
+	$var_jumsoal = "{$p['XJumSoal']}";
+	$var_pil = "{$p['XPilGanda']}";	
+	$var_esai = "{$p['XEsai']}";	
+	$per_pil = "{$p['XPersenPil']}";	
+	$per_esai = "{$p['XPersenEsai']}";	
+	$tglujian = "{$p['XTglUjian']}";		
 }		
-$var_siswa = "$_REQUEST[siswa]";
+$var_siswa = "{$_REQUEST['siswa']}";
 
 	$sqlujian = mysql_query("SELECT * FROM `cbt_jawaban` j left join cbt_soal s on s.XNomerSoal = j.XNomerSoal WHERE j.XKodeSoal = '$var_soal' and j.XUserJawab = '$var_siswa'
 	and XTokenUjian = '$var_token'");
@@ -81,7 +81,7 @@ $var_siswa = "$_REQUEST[siswa]";
 	$namsis = $s['XNamaSiswa'];
 	$namkel = $s['XKodeKelas'];
 	$namjur = $s['XKodeJurusan'];
-	$grup = "$s[XKodeKelas] - $s[XKodeJurusan]";
+	$grup = "{$s['XKodeKelas']} - {$s['XKodeJurusan']}";
 	$nomsis = $s['XNIK'];
 
 $no = $no +1;
@@ -93,7 +93,7 @@ $o = mysql_fetch_array($sqljumlah);
 
 $nilai_esai = $o['hasil'];
 
-$sqljawaban = mysql_query("SELECT count( XNilai ) AS HasilUjian FROM `cbt_jawaban` WHERE XKodeSoal = '$var_soal' and XUserJawab = '$_REQUEST[siswa]' and XNilai = '1' and XTokenUjian = '$var_token'");
+$sqljawaban = mysql_query("SELECT count( XNilai ) AS HasilUjian FROM `cbt_jawaban` WHERE XKodeSoal = '$var_soal' and XUserJawab = '{$_REQUEST['siswa']}' and XNilai = '1' and XTokenUjian = '$var_token'");
 	$sqj = mysql_fetch_array($sqljawaban);
 	$jumbenar = $sqj['HasilUjian'];
 	$hasil_pil = $jumbenar;	
@@ -102,7 +102,7 @@ $sqljawaban = mysql_query("SELECT count( XNilai ) AS HasilUjian FROM `cbt_jawaba
 	$total_pil = $nilai_pil;	
 	$tot_pil = number_format($total_pil,2,',','.');	
 
-$sqljawaban = mysql_query("SELECT sum( XNilaiEsai ) AS HasilEsai FROM `cbt_jawaban` WHERE XKodeSoal = '$var_soal' and XUserJawab = '$_REQUEST[siswa]' and XJenisSoal = '2' and XTokenUjian = '$var_token'");
+$sqljawaban = mysql_query("SELECT sum( XNilaiEsai ) AS HasilEsai FROM `cbt_jawaban` WHERE XKodeSoal = '$var_soal' and XUserJawab = '{$_REQUEST['siswa']}' and XJenisSoal = '2' and XTokenUjian = '$var_token'");
 	$sqj = mysql_fetch_array($sqljawaban);
 	if($var_esai<1){$total_esai = 0; $hasil_esai = 0; $nilai_esai = 0;} else {
 	$hasil_esai = $sqj['HasilEsai'];
@@ -126,9 +126,9 @@ $sqljawaban = mysql_query("SELECT sum( XNilaiEsai ) AS HasilEsai FROM `cbt_jawab
 */
 $hal = 1;
 if(isset($_REQUEST['soal'])){
-$var_soal = "$_REQUEST[soal]";}
+$var_soal = "{$_REQUEST['soal']}";}
 if(isset($_REQUEST['siswa'])){
-$var_siswa = "$_REQUEST[siswa]";
+$var_siswa = "{$_REQUEST['siswa']}";
 }
 
 $sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$var_soal'")); 
@@ -275,8 +275,8 @@ background: url(images/bsmart1.jpg) no-repeat center center fixed;
 //koneksi database
 include "../../config/server.php";
 
-$var_soal = "$_REQUEST[soal]";
-$var_siswa = "$_REQUEST[siswa]";
+$var_soal = "{$_REQUEST['soal']}";
+$var_siswa = "{$_REQUEST['siswa']}";
 
 $sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$var_soal'")); 
 $sqltampil = mysql_query("select * from cbt_ujian where XKodeSoal = '$var_soal'"); 
@@ -303,7 +303,7 @@ $jumpil = $r['XJumPilihan'];
 		$audiofile = $r['XAudioTanya']; 
 		$vidfile = $r['XVideoTanya']; 
 		
-		echo "<table width=100% border=0><tr><td width=50px>$nomer.</td><td colspan=2>$r[XTanya] </td></tr>
+		echo "<table width=100% border=0><tr><td width=50px>$nomer.</td><td colspan=2>{$r['XTanya']} </td></tr>
 		<tr><td width=50px colspan=3>&nbsp;</td></tr>
 		";
 		
@@ -319,7 +319,7 @@ $jumpil = $r['XJumPilihan'];
 		
 		echo "
 		</p><p><tr><td width=50px colspan=3>&nbsp; </td></tr>
-		<tr><td colspan=3><img src=../../pictures/$r[XGambarTanya] width=200px></td></tr>";}
+		<tr><td colspan=3><img src=../../pictures/{$r['XGambarTanya']} width=200px></td></tr>";}
 		
 		echo "</p><p><tr><td width=50px colspan=3>&nbsp;</td></tr>";
 		
@@ -329,7 +329,7 @@ $jumpil = $r['XJumPilihan'];
 	$FileGbr = "XGambarJawab$PilA";	
 	if($r[$FileGbr]==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='../../pictures/$r[$FileGbr]' width=80px>"; $lebar = "width=90px";}	
 	echo "<tr><td width=50px align=center> A. </td>"; 
-	$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '$r[XNomerSoal]'");
+	$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '{$r['XNomerSoal']}'");
 	$jwb = mysql_fetch_array($sqlpil);
 	$jawab = $jwb['pilsoal'];
 	echo "<td $lebar>$GbrJwb</td><td>$jawab</td></tr>";
@@ -340,7 +340,7 @@ $jumpil = $r['XJumPilihan'];
 	$FileGbr = "XGambarJawab$PilB";	
 	if($r[$FileGbr]==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='../../pictures/$r[$FileGbr]' width=80px>"; $lebar = "width=90px";}	
 	echo "<tr><td width=50px align=center> B. </td>"; 
-	$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '$r[XNomerSoal]'");
+	$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '{$r['XNomerSoal']}'");
 	$jwb = mysql_fetch_array($sqlpil);
 	$jawab = $jwb['pilsoal'];
 	echo "<td  $lebar>$GbrJwb</td><td>$jawab</td></tr>";	
@@ -351,7 +351,7 @@ $jumpil = $r['XJumPilihan'];
 	$FileGbr = "XGambarJawab$PilC";	
 	if($r[$FileGbr]==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='../../pictures/$r[$FileGbr]' width=80px>"; $lebar = "width=90px";}	
 	echo "<tr><td width=50px align=center> C. </td>"; 
-		$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '$r[XNomerSoal]'");
+		$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '{$r['XNomerSoal']}'");
 		$jwb = mysql_fetch_array($sqlpil);
 		$jawab = $jwb['pilsoal'];
 	echo "<td $lebar>$GbrJwb</td><td>$jawab</td></tr>";	
@@ -363,7 +363,7 @@ $jumpil = $r['XJumPilihan'];
 	$FileGbr = "XGambarJawab$PilD";	
 	if($r[$FileGbr]==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='../../pictures/$r[$FileGbr]' width=80px>"; $lebar = "width=90px";}	
 	echo "<tr><td width=50px align=center> D. </td>"; 
-		$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '$r[XNomerSoal]'");
+		$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '{$r['XNomerSoal']}'");
 		$jwb = mysql_fetch_array($sqlpil);
 		$jawab = $jwb['pilsoal'];
 	echo "<td $lebar>$GbrJwb</td><td>$jawab</td></tr>";
@@ -375,7 +375,7 @@ $jumpil = $r['XJumPilihan'];
 	$FileGbr = "XGambarJawab$PilE";	
 	if($r[$FileGbr]==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='../../pictures/$r[$FileGbr]' width=80px>"; $lebar = "width=90px";}	
 	echo "<tr><td width=50px align=center> E. </td>"; 
-		$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '$r[XNomerSoal]'");
+		$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '{$r['XNomerSoal']}'");
 		$jwb = mysql_fetch_array($sqlpil);
 		$jawab = $jwb['pilsoal'];
 	echo "<td>$GbrJwb</td><td>$jawab</td></tr>";
@@ -390,7 +390,7 @@ $jumpil = $r['XJumPilihan'];
 	else{$jwbsiswa = "S";}
 	
 	if($jwbsiswa==$r['XJawaban']){$ikon = "images/benar.gif"; $betul++;}else{$ikon = "images/salah.gif";}
-echo "<tr><td colspan=3><br>Kunci Jawaban : $jwbsiswa, Jawaban Siswa : $r[XJawaban]&nbsp; &nbsp;  <img src=$ikon width=30px></td></tr>";	
+echo "<tr><td colspan=3><br>Kunci Jawaban : $jwbsiswa, Jawaban Siswa : {$r['XJawaban']}&nbsp; &nbsp;  <img src=$ikon width=30px></td></tr>";	
 echo "<tr><td colspan=3><hr></td></tr>";
 		
 		$nomer++;
@@ -408,8 +408,8 @@ $namjur = $s['XKodeJurusan'];
 ?>
 </div>
 <?php
-$var_soal = "$_REQUEST[soal]";
-$var_siswa = "$_REQUEST[siswa]";
+$var_soal = "{$_REQUEST['soal']}";
+$var_siswa = "{$_REQUEST['siswa']}";
 
 //Soal Pilihan Ganda
 $sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$var_soal' and XJenisSoal = '2'")); 
@@ -466,7 +466,7 @@ $jumpil = $r['XJumPilihan'];
 $nosoal = $r['XNomerSoal'];
 $nil = $r['XNilaiEsai'];
 
-echo "<tr><td width=50px>$nomer.</td><td>$r[XTanya] </td></tr>
+echo "<tr><td width=50px>$nomer.</td><td>{$r['XTanya']} </td></tr>
 <tr><td width=50px colspan=2>&nbsp;</td></tr>
 ";
 
@@ -476,7 +476,7 @@ echo "<tr><td width=50px>$nomer.</td><td>$r[XTanya] </td></tr>
 if(str_replace("  ","",$r['XGambarTanya']!=="")){
 echo "
 <tr><td width=30px colspan=2>&nbsp; </td></tr>
-<tr><td colspan=2><img src=../../pictures/$r[XGambarTanya] width=150px></td></tr>";}
+<tr><td colspan=2><img src=../../pictures/{$r['XGambarTanya']} width=150px></td></tr>";}
 echo "<tr><td width=50px colspan=2>&nbsp;</td></tr>";
 
 $jawab = $r['XJawabanEsai'];

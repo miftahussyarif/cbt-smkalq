@@ -77,7 +77,7 @@ if (isset($_REQUEST['modul'])) {
                         </tr>
                     </table>
                 </form>
-                <div style="margin-top:10px;">Persentase Proses Upload <? echo $kata; ?> </div>
+                <div style="margin-top:10px;">Persentase Proses Upload <?php echo $kata; ?> </div>
                 <!-- Progress bar holder -->
                 <div id="progress" style="width:75%; border:1px solid #ccc; padding:5px; margin-top:10px; height:33px">
                 </div>
@@ -90,13 +90,13 @@ if (isset($_REQUEST['modul'])) {
                     // menggunakan class phpExcelReader
                     include "excel_reader2.php";
                     if (isset($xkodemapel)) {
-                        $xkodemapel = "$_REQUEST[txt_mapel]";
+                        $xkodemapel = "{$_REQUEST['txt_mapel']}";
                     }
                     if (isset($xkodesoal)) {
-                        $xkodesoal = "$_REQUEST[txt_ujian]";
+                        $xkodesoal = "{$_REQUEST['txt_ujian']}";
                     }
                     if (isset($xkodekelas)) {
-                        $xkodekelas = "$_REQUEST[txt_level]";
+                        $xkodekelas = "{$_REQUEST['txt_level']}";
                     }
                     // Cek apakah file berhasil diupload
                     if (!isset($_FILES['userfile']) || $_FILES['userfile']['error'] != 0 || !is_readable($_FILES['userfile']['tmp_name'])) {
@@ -162,7 +162,7 @@ if (isset($_REQUEST['modul'])) {
                                     // setelah data dibaca, sisipkan ke dalam tabel mhs
                                     $query = "INSERT INTO cbt_siswa (XNomerUjian, XNIK,XSesi,XRuang, XNamaSiswa,XKodeKelas, XJenisKelamin, XPassword, XKodeJurusan,
 		  XKodeLevel, XFoto,XAgama,XSetId,XKodeSekolah,XPilihan) 
-		  VALUES ('$xnomer', '$xnik','$xsesi', '$xruang', '$xnama','$xkelas','$xjekel','$xpass','$xjur','$xlevel','$xfoto','$xagama','$_COOKIE[beetahun]','$hk[XKodeSekolah]','$xpilih')";
+		  VALUES ('$xnomer', '$xnik','$xsesi', '$xruang', '$xnama','$xkelas','$xjekel','$xpass','$xjur','$xlevel','$xfoto','$xagama','{$_COOKIE['beetahun']}','{$hk['XKodeSekolah']}','$xpilih')";
                                     $hasil = mysql_query($query);
                                     $sukses++;
 

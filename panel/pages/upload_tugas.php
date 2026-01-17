@@ -107,7 +107,7 @@ for ($i=2; $i<=$baris; $i++)
  $xlevel = mysql_real_escape_string($xlevel);
  $xkelas = mysql_real_escape_string($xkelas);
 		  // setelah data dibaca, sisipkan ke dalam tabel cbt_kelas
-		  $query = "INSERT INTO cbt_tugas ( XNIK, XKodeMapel, XKodeKelas, XKodeJurusan, XSemester, XSetId, XNilaiTugas) VALUES ( '$xnik','$xmapel','$xkelas','$xjur','$xsem','$_COOKIE[beetahun]','$xtugas' )";
+		  $query = "INSERT INTO cbt_tugas ( XNIK, XKodeMapel, XKodeKelas, XKodeJurusan, XSemester, XSetId, XNilaiTugas) VALUES ( '$xnik','$xmapel','$xkelas','$xjur','$xsem','{$_COOKIE['beetahun']}','$xtugas' )";
 		  $hasil = mysql_query($query);
   if ($hasil) $sukses++;
   else $gagal++;

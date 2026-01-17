@@ -1,14 +1,14 @@
 <?php
-include "../../config/server.php";
-$id=$_POST['txt_mapel'];
-$sql = mysql_query("select * from cbt_soal where Urut='$id'");
-$s = mysql_fetch_array($sql);
+require_once __DIR__ . "/../../config/server.php";
+$id = isset($_POST['txt_mapel']) ? $_POST['txt_mapel'] : '';
+$sql = db_query($db, "select XKodeSoal from cbt_soal where Urut = ?", array($id));
+$s = db_fetch_one($sql);
+$soal = $s ? $s['XKodeSoal'] : '';
 
+if ($soal !== '') {
+	db_query($db, "delete from cbt_soal where XKodeSoal = ?", array($soal));
+}
 
-$sql1 = "delete from cbt_soal where XKodeSoal = '$soal'";
-mysql_query( $sql1);
-
-$sql2 = "delete from cbt_paketsoal where Urut='$id'";
-mysql_query( $sql2);
+db_query($db, "delete from cbt_paketsoal where Urut = ?", array($id));
 
 ?>

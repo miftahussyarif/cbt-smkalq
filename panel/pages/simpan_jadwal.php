@@ -68,18 +68,18 @@ $telatujian = "$tjam:$tmnt:$tdtk";
 //=========================
 // Ambil Paket Soal
 //=========================
-$loop = mysql_query("select * from cbt_paketsoal where XStatusSoal ='Y' and XKodeSoal = '$_REQUEST[txt_kodesoal]'");
+$loop = mysql_query("select * from cbt_paketsoal where XStatusSoal ='Y' and XKodeSoal = '{$_REQUEST['txt_kodesoal']}'");
 while($s = mysql_fetch_array($loop)){
 $val_jumsoal = $s['XJumSoal'];
 $val_pilganda = $s['XPilGanda'];
 $val_esai = $s['XEsai'];
 
-	$sqlubah = mysql_num_rows(mysql_query("select * from cbt_ujian where XKodeSoal = '$_REQUEST[txt_kodesoal]' and  XKodeUjian = '$_REQUEST[txt_ujian]' and XSemester = '$_REQUEST[txt_semester]' and XKodeKelas = '$s[XKodeKelas]' and XKodeJurusan = '$s[XKodeJurusan]' and XKodeMapel = '$s[XKodeMapel]' and XSetId = '$_COOKIE[beetahun]' "));
+	$sqlubah = mysql_num_rows(mysql_query("select * from cbt_ujian where XKodeSoal = '{$_REQUEST['txt_kodesoal']}' and  XKodeUjian = '{$_REQUEST['txt_ujian']}' and XSemester = '{$_REQUEST['txt_semester']}' and XKodeKelas = '{$s['XKodeKelas']}' and XKodeJurusan = '{$s['XKodeJurusan']}' and XKodeMapel = '{$s['XKodeMapel']}' and XSetId = '{$_COOKIE['beetahun']}' "));
 
-	$cekNilai = mysql_num_rows(mysql_query("select 1 from cbt_nilai where XKodeKelas = '$s[XKodeKelas]' and XKodeMapel = '$s[XKodeMapel]' and XKodeUjian = '$_REQUEST[txt_ujian]' and XSemester = '$_REQUEST[txt_semester]' and XSetId = '$_COOKIE[beetahun]' limit 1"));
+	$cekNilai = mysql_num_rows(mysql_query("select 1 from cbt_nilai where XKodeKelas = '{$s['XKodeKelas']}' and XKodeMapel = '{$s['XKodeMapel']}' and XKodeUjian = '{$_REQUEST['txt_ujian']}' and XSemester = '{$_REQUEST['txt_semester']}' and XSetId = '{$_COOKIE['beetahun']}' limit 1"));
 	if($cekNilai>0){
 		echo "<div class='alert alert-danger alert-dismissable' id='ndelik'>
-		Data hasil ujian lama untuk Mapel <b>$s[XKodeMapel]</b> Kelas <b>$s[XKodeKelas]</b> Jenis Ujian <b>$_REQUEST[txt_ujian]</b> masih ada. 
+		Data hasil ujian lama untuk Mapel <b>{$s['XKodeMapel']}</b> Kelas <b>{$s['XKodeKelas']}</b> Jenis Ujian <b>{$_REQUEST['txt_ujian']}</b> masih ada. 
 		Hapus dulu melalui menu <b>Status Tes</b> (tab Selesai) dengan tombol <b>Hapus Data</b>.</div>";
 		continue;
 	}
@@ -95,7 +95,7 @@ $val_esai = $s['XEsai'];
 // Ambil Bank Soal
 //=========================
 
-$jumsoal = mysql_num_rows(mysql_query("select * from cbt_soal where  XKodeSoal = '$_REQUEST[txt_kodesoal]'"));
+$jumsoal = mysql_num_rows(mysql_query("select * from cbt_soal where  XKodeSoal = '{$_REQUEST['txt_kodesoal']}'"));
 $val_banksoal =  "$jumsoal"; 
 
 
@@ -109,26 +109,26 @@ else {$ambilsoal = $val_jumsoal;}
 $sqls = mysql_query("select u.*,m.*,u.Urut as Urutan,u.XKodeKelas as kokel from cbt_ujian u left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel 
 left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal where u.XStatusUjian='1'");
 								while($ss = mysql_fetch_array($sqls)){ 
-$time1 = "$ss[XJamUjian]";
-$time2 = "$ss[XLamaUjian]";
+$time1 = "{$ss['XJamUjian']}";
+$time2 = "{$ss['XLamaUjian']}";
 
 $secs = strtotime($time2)-strtotime("00:00:00");
 $jamhabis = date("H:i:s",strtotime($time1)+$secs);	
 $sekarang = date("H:i:s");	
 $tglsekarang = date("Y-m-d");	
-$tglujian = "$ss[XTglUjian]";	
+$tglujian = "{$ss['XTglUjian']}";	
 		}
 	
-$sqlcek = mysql_num_rows(mysql_query("select * from cbt_ujian where XTokenUjian = '$_REQUEST[txt_token]'"));
+$sqlcek = mysql_num_rows(mysql_query("select * from cbt_ujian where XTokenUjian = '{$_REQUEST['txt_token']}'"));
 	if($sqlcek>0){echo "<div class='alert alert-danger alert-dismissable' id='ndelik'>Simpan Data Gagal Token Sudah ada.</div>     ";
 	} else {
 				$sqlinsert = mysql_query("insert into cbt_ujian 						  
 				(XKodeKelas,XKodeUjian,XSemester,XKodeJurusan,XJumPilihan,XAcakSoal,XKodeMapel,
 				 XTokenUjian,XTglUjian,XJamUjian,XLamaUjian,XBatasMasuk,XJumSoal
 				,XKodeSoal,XStatusUjian,XGuru,XSetId,XSesi,XPilGanda,XEsai,XLambat) values 		
-				('$s[XKodeKelas]','$_REQUEST[txt_ujian]','$_REQUEST[txt_semester]','$s[XKodeJurusan]','$s[XJumPilihan]',
-				'$s[XAcakSoal]','$s[XKodeMapel]','$_REQUEST[txt_token]','$tgl','$jam','$jame','$telatujian','$ambilsoal',
-				'$s[XKodeSoal]','1','$s[XGuru]','$_COOKIE[beetahun]','$_REQUEST[txt_sesi]','$val_pilganda','$val_esai','$xlambat')");
+				('{$s['XKodeKelas']}','{$_REQUEST['txt_ujian']}','{$_REQUEST['txt_semester']}','{$s['XKodeJurusan']}','{$s['XJumPilihan']}',
+				'{$s['XAcakSoal']}','{$s['XKodeMapel']}','{$_REQUEST['txt_token']}','$tgl','$jam','$jame','$telatujian','$ambilsoal',
+				'{$s['XKodeSoal']}','1','{$s['XGuru']}','{$_COOKIE['beetahun']}','{$_REQUEST['txt_sesi']}','$val_pilganda','$val_esai','$xlambat')");
 				echo "<div class='alert alert-success alert-dismissable' id='ndelik'>
                                 Simpan Data Sukses. 
                             </div>     ";

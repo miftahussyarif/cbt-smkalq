@@ -56,7 +56,7 @@ $jamx = date("H:i:s");
 <script src="date/jquery.js"></script>
 <script src="jquery.datetimepicker.full.js"></script>
 <?php
-$sql = mysql_query("select p.*,m.*,p.Urut as Urutan,p.XKodeKelas  as kokel from cbt_paketsoal p left join cbt_mapel m on m.XKodeMapel = p.XKodeMapel where p.XStatusSoal='Y' and p.Urut = '$_REQUEST[idtes]'");
+$sql = mysql_query("select p.*,m.*,p.Urut as Urutan,p.XKodeKelas  as kokel from cbt_paketsoal p left join cbt_mapel m on m.XKodeMapel = p.XKodeMapel where p.XStatusSoal='Y' and p.Urut = '{$_REQUEST['idtes']}'");
 $s = mysql_fetch_array($sql);
 ?>
 
@@ -180,7 +180,7 @@ function myFunction() {
                              <?php 
 							 $sqlkelas = mysql_query("select * from cbt_tes order by Urut");
 							 while($k = mysql_fetch_array($sqlkelas)){
-                             echo "<option value='$k[XKodeUjian]'>$k[XNamaUjian]</option>";
+                             echo "<option value='{$k['XKodeUjian']}'>{$k['XNamaUjian']}</option>";
 							 }
 							 ?>
                              </select>
@@ -201,7 +201,7 @@ function myFunction() {
                              <?php 
 							 $sqlsesi = mysql_query("select * from cbt_siswa group by XSesi");
 							 while($sk = mysql_fetch_array($sqlsesi)){
-                             echo "<option value='$sk[XSesi]'>$sk[XSesi]</option>";
+                             echo "<option value='{$sk['XSesi']}'>{$sk['XSesi']}</option>";
 							 }
 							 ?>
                              </select>

@@ -113,18 +113,18 @@ $(document).ready(function(){
 								p.XKodeMapel order by p.Urut desc");
 								} else {
 								$sql = mysql_query("select p.*,m.*,p.Urut as Urutan,p.XKodeKelas  as kokel from cbt_paketsoal p left join cbt_mapel m on m.XKodeMapel = 
-								p.XKodeMapel where p.XGuru='$_COOKIE[beeuser]' order by p.Urut desc");								
+								p.XKodeMapel where p.XGuru='{$_COOKIE['beeuser']}' order by p.Urut desc");								
 								}
 								while($s = mysql_fetch_array($sql)){ 
-					$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$s[XKodeSoal]'"));
-					$sqljawab = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$s[XKodeSoal]'"));
+					$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '{$s['XKodeSoal']}'"));
+					$sqljawab = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '{$s['XKodeSoal']}'"));
 										
-					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_nilai where XKodeSoal = '$s[XKodeSoal]'"));
-					$sqlpakai2 = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$s[XKodeSoal]' and XStatusUjian = '1'"));
-					if($sqlsoal<1){$kata="disabled";$alink="";}  else {$kata=""; $alink = "rekapexcel.php?soal=$s[XKodeSoal]&mapel=$s[XKodeMapel]&kelas=$s[XKodeKelas]";}	
-					if($sqlpakai2>0){$katapakai="disabled";$alink="";}  else {$katapakai="";$alink = "rekapexcel.php?soal=$s[XKodeSoal]&mapel=$s[XKodeMapel]&kelas=$s[XKodeKelas]";}
-					if($sqljawab<1){$katapakai="disabled";$alink="";}  else {$katapakai="";$alink = "rekapexcel.php?soal=$s[XKodeSoal]&mapel=$s[XKodeMapel]&kelas=$s[XKodeKelas]";}
-					if($sqlpakai2>0){$katapakai2="disabled";$alink2="";}  else {$katapakai2="";$alink2 = "?modul=analisajawaban&soal=$s[XKodeSoal]&kelas=$s[XKodeKelas]";}								
+					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_nilai where XKodeSoal = '{$s['XKodeSoal']}'"));
+					$sqlpakai2 = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '{$s['XKodeSoal']}' and XStatusUjian = '1'"));
+					if($sqlsoal<1){$kata="disabled";$alink="";}  else {$kata=""; $alink = "rekapexcel.php?soal={$s['XKodeSoal']}&mapel={$s['XKodeMapel']}&kelas={$s['XKodeKelas']}";}	
+					if($sqlpakai2>0){$katapakai="disabled";$alink="";}  else {$katapakai="";$alink = "rekapexcel.php?soal={$s['XKodeSoal']}&mapel={$s['XKodeMapel']}&kelas={$s['XKodeKelas']}";}
+					if($sqljawab<1){$katapakai="disabled";$alink="";}  else {$katapakai="";$alink = "rekapexcel.php?soal={$s['XKodeSoal']}&mapel={$s['XKodeMapel']}&kelas={$s['XKodeKelas']}";}
+					if($sqlpakai2>0){$katapakai2="disabled";$alink2="";}  else {$katapakai2="";$alink2 = "?modul=analisajawaban&soal={$s['XKodeSoal']}&kelas={$s['XKodeKelas']}";}								
 								?>
                                 
                                     <tr class="odd gradeX">
@@ -136,7 +136,7 @@ $(document).ready(function(){
                                         
                                         <td align="center">
                                         <?php // if($s['XAcakSoal']=="Y"){ echo "Acak";} else {echo "Tidak";} ?>                                        
-										<?php echo "$s[XGuru]"; ?>
+										<?php echo "{$s['XGuru']}"; ?>
                                         </td>
                                         <td></td>                                         
 										<td align="center"><a href=<?php echo $alink; ?> target="_blank">
@@ -158,12 +158,12 @@ $(document).ready(function(){
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Peserta Ujian : $s[XNomerUjian]"; ?></h4>
+                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Peserta Ujian : {$s['XNomerUjian']}"; ?></h4>
                                         </div>
                                         <div class="modal-body" style="text-align:center">
                                         
                                                <?php 
-												if(file_exists("../../fotosiswa/$s[XFoto]")&&!$gbr==''){ ?>
+												if(file_exists("../../fotosiswa/{$s['XFoto']}")&&!$gbr==''){ ?>
                                                 <img src="../../fotosiswa/<?php echo $s['XFoto']; ?>" width="400px">
                                                 <?php 
 												} else {

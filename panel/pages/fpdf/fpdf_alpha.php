@@ -39,8 +39,11 @@ function Image($file, $x, $y, $w=0, $h=0, $type='', $link='',  $isMask=false,  $
             $type=substr($file, $pos+1);
         }
         $type=strtolower($type);
-        $mqr=get_magic_quotes_runtime();
-        set_magic_quotes_runtime(0);
+        $mqr = 0;
+        if(function_exists('get_magic_quotes_runtime'))
+            $mqr = get_magic_quotes_runtime();
+        if(function_exists('set_magic_quotes_runtime'))
+            set_magic_quotes_runtime(0);
         if($type=='jpg' || $type=='jpeg')
             $info=$this->_parsejpg($file);
         elseif($type=='png'){
@@ -55,7 +58,8 @@ function Image($file, $x, $y, $w=0, $h=0, $type='', $link='',  $isMask=false,  $
                 $this->Error('Unsupported image type: '.$type);
             $info=$this->$mtd($file);
         }
-        set_magic_quotes_runtime($mqr);
+        if(function_exists('set_magic_quotes_runtime'))
+            set_magic_quotes_runtime($mqr);
         
         if ($isMask){
       $info['cs']="DeviceGray"; // try to force grayscale (instead of indexed)
@@ -153,7 +157,7 @@ function _putimages()
 {
     $filter=($this->compress) ? '/Filter /FlateDecode ' : '';
     reset($this->images);
-    while(list($file, $info)=each($this->images))
+    foreach($this->images as $file => $info)
     {
         $this->_newobj();
         $this->images[$file]['n']=$this->n;

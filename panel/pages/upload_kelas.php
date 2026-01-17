@@ -59,7 +59,7 @@ if(isset($_REQUEST['modul'])){
                         &nbsp;<input name="upload" type="submit" value="Import"  class="btn btn-info" style="margin-top:0px">
                         </td></tr></table>
                         </form>
-                        <div style="margin-top:10px;">Persentase Proses Upload <? echo $kata; ?> </div>
+                        <div style="margin-top:10px;">Persentase Proses Upload <?php echo $kata; ?> </div>
 <!-- Progress bar holder -->
 <div id="progress" style="width:75%; border:1px solid #ccc; padding:5px; margin-top:10px; height:33px"></div>
 <!-- Progress information -->

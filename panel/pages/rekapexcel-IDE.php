@@ -6,7 +6,7 @@ include "../../config/server.php";
 //echo "SELECT * from cbt_ujian WHERE XKodeSoal = '$_REQUEST[soal]'";
 
 				
-$sqlujian = mysql_query("SELECT * from cbt_ujian WHERE XKodeSoal = '$_REQUEST[soal]'");
+$sqlujian = mysql_query("SELECT * from cbt_ujian WHERE XKodeSoal = '{$_REQUEST['soal']}'");
 while($t = mysql_fetch_array($sqlujian)){
 
 $txt_kelas = $t['XKodeKelas'];
@@ -89,7 +89,7 @@ $sqldijawab = mysql_num_rows(mysql_query("SELECT * FROM `cbt_jawaban` WHERE XKod
 
 
 echo "<tr>
-<td>$p[XNomerUjian]</td><td>$p[XNamaSiswa]</td><td>$p[XKodeKelas]</td><td>$p[XKodeJurusan]</td>
+<td>{$p['XNomerUjian']}</td><td>{$p['XNamaSiswa']}</td><td>{$p['XKodeKelas']}</td><td>{$p['XKodeJurusan']}</td>
 <td>$sqldijawab</td><td>$jumbenar</td><td>$nilai_pil</td><td>$nilai_esai</td><td>$total_pil</td><td>$total_esai</td>
 <td>$total_nilai</td><td>$tokenujian</td>
 </tr>";

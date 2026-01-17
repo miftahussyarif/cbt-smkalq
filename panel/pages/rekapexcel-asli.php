@@ -135,18 +135,18 @@ LEFT JOIN `cbt_siswa_ujian` u ON u.XNomerUjian = s.XNomerUjian
 LEFT JOIN cbt_ujian c ON (u.XKodeSoal = c.XKodeSoal and u.XTokenUjian = c.XTokenUjian)
 LEFT JOIN cbt_nilai n ON (n.XKodeSoal = c.XKodeSoal and n.XTokenUjian = c.XTokenUjian 
 and n.XNIK = s.XNIK)
-WHERE c.XKodeSoal = '$_REQUEST[soal]'");
+WHERE c.XKodeSoal = '{$_REQUEST['soal']}'");
 
 
 $baris = 4;
 $no = 1;	
 while($p = mysql_fetch_array($hasil)){
-    $var_siswa = "$p[NU]";
-	$var_token = "$p[tokek]";
-	$var_soal = "$p[Koso]";
-	$var_mapel = "$p[Kopel]";	
-	$var_jumsoal = "$p[XJumSoal]";
-	$var_sesi = "$p[seksi]";	
+    $var_siswa = "{$p['NU']}";
+	$var_token = "{$p['tokek']}";
+	$var_soal = "{$p['Koso']}";
+	$var_mapel = "{$p['Kopel']}";	
+	$var_jumsoal = "{$p['XJumSoal']}";
+	$var_sesi = "{$p['seksi']}";	
 		
 	$sqlujian = mysql_query("SELECT * FROM `cbt_jawaban` j left join cbt_soal s on s.XNomerSoal = j.XNomerSoal WHERE j.XKodeSoal = '$var_soal' and j.XUserJawab = '$var_siswa'
 	and XTokenUjian = '$var_token'");
@@ -171,7 +171,7 @@ while($p = mysql_fetch_array($hasil)){
 	$namsis = $s['XNamaSiswa'];
 	$namkel = $s['XKodeKelas'];
 	$namjur = $s['XKodeJurusan'];
-	$grup = "$s[XKodeKelas] - $s[XKodeJurusan]";
+	$grup = "{$s['XKodeKelas']} - {$s['XKodeJurusan']}";
 	$nomsis = $s['XNIK'];
 
 $sqljumlah = mysql_query("select sum(XNilaiEsai) as hasil from cbt_jawaban where XKodeSoal = '$var_soal' and XUserJawab = '$var_siswa' and XTokenUjian = '$var_token'");

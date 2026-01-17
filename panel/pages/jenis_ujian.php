@@ -2,49 +2,49 @@
 if (!isset($_COOKIE['beeuser'])) {
     header("Location: login.php");
 }
-include "../../config/server.php";
+require_once __DIR__ . "/../../config/server.php";
 
 if (isset($_REQUEST['aksi']) && $_REQUEST['aksi'] == "hapus") {
-    $urut = mysql_real_escape_string($_REQUEST['urut']);
-    $cek = mysql_query("select XKodeUjian from cbt_tes where Urut = '$urut'");
-    if ($cek && mysql_num_rows($cek) > 0) {
-        $row = mysql_fetch_array($cek);
-        $kode = mysql_real_escape_string($row['XKodeUjian']);
-        $cekUjian = mysql_num_rows(mysql_query("select 1 from cbt_ujian where XKodeUjian = '$kode' limit 1"));
-        $cekNilai = mysql_num_rows(mysql_query("select 1 from cbt_nilai where XKodeUjian = '$kode' limit 1"));
-        if ($cekUjian > 0 || $cekNilai > 0) {
+    $urut = isset($_REQUEST['urut']) ? $_REQUEST['urut'] : '';
+    $cek = db_query($db, "select XKodeUjian from cbt_tes where Urut = ?", array($urut));
+    $row = db_fetch_one($cek);
+    if ($row) {
+        $kode = $row['XKodeUjian'];
+        $cekUjian = db_query($db, "select 1 from cbt_ujian where XKodeUjian = ? limit 1", array($kode));
+        $cekNilai = db_query($db, "select 1 from cbt_nilai where XKodeUjian = ? limit 1", array($kode));
+        if (db_fetch_one($cekUjian) || db_fetch_one($cekNilai)) {
             $message = "Jenis ujian masih digunakan. Hapus dibatalkan.";
             echo "<script type='text/javascript'>alert('$message');</script>";
         } else {
-            mysql_query("delete from cbt_tes where Urut = '$urut'");
+            db_query($db, "delete from cbt_tes where Urut = ?", array($urut));
         }
     }
 }
 
 if (isset($_REQUEST['simpan'])) {
-    $id = mysql_real_escape_string($_REQUEST['id']);
-    $nama = mysql_real_escape_string($_REQUEST['txt_nama']);
+    $id = isset($_REQUEST['id']) ? $_REQUEST['id'] : '';
+    $nama = isset($_REQUEST['txt_nama']) ? $_REQUEST['txt_nama'] : '';
     if ($nama == "") {
         $message = "Nama jenis ujian tidak boleh kosong.";
         echo "<script type='text/javascript'>alert('$message');</script>";
     } else {
-        mysql_query("update cbt_tes set XNamaUjian = '$nama' where Urut = '$id'");
+        db_query($db, "update cbt_tes set XNamaUjian = ? where Urut = ?", array($nama, $id));
     }
 }
 
 if (isset($_REQUEST['tambah'])) {
-    $kode = mysql_real_escape_string($_REQUEST['txt_kode']);
-    $nama = mysql_real_escape_string($_REQUEST['txt_nama']);
+    $kode = isset($_REQUEST['txt_kode']) ? $_REQUEST['txt_kode'] : '';
+    $nama = isset($_REQUEST['txt_nama']) ? $_REQUEST['txt_nama'] : '';
     if ($kode == "" || $nama == "") {
         $message = "Kode dan nama jenis ujian tidak boleh kosong.";
         echo "<script type='text/javascript'>alert('$message');</script>";
     } else {
-        $cek = mysql_num_rows(mysql_query("select 1 from cbt_tes where XKodeUjian = '$kode' limit 1"));
-        if ($cek > 0) {
+        $cek = db_query($db, "select 1 from cbt_tes where XKodeUjian = ? limit 1", array($kode));
+        if (db_fetch_one($cek)) {
             $message = "Kode jenis ujian sudah ada.";
             echo "<script type='text/javascript'>alert('$message');</script>";
         } else {
-            mysql_query("insert into cbt_tes (XKodeUjian, XNamaUjian) values ('$kode', '$nama')");
+            db_query($db, "insert into cbt_tes (XKodeUjian, XNamaUjian) values (?, ?)", array($kode, $nama));
         }
     }
 }
@@ -110,8 +110,8 @@ if (isset($_REQUEST['tambah'])) {
                         </thead>
                         <tbody>
                             <?php
-                            $sql = mysql_query("select * from cbt_tes order by Urut");
-                            while ($s = mysql_fetch_array($sql)) {
+                            $sql = db_query($db, "select * from cbt_tes order by Urut", array());
+                            while ($s = $sql->fetch()) {
                                 ?>
                                 <tr class="odd gradeX">
                                     <td><?php echo $s['Urut']; ?></td>

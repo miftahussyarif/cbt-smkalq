@@ -191,7 +191,7 @@ return false;
                                 <?php 
                                 $sqlkelas = mysql_query("select * from cbt_mapel order by XNamaMapel");
                                 while($sk = mysql_fetch_array($sqlkelas)){
-                                echo "<option value='$sk[XKodeMapel]'>$sk[XKodeMapel] $sk[XNamaMapel]</option>";
+                                echo "<option value='{$sk['XKodeMapel']}'>{$sk['XKodeMapel']} {$sk['XNamaMapel']}</option>";
                                 }
                                 ?>
                                 </select>
@@ -227,7 +227,7 @@ return false;
 							 $sqljur = mysql_query("select * from cbt_kelas group by XKodeJurusan");
 							 echo "<option value='ALL' selected>SEMUA</option>";
 							 while($j = mysql_fetch_array($sqljur)){
-                             echo "<option value='$j[XKodeJurusan]'>$j[XKodeJurusan]</option>";
+                             echo "<option value='{$j['XKodeJurusan']}'>{$j['XKodeJurusan']}</option>";
 							 }
 							 ?>
                              </select>
@@ -242,7 +242,7 @@ return false;
 							 $sqlkelas = mysql_query("select * from cbt_kelas group by XKodeKelas");
 							 echo "<option value='ALL' selected>SEMUA</option>";
 							 while($k = mysql_fetch_array($sqlkelas)){
-                             echo "<option value='$k[XKodeKelas]'>$k[XKodeKelas]</option>";
+                             echo "<option value='{$k['XKodeKelas']}'>{$k['XKodeKelas']}</option>";
 							 }
 							 ?>
                              </select>

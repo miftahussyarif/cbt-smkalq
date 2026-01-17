@@ -124,15 +124,15 @@ $sql = mysql_query("select p.*,m.*,p.Urut as Urutan,p.XKodeKelas  as kokel from 
 //$sql = mysql_query("select u.*,m.*,u.Urut as Urutan,u.XKodeKelas as kokel from cbt_ujian u left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal where u.XStatusUjian='1'");
 
 					while($s = mysql_fetch_array($sql)){ 
-					$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$s[XKodeSoal]'"));
-					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$s[XKodeSoal]' and XStatusUjian = '1'"));
-					$sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$s[XKodeSoal]'"));
+					$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '{$s['XKodeSoal']}'"));
+					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '{$s['XKodeSoal']}' and XStatusUjian = '1'"));
+					$sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '{$s['XKodeSoal']}'"));
 					if($sqlsoal<1){$kata="disabled";}  else {$kata="";}	
 					if($sqlsudah>0||$sqlpakai>0){$kata="disabled";}  else {$kata="";}			
 					if($sqlpakai>0){$katapakai="disabled";}  else {$katapakai="";}			
 							
 								
-$sqltes = mysql_query("select XJamUjian,XTglUjian,XStatusUjian,XSesi from cbt_ujian where XKodeSoal = '$s[XKodeSoal]' and  XKodeMapel = '$s[XKodeMapel]' and  XKodeJurusan = '$s[XKodeJurusan]' and  XKodeKelas = '$s[kokel]' and XStatusUjian='1'");		
+$sqltes = mysql_query("select XJamUjian,XTglUjian,XStatusUjian,XSesi from cbt_ujian where XKodeSoal = '{$s['XKodeSoal']}' and  XKodeMapel = '{$s['XKodeMapel']}' and  XKodeJurusan = '{$s['XKodeJurusan']}' and  XKodeKelas = '{$s['kokel']}' and XStatusUjian='1'");		
  $stu = mysql_fetch_array($sqltes);
  $tjamujian = $stu['XJamUjian'];
  $ttglujian = $stu['XTglUjian'];
@@ -157,7 +157,7 @@ $sqltes = mysql_query("select XJamUjian,XTglUjian,XStatusUjian,XSesi from cbt_uj
                                          <?php } ?>
                                          !-->
                                          
-                                         <?php echo "$stu[XSesi]"; ?>
+                                         <?php echo "{$stu['XSesi']}"; ?>
                                         </td>
                                         <td>													
                                         <?php if($sttsujian=="1"){ ?>
@@ -465,7 +465,7 @@ function myFunction() {
                              <?php 
 							 $sqlkelas = mysql_query("select * from cbt_tes order by Urut");
 							 while($k = mysql_fetch_array($sqlkelas)){
-                             echo "<option value='$k[XKodeUjian]'>$k[XNamaUjian]</option>";
+                             echo "<option value='{$k['XKodeUjian']}'>{$k['XNamaUjian']}</option>";
 							 }
 							 ?>
                              </select>
@@ -486,7 +486,7 @@ function myFunction() {
                              <?php 
 							 $sqlsesi = mysql_query("select * from cbt_siswa group by XSesi");
 							 while($sk = mysql_fetch_array($sqlsesi)){
-                             echo "<option value='$sk[XSesi]'>$sk[XSesi]</option>";
+                             echo "<option value='{$sk['XSesi']}'>{$sk['XSesi']}</option>";
 							 }
 							 ?>
                              </select>

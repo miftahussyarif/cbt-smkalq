@@ -34,7 +34,7 @@ include "../../config/server.php";
                 <select id="txt_mapelagama"  name="txt_mapelagama" class="form-control" >
 								<?php 
 								if($r['XMapelAgama']=='Y'){$pilagama = "PEMINATAN";} elseif($r['XMapelAgama']=='A'){$pilagama = "PEND. AGAMA";} else {$pilagama="MAPEL UMUM";}
-								echo "<option value='$r[XMapelAgama]' selected >$pilagama</option>"; ?>
+								echo "<option value='{$r['XMapelAgama']}' selected >$pilagama</option>"; ?>
 								<option value='N' class='form-control' >MAPEL UMUM</option>
 								<option value='Y' class='form-control' >PEMINATAN</option>                                
 								<option value='A' class='form-control' >PEND. AGAMA</option>                                

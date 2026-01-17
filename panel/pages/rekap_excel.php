@@ -42,10 +42,10 @@ $baris = 2;
 $no = 0;		
 
 while($p = mysql_fetch_array($hasil)){
-    $var_siswa = "$p[XNomerUjian]";
-	$var_token = "$p[XTokenUjian]";
-	$var_soal = "$p[XKodeSoal]";
-	$var_jumsoal = "$p[XJumSoal]";	
+    $var_siswa = "{$p['XNomerUjian']}";
+	$var_token = "{$p['XTokenUjian']}";
+	$var_soal = "{$p['XKodeSoal']}";
+	$var_jumsoal = "{$p['XJumSoal']}";	
 
 	$sqlujian = mysql_query("SELECT * FROM `cbt_jawaban` j left join cbt_soal s on s.XNomerSoal = j.XNomerSoal WHERE j.XKodeSoal = '$var_soal' and j.XUserJawab = '$var_siswa'
 	and XTokenUjian = '$var_token'");

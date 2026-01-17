@@ -4,25 +4,25 @@
 include "../../config/server.php";
 if(isset($_REQUEST['aksi'])){
 //echo "delete from cbt_kelas where Urut = '$_REQUEST[urut]'";
-$sql = mysql_query("delete from cbt_kelas where Urut = '$_REQUEST[urut]'");
+$sql = mysql_query("delete from cbt_kelas where Urut = '{$_REQUEST['urut']}'");
 }
 
 
 if(isset($_REQUEST['simpan'])){
-	$sql = mysql_query("update cbt_kelas set XKodeLevel = '$_REQUEST[txt_kodlev]', XNamaKelas = '$_REQUEST[txt_namkel]', XKodeJurusan = '$_REQUEST[txt_jur]',
-	XKodeKelas = '$_REQUEST[txt_kodkel]'  where Urut = '$_REQUEST[id]'");
+	$sql = mysql_query("update cbt_kelas set XKodeLevel = '{$_REQUEST['txt_kodlev']}', XNamaKelas = '{$_REQUEST['txt_namkel']}', XKodeJurusan = '{$_REQUEST['txt_jur']}',
+	XKodeKelas = '{$_REQUEST['txt_kodkel']}'  where Urut = '{$_REQUEST['id']}'");
 }
 
 if(isset($_REQUEST['tambah'])){
 
-$sqlcek = mysql_num_rows(mysql_query("select * from cbt_kelas where XKodeKelas = '$_REQUEST[txt_kodkel]'"));
+$sqlcek = mysql_num_rows(mysql_query("select * from cbt_kelas where XKodeKelas = '{$_REQUEST['txt_kodkel']}'"));
 	if($sqlcek>0){
 	$message = "Kode Kelas SUDAH ADA";
 	echo "<script type='text/javascript'>alert('$message');</script>";
 	} else {
 		if(!$_REQUEST['txt_kodkel']==""||!$_REQUEST['txt_jur']==""){
 		$sql = mysql_query("insert into cbt_kelas (XKodeLevel, XNamaKelas, XKodeJurusan,XKodeKelas) values  
-		('$_REQUEST[txt_kodlev]','$_REQUEST[txt_namkel]','$_REQUEST[txt_jur]','$_REQUEST[txt_kodkel]')");
+		('{$_REQUEST['txt_kodlev']}','{$_REQUEST['txt_namkel']}','{$_REQUEST['txt_jur']}','{$_REQUEST['txt_kodkel']}')");
 		}
 	}
 }
