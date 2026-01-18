@@ -497,7 +497,23 @@ Gunakan script `setup_permissions.sh` untuk mengatur ulang permission.
 - Disable right-click pada halaman ujian
 - Disable Ctrl+C dan Ctrl+V
 
----
+### ✅ Fitur Baru: Hapus Jadwal TES ("Hapus TES")
+- Tombol baru "Hapus TES" pada menu Status Tes > Tes Selesai
+- Menghapus jadwal ujian (`cbt_ujian`) beserta seluruh data terkait (jawaban, nilai, log siswa) secara permanen
+- Dialog konfirmasi keamanan untuk mencegah penghapusan tidak sengaja
+
+### ✅ Modernisasi UI Halaman Selesai (`akhir.php`)
+- Redesign total menyerupai halaman login
+- Tampilan kartu nilai yang lebih modern dan responsif
+- Perbaikan layout "Split Card" (Sidebar Profil & Panel Nilai)
+- Fix bug perhitungan skor yang kadang tidak muncul
+- Fix error `Undefined index` pada variabel siswa dan ujian
+
+### ✅ Refinement Logika Selesai Ujian
+- **Jalur Cepat**: Modal utama (`#modal-form`) kini bypass waktu minimum 30 menit (immediate finish)
+- **Validasi Waktu**: Tombol "Selesai" di sidebar dan menu lain tetap memvalidasi waktu minimum 30 menit
+- **Perbaikan Modal**: Fix status checkbox "Saya Yakin" dan tombol yang tidak bisa diklik pada modal konfirmasi
+- **Bypass Timer**: Fix logika `cekWaktuMinimum` agar konsisten menargetkan modal yang benar
 
 ## 📞 Dukungan
 
