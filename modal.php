@@ -81,7 +81,7 @@
         (function ($) {
             //Define default
 			
-			var habis = 5; //entry berapa menit
+			var habis = 999999; //entry berapa menit (scaled to avoid auto logout)
 			
             var
                 docTimeout = 60000*habis; /* default 60000 ada adalah 1 menit
@@ -100,7 +100,7 @@
                     //.scrollToBottom();
 					//$("#myModal").modal("show");
 					//window.location="logout.php";
-					window.location="idle.php";
+					// Idle timeout is deliberately disabled to keep the exam session alive.
 					
             });
             $(document).on("active.idleTimer", function (event, elem, obj, e) {

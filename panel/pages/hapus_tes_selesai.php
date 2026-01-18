@@ -9,13 +9,19 @@ if (!isset($_COOKIE['beeuser'])) {
 $aksi = isset($_POST['aksi']) ? $_POST['aksi'] : '';
 $urut = isset($_POST['txt_ujian']) ? mysql_real_escape_string($_POST['txt_ujian']) : '';
 
-if ($aksi !== 'hapus' || $urut === '') {
+if (($aksi !== 'hapus' && $aksi !== 'hapus_jadwal') || $urut === '') {
     echo "INVALID";
     exit;
 }
 
 $sqlujian = mysql_query("SELECT XTokenUjian, XKodeSoal, XStatusUjian FROM cbt_ujian WHERE Urut = '$urut'");
 if (!$sqlujian || mysql_num_rows($sqlujian) < 1) {
+    if ($aksi === 'hapus_jadwal') {
+        // Just in case it's already gone or partial delete
+        $check = mysql_query("DELETE FROM cbt_ujian WHERE Urut = '$urut'"); 
+        echo "OK"; 
+        exit;
+    }
     echo "NOTFOUND";
     exit;
 }
@@ -37,6 +43,10 @@ mysql_query("DELETE FROM cbt_audio WHERE XTokenUjian = '$token' AND XKodeSoal = 
 $cekPengawasan = mysql_query("SHOW TABLES LIKE 'cbt_pengawasan'");
 if ($cekPengawasan && mysql_num_rows($cekPengawasan) > 0) {
     mysql_query("DELETE FROM cbt_pengawasan WHERE XTokenUjian = '$token' AND XKodeSoal = '$kodesoal'");
+}
+
+if ($aksi == 'hapus_jadwal') {
+    mysql_query("DELETE FROM cbt_ujian WHERE Urut = '$urut'");
 }
 
 echo "OK";

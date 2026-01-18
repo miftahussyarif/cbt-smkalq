@@ -1,3 +1,6 @@
 temp/
 *.log
-pictures/
+*.sql
+*_backup.php
+node_modules
+.vscode

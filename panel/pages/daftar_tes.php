@@ -468,6 +468,7 @@ while($s = mysql_fetch_array($sql)){
                                         <td><span class="label label-default">Selesai</span></td>
                                         <td align="center">
                                             <button type="button" class="btn btn-danger btn-xs btn-hapus-tes" data-ujian="<?php echo $s['Urutan']; ?>">Hapus Data</button>
+                                            <button type="button" class="btn btn-warning btn-xs btn-hapus-jadwal" data-ujian="<?php echo $s['Urutan']; ?>" style="margin-left:5px;">Hapus TES</button>
                                         </td>
                                     </tr>
 <?php $no++; } ?>
@@ -552,6 +553,28 @@ while($s = mysql_fetch_array($sql)){
                     data: "aksi=hapus&txt_ujian=" + txt_ujian,
                     success: function () {
                         location.reload();
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $(document).on('click', '.btn-hapus-jadwal', function () {
+                var txt_ujian = $(this).data('ujian');
+                if (!confirm('PERINGATAN: Apakah Anda yakin ingin menghapus JADWAL TES ini?\n\nTindakan ini akan menghapus:\n1. Jadwal Ujian dari database\n2. Semua data nilai siswa\n3. Semua jawaban siswa\n\nLanjutkan?')) {
+                    return;
+                }
+                $.ajax({
+                    type: "POST",
+                    url: "hapus_tes_selesai.php",
+                    data: "aksi=hapus_jadwal&txt_ujian=" + txt_ujian,
+                    success: function (data) {
+                         if(data.trim() == "OK"){
+                             location.reload();
+                         } else {
+                             alert("Gagal menghapus: " + data);
+                         }
                     }
                 });
             });

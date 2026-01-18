@@ -253,6 +253,8 @@ if (!isset($_REQUEST['modul']) || $_REQUEST['modul'] == '') {
     $bread = "Reset Login Peserta";
 } elseif ($_REQUEST['modul'] == "pengawasan") {
     $bread = "Pengawasan";
+} elseif ($_REQUEST['modul'] == "pengawasan_config") {
+    $bread = "Konfigurasi Pengawasan";
 } elseif ($_REQUEST['modul'] == "daftar_soal") {
     $bread = "Bank Soal";
 } elseif ($_REQUEST['modul'] == "upl_soal") {
@@ -368,7 +370,16 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
     <li>
                                 <a href="?modul=aktifkan_jadwaltes"><i class="fa fa-refresh fa-fw"></i> Reset Login Peserta</a>                        </li>
     <li>
-                                <a href="?modul=pengawasan"><i class="fa fa-eye fa-fw"></i> Pengawasan</a>                        </li>
+                                <a href="#"><i class="fa fa-eye fa-fw"></i> Pengawasan <span class="fa arrow"></span></a>
+                                <ul class="nav nav-second-level">
+                                    <li>
+                                        <a href="?modul=pengawasan"><i class="fa fa-desktop"></i> Status Pengawasan</a>
+                                    </li>
+                                    <li>
+                                        <a href="?modul=pengawasan_config"><i class="fa fa-cog"></i> Konfigurasi</a>
+                                    </li>
+                                </ul>
+                        </li>
 <?php } ?> 
 <?php
 if ($_COOKIE['beelogin'] == 'pengawas') { ?>
@@ -537,6 +548,8 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
                   include "berita_acara.php";
               } elseif ($_REQUEST['modul'] == "pengawasan") {
                   include "pengawasan.php";
+              } elseif ($_REQUEST['modul'] == "pengawasan_config") {
+                  include "pengawasan_config.php";
               }
               /*
               elseif($_REQUEST['modul']=="backup"){

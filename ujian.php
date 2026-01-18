@@ -611,6 +611,7 @@ if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login
 </style>
 
 <script type="text/javascript" src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
 <script>
     function showUser(str) {
         alert();
@@ -1215,11 +1216,26 @@ $r = mysql_fetch_array($sql);
         (function () {
             var monitorUrl = 'monitor_event.php';
             var statusUrl = 'monitor_status.php';
+            var configUrl = 'pengawasan_get_config.php';
             var lastEvent = '';
             var lastSentAt = 0;
             window.__cbtLocked = false;
             var hideTimer = null;
             var unloadEventSent = false;
+            var monitorConfig = {
+                monitor_tab_switch: true,
+                monitor_printscreen: true,
+                monitor_tab_close: true,
+                monitor_rto: true,
+                auto_lock_on_violation: true
+            };
+
+            // Load monitoring configuration
+            $.getJSON(configUrl, function(resp) {
+                if (resp && resp.ok && resp.config) {
+                    monitorConfig = resp.config;
+                }
+            });
 
             function sendEvent(evt, extraData) {
                 var now = Date.now();
@@ -1299,12 +1315,14 @@ $r = mysql_fetch_array($sql);
                 clearHideTimer();
                 hideTimer = setTimeout(function () {
                     if (document.hidden) {
-                        sendEvent('tab_hidden', { auto_lock: 1 });
+                        var autoLock = monitorConfig.auto_lock_on_violation ? 1 : 0;
+                        sendEvent('tab_hidden', { auto_lock: autoLock });
                     }
                 }, 5000);
             }
 
             document.addEventListener('visibilitychange', function () {
+                if (!monitorConfig.monitor_tab_switch) return;
                 if (document.hidden) {
                     startHideTimer();
                 } else {
@@ -1313,19 +1331,26 @@ $r = mysql_fetch_array($sql);
                 }
             });
             window.addEventListener('blur', function () {
+                if (!monitorConfig.monitor_tab_switch) return;
                 startHideTimer();
             });
             window.addEventListener('focus', function () {
+                if (!monitorConfig.monitor_tab_switch) return;
                 clearHideTimer();
                 sendEvent('aman');
             });
             window.addEventListener('pagehide', function () {
-                sendBeaconEvent('tab_close', { auto_lock: 1, reason: 'pagehide', force: 1 });
+                if (!monitorConfig.monitor_tab_close) return;
+                var autoLock = monitorConfig.auto_lock_on_violation ? 1 : 0;
+                sendBeaconEvent('tab_close', { auto_lock: autoLock, reason: 'pagehide', force: 1 });
             });
             window.addEventListener('beforeunload', function () {
-                sendBeaconEvent('tab_close', { auto_lock: 1, reason: 'beforeunload', force: 1 });
+                if (!monitorConfig.monitor_tab_close) return;
+                var autoLock = monitorConfig.auto_lock_on_violation ? 1 : 0;
+                sendBeaconEvent('tab_close', { auto_lock: autoLock, reason: 'beforeunload', force: 1 });
             });
             document.addEventListener('keydown', function (e) {
+                if (!monitorConfig.monitor_printscreen) return;
                 if (e.key === 'PrintScreen' || e.keyCode === 44) {
                     sendEvent('printscreen');
                 }
@@ -1341,7 +1366,8 @@ $r = mysql_fetch_array($sql);
                     rtoSince = now;
                 }
                 if (now - rtoSince >= 10000) {
-                    sendEvent('rto', { reason: 'rto', force: 1 });
+                    var autoLock = monitorConfig.auto_lock_on_violation ? 1 : 0;
+                    sendEvent('rto', { auto_lock: autoLock, reason: 'rto', force: 1 });
                     rtoSince = null;
                 }
             }
@@ -1351,6 +1377,7 @@ $r = mysql_fetch_array($sql);
             }
 
             function pingInternet() {
+                if (!monitorConfig.monitor_rto) return;
                 if (window.__cbtLocked) {
                     return;
                 }
@@ -1485,20 +1512,14 @@ $r = mysql_fetch_array($sql);
                                 Terimakasih telah berpartisipasi dalam tes ini.<br>
                                 <span id="waktuInfo1"></span>
                             </p>
-                            <div id="checkboxContainer1" style="margin-top:10px;">
-                                <label>
-                                    <input type="checkbox" id="confirmCheck1" onchange="toggleSelesaiBtn1()">
-                                    Saya yakin ingin mengakhiri tes ini
-                                </label>
-                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="panel-footer">
                     <div class="row" style="background-color:#fff">
                         <div class="col-xs-offset-3 col-xs-6">
-                            <a href="akhir.php"><button type="button" class="btn btn-success" id="btnSelesai1"
-                                    disabled>SELESAI</button></a>
+                            <button type="button" class="btn btn-success" id="btnSelesai1"
+                                    onclick="selesaiTes()">SELESAI</button>
                             <button type="button" class="btn btn-danger" data-dismiss="modal">TIDAK</button>
                         </div>
                     </div>
@@ -1556,6 +1577,12 @@ $r = mysql_fetch_array($sql);
         var checkContainer1 = document.getElementById('checkboxContainer1');
         var checkContainer2 = document.getElementById('checkboxContainer2');
         var checkContainerLanjut = document.getElementById('checkboxContainerLanjut');
+        var checkContainerRagu = document.getElementById('checkboxContainerRagu');
+
+        var btn1 = document.getElementById('btnSelesai1');
+        var btn2 = document.getElementById('btnSelesai2');
+        var btnLanjut = document.getElementById('btnSelesaiLanjut');
+        var btnRagu = document.getElementById('btnRagu');
 
         if (menitTerpakai < minWaktuMenit) {
             var pesan = 'Anda belum bisa mengakhiri tes. Minimal pengerjaan ' + minWaktuMenit + ' menit.<br>Waktu pengerjaan Anda: ' + menitTerpakai + ' menit. Tunggu ' + sisaMenit + ' menit lagi.';
@@ -1564,9 +1591,14 @@ $r = mysql_fetch_array($sql);
             if (infoTextLanjut) infoTextLanjut.innerHTML = pesan;
             if (infoTextR) infoTextR.innerHTML = pesan;
 
-            if (checkContainer1) checkContainer1.style.display = 'none';
             if (checkContainer2) checkContainer2.style.display = 'none';
             if (checkContainerLanjut) checkContainerLanjut.style.display = 'none';
+            if (checkContainerRagu) checkContainerRagu.style.display = 'none';
+            
+            if (btn1) btn1.disabled = false; // Always enabled for main modal
+            if (btn2) btn2.disabled = true;
+            if (btnLanjut) btnLanjut.disabled = true;
+            if (btnRagu) btnRagu.disabled = true;
         } else {
             var pesan = 'Waktu pengerjaan Anda: ' + menitTerpakai + ' menit.<br>Silahkan centang kotak di bawah dan klik tombol SELESAI untuk mengakhiri test.';
             var pesanR = 'Waktu pengerjaan Anda: ' + menitTerpakai + ' menit.<br>Pastikan semua jawaban sudah terisi dan tidak ada yang RAGU-RAGU.';
@@ -1576,42 +1608,61 @@ $r = mysql_fetch_array($sql);
             if (infoTextLanjut) infoTextLanjut.innerHTML = pesan;
             if (infoTextR) infoTextR.innerHTML = pesanR;
 
-            if (checkContainer1) checkContainer1.style.display = 'block';
             if (checkContainer2) checkContainer2.style.display = 'block';
             if (checkContainerLanjut) checkContainerLanjut.style.display = 'block';
+            if (checkContainerRagu) checkContainerRagu.style.display = 'block';
+            
+            btn1.disabled = false; 
+            toggleSelesaiBtn2();
+            toggleSelesaiBtnLanjut();
+            toggleSelesaiBtnRagu();
         }
     }
 
     function toggleSelesaiBtn1() {
-        var checkbox = document.getElementById('confirmCheck1');
         var btn = document.getElementById('btnSelesai1');
-        var menitTerpakai = getWaktuTerpakaiMenit();
-
-        if (checkbox.checked && menitTerpakai >= minWaktuMenit) {
-            btn.disabled = false;
-        } else {
-            btn.disabled = true;
-        }
+        if (btn) btn.disabled = false;
     }
 
     function toggleSelesaiBtn2() {
         var checkbox = document.getElementById('confirmCheck2');
         var btn = document.getElementById('btnSelesai2');
+        if (!checkbox || !btn) {
+            return;
+        }
         var menitTerpakai = getWaktuTerpakaiMenit();
 
-        if (checkbox.checked && menitTerpakai >= minWaktuMenit) {
-            btn.disabled = false;
-        } else {
-            btn.disabled = true;
-        }
+        btn.disabled = !(checkbox.checked && menitTerpakai >= minWaktuMenit);
     }
 
     function toggleSelesaiBtnLanjut() {
         var checkbox = document.getElementById('confirmCheckLanjut');
-        var btn = document.getElementById('btnLanjut');
-        var menitTerpakai = getWaktuTerpakaiMenit();
+        var btn = document.getElementById('btnSelesaiLanjut');
 
-        if (checkbox.checked && menitTerpakai >= minWaktuMenit) {
+        if (!btn || !checkbox) return;
+
+        if (checkbox.checked) {
+            btn.disabled = false;
+            btn.removeAttribute('disabled');
+            btn.classList.remove('disabled'); // Ensure Bootstrap disabled class is removed
+            
+            // Force re-attach click event if needed (optional safety net)
+            btn.style.pointerEvents = 'auto'; // Force pointer events
+            
+            console.log('Button SELESAI diaktifkan (enabled) & class disabled dihapus');
+        } else {
+            btn.disabled = true;
+            btn.setAttribute('disabled', 'disabled');
+            btn.classList.add('disabled');
+            console.log('Button SELESAI dinonaktifkan (disabled)');
+        }
+    }
+
+    function toggleSelesaiBtnRagu() {
+        var checkbox = document.getElementById('confirmCheckRagu');
+        var btn = document.getElementById('btnRagu');
+
+        if (checkbox.checked) {
             btn.disabled = false;
         } else {
             btn.disabled = true;
@@ -1620,8 +1671,8 @@ $r = mysql_fetch_array($sql);
 
     // Reset checkbox dan button saat modal dibuka
     $('#modal-form').on('show.bs.modal', function () {
-        document.getElementById('confirmCheck1').checked = false;
-        document.getElementById('btnSelesai1').disabled = true;
+        var btn1 = document.getElementById('btnSelesai1');
+        if (btn1) btn1.disabled = false;
         updateModalStatus();
     });
 
@@ -1635,31 +1686,207 @@ $r = mysql_fetch_array($sql);
 
     $('#myModal2').on('show.bs.modal', function () {
         var checkLanjut = document.getElementById('confirmCheckLanjut');
-        var btnLanjut = document.getElementById('btnLanjut');
+        var btnLanjut = document.getElementById('btnSelesaiLanjut');
         if (checkLanjut) checkLanjut.checked = false;
         if (btnLanjut) btnLanjut.disabled = true;
+        
+        // Tambahkan event listener untuk tombol SELESAI
+        if (btnLanjut) {
+            btnLanjut.onclick = function() {
+                console.log('Tombol SELESAI diklik via addEventListener');
+                selesaiTes();
+                return false;
+            };
+        }
+        
         updateModalStatus();
     });
 
     $('#myModalR').on('show.bs.modal', function () {
+        var checkRagu = document.getElementById('confirmCheckRagu');
+        var btnRagu = document.getElementById('btnRagu');
+        if (checkRagu) checkRagu.checked = false;
+        if (btnRagu) btnRagu.disabled = true;
+        
+        // Tambahkan event listener untuk tombol SELESAI
+        if (btnRagu) {
+            btnRagu.onclick = function() {
+                console.log('Tombol SELESAI (Ragu) diklik via addEventListener');
+                selesaiTes();
+                return false;
+            };
+        }
+        
         updateModalStatus();
     });
 
     // Fungsi untuk mengecek waktu minimum sebelum menampilkan modal selesai
     function cekWaktuMinimum(targetModal) {
-        var menitTerpakai = getWaktuTerpakaiMenit();
-        var sisaMenit = minWaktuMenit - menitTerpakai;
-
-        if (menitTerpakai < minWaktuMenit) {
-            // Tampilkan modal peringatan waktu
-            var infoText = document.getElementById('waktuInfoGetsoal');
-            if (infoText) {
-                infoText.innerHTML = 'Waktu pengerjaan Anda: <strong>' + menitTerpakai + ' menit</strong>.<br>Tunggu <strong>' + sisaMenit + ' menit</strong> lagi.';
+        try {
+            console.log('=== cekWaktuMinimum dipanggil ===');
+            console.log('Target Modal:', targetModal);
+            
+            // Bypass time check for main modal
+            if (targetModal === '#modal-form') {
+                $(targetModal).modal('show');
+                return;
             }
-            $('#myModalWaktu').modal('show');
+
+            // Verifikasi bahwa variabel waktu sudah didefinisikan
+            if (typeof totalWaktuDetik === 'undefined') {
+                console.error('ERROR: totalWaktuDetik tidak didefinisikan');
+                alert('Error: Variabel waktu tidak dapat diakses. Refresh halaman.');
+                return;
+            }
+            
+            if (typeof getWaktuTerpakaiMenit === 'undefined') {
+                console.error('ERROR: getWaktuTerpakaiMenit tidak didefinisikan');
+                alert('Error: Fungsi waktu tidak dapat diakses. Refresh halaman.');
+                return;
+            }
+            
+            var menitTerpakai = getWaktuTerpakaiMenit();
+            var sisaMenit = minWaktuMenit - menitTerpakai;
+
+            console.log('Menit terpakai:', menitTerpakai);
+            console.log('Minimum waktu:', minWaktuMenit);
+            console.log('Sisa menit:', sisaMenit);
+            console.log('Waktu cukup?:', menitTerpakai >= minWaktuMenit);
+
+            if (menitTerpakai < minWaktuMenit) {
+                // Tampilkan modal peringatan waktu
+                console.log('>>> Menampilkan modal peringatan waktu');
+                var infoText = document.getElementById('waktuInfoGetsoal');
+                console.log('Element waktuInfoGetsoal ditemukan?:', infoText !== null);
+                if (infoText) {
+                    infoText.innerHTML = 'Waktu pengerjaan Anda: <strong>' + menitTerpakai + ' menit</strong>.<br>Tunggu <strong>' + sisaMenit + ' menit</strong> lagi.';
+                }
+                
+                // Coba menggunakan jQuery jika tersedia
+                if (typeof jQuery !== 'undefined' && typeof jQuery().modal === 'function') {
+                    $('#myModalWaktu').modal('show');
+                    console.log('Modal peringatan ditampilkan dengan jQuery');
+                } else {
+                    // Fallback: Tampilkan modal menggunakan Bootstrap 4+ atau manual show
+                    var modalElement = document.getElementById('myModalWaktu');
+                    if (modalElement) {
+                        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                            // Bootstrap 5
+                            var modal = new bootstrap.Modal(modalElement);
+                            modal.show();
+                            console.log('Modal peringatan ditampilkan dengan Bootstrap 5');
+                        } else {
+                            // Manual: gunakan class Bootstrap 3
+                            modalElement.classList.add('in');
+                            modalElement.style.display = 'block';
+                            var backdrop = document.createElement('div');
+                            backdrop.className = 'modal-backdrop fade in';
+                            document.body.appendChild(backdrop);
+                            console.log('Modal peringatan ditampilkan secara manual');
+                        }
+                    }
+                }
+            } else {
+                // Waktu sudah cukup, tampilkan modal konfirmasi selesai
+                console.log('>>> Menampilkan modal konfirmasi selesai');
+
+                // If the caller is the final confirmation modal, finish the test instead of reopening the modal.
+                // If the caller is the final confirmation modal, finish the test instead of reopening the modal.
+                // NOTE: #myModal1 removed from here so it shows up for confirmation
+                if (targetModal === '#modal-form') {
+                    console.log('Waktu cukup, melewatkan modal dan menyelesaikan tes secara langsung');
+                    selesaiTes();
+                    return;
+                }
+                
+                // Coba menggunakan jQuery jika tersedia
+                if (typeof jQuery !== 'undefined' && typeof jQuery().modal === 'function') {
+                    $(targetModal).modal('show');
+                    console.log('Modal konfirmasi ditampilkan dengan jQuery');
+                } else {
+                    // Fallback: Tampilkan modal menggunakan Bootstrap 4+ atau manual show
+                    var modalElement = document.querySelector(targetModal);
+                    if (modalElement) {
+                        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                            // Bootstrap 5
+                            var modal = new bootstrap.Modal(modalElement);
+                            modal.show();
+                            console.log('Modal konfirmasi ditampilkan dengan Bootstrap 5');
+                        } else {
+                            // Manual: gunakan class Bootstrap 3
+                            modalElement.classList.add('in');
+                            modalElement.style.display = 'block';
+                            var backdrop = document.createElement('div');
+                            backdrop.className = 'modal-backdrop fade in';
+                            document.body.appendChild(backdrop);
+                            console.log('Modal konfirmasi ditampilkan secara manual');
+                        }
+                    } else {
+                        console.error('Modal element tidak ditemukan:', targetModal);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('ERROR di cekWaktuMinimum:', e);
+            alert('Error: ' + e.message);
+        }
+    }
+
+    // Fungsi untuk menyelesaikan tes dan mengarahkan ke akhir.php
+    function selesaiTes() {
+        try {
+            console.log('selesaiTes() dipanggil - Mengarahkan ke akhir.php');
+            console.log('Current URL:', window.location.href);
+            console.log('Target URL: akhir.php');
+            
+            // Verifikasi bahwa window.location tersedia
+            if (typeof window.location === 'undefined') {
+                console.error('ERROR: window.location tidak tersedia');
+                alert('Error: Tidak bisa mengakses lokasi halaman');
+                return;
+            }
+            
+            // Gunakan timeout kecil untuk memastikan event terpicu sebelum navigasi
+            setTimeout(function() {
+                window.location.href = 'akhir.php';
+            }, 100);
+        } catch (e) {
+            console.error('ERROR di selesaiTes():', e);
+            alert('Error: ' + e.message);
+        }
+    }
+
+    // Fungsi untuk menutup modal
+    function tutupModal(modalId) {
+        console.log('tutupModal() dipanggil dengan ID:', modalId);
+        
+        // Coba menggunakan jQuery jika tersedia
+        if (typeof jQuery !== 'undefined' && typeof jQuery().modal === 'function') {
+            $(modalId).modal('hide');
+            console.log('Modal ditutup dengan jQuery');
+        } else if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            // Bootstrap 5
+            var modalElement = document.querySelector(modalId);
+            if (modalElement) {
+                var modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                    console.log('Modal ditutup dengan Bootstrap 5');
+                }
+            }
         } else {
-            // Tampilkan modal konfirmasi selesai yang diminta
-            $(targetModal).modal('show');
+            // Manual: hapus classes dan tampilan modal
+            var modalElement = document.querySelector(modalId);
+            if (modalElement) {
+                modalElement.classList.remove('in');
+                modalElement.style.display = 'none';
+                // Hapus backdrop jika ada
+                var backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove();
+                }
+                console.log('Modal ditutup secara manual');
+            }
         }
     }
 </script>
@@ -2031,8 +2258,8 @@ $r = mysql_fetch_array($sql);
                 <div class="panel-footer">
                     <div class="row" style="background-color:#fff">
                         <div class="col-xs-offset-3 col-xs-6">
-                            <a href="akhir.php"><button type="button" class="btn btn-success" id="btnSelesai2"
-                                    disabled>SELESAI</button></a>
+                            <button type="button" class="btn btn-success" id="btnSelesai2"
+                                    >SELESAI</button>
                             <button type="button" class="btn btn-danger" data-dismiss="modal">TIDAK</button>
                         </div>
                     </div>
@@ -2070,14 +2297,112 @@ $r = mysql_fetch_array($sql);
             </div>
             <div class="panel-footer">
                 <div class="row" style="background-color:#fff">
-                    <div class="col-xs-6 col-center" style="margin-left:25%">
-                        <button type="button" class="btn btn-primary btn-block" data-dismiss="modal">Tutup</button>
-                    </div>
+                        <div class="col-xs-6 col-center" style="margin-left:25%">
+                            <button type="button" class="btn btn-primary btn-block" data-dismiss="modal"
+                                    onclick="tutupModal('#myModalWaktu');">Tutup</button>
+                        </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal Konfirmasi Tes (tanpa soal ragu-ragu) -->
+<div class="modal fade" id="myModal2" role="dialog">
+    <div class="modal-dialog">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h1 class="panel-title page-label">Konfirmasi Tes</h1>
+            </div>
+            <div class="panel-body">
+                <div class="inner-content">
+                    <div class="row" style="background-color:#fff">
+                        <div class="col-xs-3">
+                            <span><img src="images/alert.png" width="150px"></span>
+                        </div>
+                        <div class="col-xs-9">
+                            <div class="wysiwyg-content">
+                                <p>
+                                    Apakah anda yakin ingin mengakhiri tes?<br>
+                                    Anda tidak akan bisa kembali ke soal jika sudah menekan tombol selesai.
+                                </p>
+                            </div>
+                            <div id="checkboxContainerLanjut" style="margin-top:10px;">
+                                <label class="assentcb-label">
+                                    <input type="checkbox" id="confirmCheckLanjut" onchange="toggleSelesaiBtnLanjut()">
+                                    Saya yakin ingin mengakhiri tes ini
+                                </label>
+                            </div>
+                            <span id="waktuInfoLanjut"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <div class="row" style="background-color:#fff">
+                    <div class="col-xs-6">
+                        <button id="btnSelesaiLanjut" type="button" class="btn btn-success btn-block" disabled
+                            onclick="console.log('Tombol SELESAI diklik'); selesaiTes();">SELESAI</button>
+                    </div>
+                    <div class="col-xs-6">
+                        <button type="button" class="btn btn-danger btn-block" onclick="tutupModal('#myModal2');">TIDAK</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal Peringatan Soal Ragu-Ragu -->
+<div class="modal fade" id="myModalR" role="dialog">
+    <div class="modal-dialog">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h1 class="panel-title page-label">Konfirmasi Tes</h1>
+            </div>
+            <div class="panel-body">
+                <div class="inner-content">
+                    <div class="row" style="background-color:#fff">
+                        <div class="col-xs-3 glyphicon-left-panel">
+                            <span><img src="images/alert.png" width="150px"></span>
+                        </div>
+                        <div class="col-xs-9">
+                            <div class="wysiwyg-content">
+                                <p>
+                                    Terdapat soal yang bertanda RAGU-RAGU <br>
+                                    Selesaikan lebih dulu Soal RAGU-RAGU.<br>
+                                    <span id="waktuInfoR"></span>
+                                </p>
+                                <div id="checkboxContainerRagu" style="margin-top:10px;">
+                                    <label class="assentcb-label">
+                                        <input type="checkbox" id="confirmCheckRagu" onchange="toggleSelesaiBtnRagu()">
+                                        Saya yakin ingin mengakhiri tes ini
+                                    </label>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <div class="row" style="background-color:#fff">
+                    <div class="col-xs-6">
+                        <button id="btnRagu" type="button" class="btn btn-success btn-block" disabled
+                            onclick="selesaiTes();">SELESAI</button>
+                    </div>
+                    <div class="col-xs-6">
+                        <button type="button" class="btn btn-danger btn-block"
+                            onclick="tutupModal('#myModalR');">LANJUT</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 
 <!-- Script untuk menonaktifkan klik kanan dan Ctrl+C/Ctrl+V -->
 <script>

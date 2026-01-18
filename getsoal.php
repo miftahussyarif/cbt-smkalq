@@ -2226,10 +2226,10 @@ if ($result) {
                         $cekragu = mysql_num_rows(mysql_query("select * from cbt_jawaban where XRagu ='1' and XKodeSoal ='$xkodesoal' and XTokenUjian = '$xtokenujian'
 				   and XUserJawab = '$user'"));
                         if ($cekragu > 0) { ?>
-                            <button id="btnSelesai" class="btn btn-primary btn-end activebutton"
+                            <button type="button" id="btnSelesai" class="btn btn-primary btn-end activebutton"
                                 onclick="cekWaktuMinimum('#myModalR')">TES SELESAI</button>
                         <?php } else { ?>
-                            <button id="btnSelesai" class="btn btn-primary btn-end activebutton"
+                            <button type="button" id="btnSelesai" class="btn btn-primary btn-end activebutton"
                                 onclick="cekWaktuMinimum('#myModal2')">TES SELESAI</button>
                         <?php } //echo "|$next_id|";
                         echo "</a>";
@@ -2247,10 +2247,10 @@ if ($result) {
                     $cekragu = mysql_num_rows(mysql_query("select * from cbt_jawaban where XRagu ='1' and XKodeSoal ='$xkodesoal' and XTokenUjian = '$xtokenujian'
 				   and XUserJawab = '$user'"));
                     if ($cekragu > 0) { ?>
-                        <button id="btnSelesai" class="btn btn-primary btn-end activebutton"
+                        <button type="button" id="btnSelesai" class="btn btn-primary btn-end activebutton"
                             onclick="cekWaktuMinimum('#myModalR')">TES SELESAI</button>
                     <?php } else { ?>
-                        <button id="btnSelesai" class="btn btn-primary btn-end activebutton"
+                        <button type="button" id="btnSelesai" class="btn btn-primary btn-end activebutton"
                             onclick="cekWaktuMinimum('#myModal2')">TES SELESAI</button>
                     <?php } //echo "|$next_id|";
                     echo "</a>";
@@ -2311,90 +2311,6 @@ if ($result) {
 </div>
 
 
-<div class="modal fade" id="myModal2" role="dialog">
-    <div class="modal-dialog">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h1 class="panel-title page-label">Konfirmasi Tes</h1>
-            </div>
-            <div class="panel-body">
-                <div class="inner-content">
-                    <div class="row" style="background-color:#fff">
-                        <div class="col-xs-3">
-                            <span><img src="images/alert.png" width="150px"></span>
-                        </div>
-                        <div class="col-xs-9">
-                            <div class="wysiwyg-content">
-                                <p>
-                                    Apakah anda yakin ingin mengakhiri tes?<br>
-                                    Anda tidak akan bisa kembali ke soal jika sudah menekan tombol selesai.
-                                </p>
-                            </div>
-                            <div id="checkboxContainerLanjut" style="margin-top:10px;">
-                                <label class="assentcb-label">
-                                    <input type="checkbox" id="confirmCheckLanjut" onchange="toggleSelesaiBtnLanjut()">
-                                    Saya yakin ingin mengakhiri tes ini
-                                </label>
-                            </div>
-                            <span id="waktuInfoLanjut"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="panel-footer">
-                <div class="row" style="background-color:#fff">
-                    <div class="col-xs-6">
-                        <button id="btnLanjut" type="submit" class="btn btn-success btn-block" disabled
-                            onClick="location.href='akhir.php';">SELESAI</button>
-                    </div>
-                    <div class="col-xs-6">
-                        <button type="submit" class="btn btn-danger btn-block " data-dismiss="modal">TIDAK</button>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="myModalR" role="dialog">
-    <div class="modal-dialog">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h1 class="panel-title page-label">Konfirmasi Tes</h1>
-            </div>
-            <div class="panel-body">
-                <div class="inner-content">
-                    <div class="row" style="background-color:#fff">
-                        <div class="col-xs-3 glyphicon-left-panel">
-                            <span><img src="images/alert.png" width="150px"></span>
-                        </div>
-                        <div class="col-xs-9">
-                            <div class="wysiwyg-content">
-                                <p>
-                                    Terdapat soal yang bertanda RAGU-RAGU <br>
-                                    Selesaikan lebih dulu Soal RAGU-RAGU.<br>
-                                    <span id="waktuInfoR"></span>
-                                </p>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="panel-footer">
-                <div class="row" style="background-color:#fff">
-
-                    <div class="col-xs-6 col-center" style="margin-left:25%">
-                        <button data-bind="click: handleNotConfirm" type="submit" class="btn btn-danger btn-block"
-                            data-dismiss="modal" id="lanjut">LANJUT</button></a>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
 
 
 
