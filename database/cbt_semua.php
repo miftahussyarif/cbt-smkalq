@@ -77,7 +77,7 @@ if (!file_exists('/opt/lampp/backup')) {
   mkdir('/opt/lampp/backup', 0777, true);
 }
 
-$tabel = "cbt_jawaban,cbt_kelas,cbt_mapel,cbt_nilai,cbt_paketsoal,cbt_siswa,cbt_siswa_ujian,cbt_soal,cbt_tugas,cbt_ujian";
+$tabel = "*";
 
 //$backup_file = 'data/'.time().'-'.$tabel.'.sql';
 $backup_file = '/opt/lampp/backup/dbee_' . time() . '.sql';
@@ -94,6 +94,6 @@ fclose($handle);
 <br />
 <div class="alert alert-success alert-dismissable">
   <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-  Tabel <?php echo $tabel; ?> telah di Backup<br />
+  Semua tabel telah di Backup<br />
   Lokasi file Backup, Silahkan Lihat folder /opt/lampp/backup/
 </div>

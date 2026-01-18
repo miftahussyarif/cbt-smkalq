@@ -89,6 +89,10 @@ if (!isset($_COOKIE['beeuser'])) {
     $backupSiswa = array();
     $backupUjian = array();
     $backupSemua = array();
+    $backupFiles = array();
+    $fileBackupMessage = '';
+    $fileBackupDirs = array('pictures', 'audio', 'video', 'fotosiswa');
+    $baseDir = realpath(__DIR__ . '/../..');
 
     function list_backup_files($pattern, $limit = 2)
     {
@@ -102,10 +106,124 @@ if (!isset($_COOKIE['beeuser'])) {
         return array_slice($files, 0, $limit);
     }
 
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['file_action'])) {
+        $action = $_POST['file_action'];
+        if (!class_exists('ZipArchive')) {
+            $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>ZipArchive tidak tersedia pada server.</div>";
+        } elseif ($baseDir === false) {
+            $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Base directory tidak ditemukan.</div>";
+        } elseif ($action === 'backup_files') {
+            if (!is_dir($backupDir)) {
+                mkdir($backupDir, 0777, true);
+            }
+            $zipName = 'dbee-files_' . time() . '.zip';
+            $zipPath = $backupDir . '/' . $zipName;
+            $zip = new ZipArchive();
+            if ($zip->open($zipPath, ZipArchive::CREATE) !== true) {
+                $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Gagal membuat file backup.</div>";
+            } else {
+                $added = 0;
+                foreach ($fileBackupDirs as $dirName) {
+                    $dirPath = $baseDir . '/' . $dirName;
+                    if (!is_dir($dirPath)) {
+                        continue;
+                    }
+                    $zip->addEmptyDir($dirName);
+                    $iterator = new RecursiveIteratorIterator(
+                        new RecursiveDirectoryIterator($dirPath, RecursiveDirectoryIterator::SKIP_DOTS)
+                    );
+                    foreach ($iterator as $fileInfo) {
+                        if (!$fileInfo->isFile()) {
+                            continue;
+                        }
+                        $filePath = $fileInfo->getPathname();
+                        $relativePath = $dirName . '/' . substr($filePath, strlen($dirPath) + 1);
+                        if ($zip->addFile($filePath, $relativePath)) {
+                            $added++;
+                        }
+                    }
+                }
+                $zip->close();
+                $safeZip = htmlspecialchars($zipName, ENT_QUOTES, 'UTF-8');
+                $fileBackupMessage = "<div class=\"alert alert-success alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Backup file berhasil dibuat: <strong>$safeZip</strong> ($added file).</div>";
+            }
+        } elseif ($action === 'restore_files') {
+            $backupFile = isset($_POST['backup_file']) ? basename($_POST['backup_file']) : '';
+            if ($backupFile === '' || strpos($backupFile, 'dbee-files_') !== 0 || substr($backupFile, -4) !== '.zip') {
+                $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>File restore tidak valid.</div>";
+            } else {
+                $zipPath = $backupDir . '/' . $backupFile;
+                if (!is_file($zipPath)) {
+                    $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>File backup tidak ditemukan.</div>";
+                } else {
+                    $zip = new ZipArchive();
+                    if ($zip->open($zipPath) !== true) {
+                        $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Gagal membuka file backup.</div>";
+                    } else {
+                        $extracted = 0;
+                        $skipped = 0;
+                        for ($i = 0; $i < $zip->numFiles; $i++) {
+                            $entryName = $zip->getNameIndex($i);
+                            if ($entryName === false) {
+                                $skipped++;
+                                continue;
+                            }
+                            $entryName = str_replace('\\', '/', $entryName);
+                            if ($entryName === '' || strpos($entryName, "\0") !== false) {
+                                $skipped++;
+                                continue;
+                            }
+                            if ($entryName[0] === '/' || preg_match('/^[A-Za-z]:/', $entryName) || strpos($entryName, '../') !== false) {
+                                $skipped++;
+                                continue;
+                            }
+                            $parts = explode('/', $entryName, 2);
+                            $topDir = $parts[0];
+                            if (!in_array($topDir, $fileBackupDirs, true)) {
+                                $skipped++;
+                                continue;
+                            }
+                            $destPath = $baseDir . '/' . $entryName;
+                            if (substr($entryName, -1) === '/') {
+                                if (!is_dir($destPath)) {
+                                    mkdir($destPath, 0755, true);
+                                }
+                                continue;
+                            }
+                            $destDir = dirname($destPath);
+                            if (!is_dir($destDir)) {
+                                mkdir($destDir, 0755, true);
+                            }
+                            $in = $zip->getStream($entryName);
+                            if ($in === false) {
+                                $skipped++;
+                                continue;
+                            }
+                            $out = fopen($destPath, 'w');
+                            if ($out === false) {
+                                fclose($in);
+                                $skipped++;
+                                continue;
+                            }
+                            stream_copy_to_stream($in, $out);
+                            fclose($in);
+                            fclose($out);
+                            $extracted++;
+                        }
+                        $zip->close();
+                        $safeZip = htmlspecialchars($backupFile, ENT_QUOTES, 'UTF-8');
+                        $fileBackupMessage = "<div class=\"alert alert-success alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Restore file selesai dari <strong>$safeZip</strong> ($extracted file, $skipped dilewati).</div>";
+                    }
+                }
+            }
+        }
+    }
+
     if (is_dir($backupDir)) {
         $backupSiswa = list_backup_files($backupDir . '/dbee-siswa_*.sql');
         $backupUjian = list_backup_files($backupDir . '/dbee-ujian_*.sql');
         $backupSemua = list_backup_files($backupDir . '/dbee_*.sql');
+        $backupFiles = list_backup_files($backupDir . '/dbee-files_*.zip');
     }
 
     function render_backup_list($files)
@@ -152,6 +270,11 @@ if (!isset($_COOKIE['beeuser'])) {
                         Data<br>
                         Lokasi file Backup, Silahkan Lihat folder /opt/lampp/backup/
                     </div>
+                    <?php
+                    if ($fileBackupMessage !== '') {
+                        echo $fileBackupMessage;
+                    }
+                    ?>
 
 
                     <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example">
@@ -204,6 +327,17 @@ if (!isset($_COOKIE['beeuser'])) {
                                         <button type='button' class='btn btn-danger'><i
                                                 class='fa fa-times'></i></button></a></td>
                             </tr>
+                            <tr class="odd gradeX">
+                                <td>4<input type="hidden" value="<?php echo $s['Urutan']; ?>"
+                                        id="txt_mapel<?php echo $s['Urutan']; ?>"></td>
+                                <td>Backup File Upload (Soal, Lampiran, Foto Siswa)</td>
+                                <td><?php echo render_backup_list($backupFiles); ?></td>
+                                <td align="center">
+                                    <button type="button" class="btn btn-success btn-sm" data-toggle="modal"
+                                        data-target="#fileBackupModal"><i class="fa fa-archive"></i></button>
+                                </td>
+                                <td align="center">-</td>
+                            </tr>
 
 
                             <!-- Button trigger modal -->
@@ -251,10 +385,10 @@ if (!isset($_COOKIE['beeuser'])) {
                     <div class="well">
                         <h4>Restore Database</h4>
                         <br>
-                        <form action="?modul=restore" method="post">
+                        <form action="?modul=restore" method="post" enctype="multipart/form-data">
                             <table>
                                 <tr>
-                                    <td><input type="file" id="anu" name="anu"></td>
+                                    <td><input type="file" id="anu" name="anu" accept=".sql"></td>
                                     <td>
                                         <button type="submit" class="btn btn-info btn-small"><i
                                                 class="fa fa-plus-circle"></i> Restore</button>
@@ -263,6 +397,48 @@ if (!isset($_COOKIE['beeuser'])) {
                             </table>
                         </form>
 
+                    </div>
+                    <div class="modal fade" id="fileBackupModal" tabindex="-1" role="dialog"
+                        aria-labelledby="fileBackupModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal"
+                                        aria-hidden="true">&times;</button>
+                                    <h4 class="modal-title" id="fileBackupModalLabel">Backup &amp; Restore File</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Backup file akan mengompres folder: pictures, audio, video, fotosiswa.</p>
+                                    <form method="post" style="margin-bottom:15px;">
+                                        <input type="hidden" name="file_action" value="backup_files">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fa fa-archive"></i> Backup File
+                                        </button>
+                                    </form>
+                                    <hr />
+                                    <form method="post">
+                                        <input type="hidden" name="file_action" value="restore_files">
+                                        <label for="backup_file">Pilih file backup</label>
+                                        <select name="backup_file" id="backup_file" class="form-control">
+                                            <?php
+                                            if ($backupFiles && count($backupFiles) > 0) {
+                                                foreach ($backupFiles as $file) {
+                                                    $basename = htmlspecialchars(basename($file), ENT_QUOTES, 'UTF-8');
+                                                    echo "<option value=\"$basename\">$basename</option>";
+                                                }
+                                            } else {
+                                                echo "<option value=\"\">Belum ada backup file</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                        <br>
+                                        <button type="submit" class="btn btn-info" <?php echo ($backupFiles && count($backupFiles) > 0) ? '' : 'disabled'; ?>>
+                                            <i class="fa fa-plus-circle"></i> Restore File
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <!-- /.panel-body -->

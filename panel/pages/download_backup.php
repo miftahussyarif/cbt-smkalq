@@ -13,7 +13,7 @@ if ($file == '' || strpos($file, '..') !== false) {
     exit;
 }
 
-$allowedPrefixes = array('dbee-ujian_', 'dbee-siswa_', 'dbee_');
+$allowedPrefixes = array('dbee-ujian_', 'dbee-siswa_', 'dbee_', 'dbee-files_');
 $allowed = false;
 foreach ($allowedPrefixes as $prefix) {
     if (strpos($file, $prefix) === 0) {

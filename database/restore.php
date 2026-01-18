@@ -12,10 +12,48 @@ include "../../config/server.php";
  */
 
 // Name of the file
-$filex = "$_REQUEST[anu]";
-$filename = '/opt/lampp/backup/' . $filex;
+$backupDir = '/opt/lampp/backup';
+$filename = '';
+$displayName = '';
+$errorMessage = '';
 
-/*
+if (isset($_FILES['anu']) && $_FILES['anu']['error'] !== UPLOAD_ERR_NO_FILE) {
+    if ($_FILES['anu']['error'] !== UPLOAD_ERR_OK) {
+        $errorMessage = 'Upload file gagal.';
+    } elseif (!is_uploaded_file($_FILES['anu']['tmp_name'])) {
+        $errorMessage = 'Upload file tidak valid.';
+    } else {
+        $displayName = basename($_FILES['anu']['name']);
+        $filename = $_FILES['anu']['tmp_name'];
+    }
+} else {
+    $filex = isset($_REQUEST['anu']) ? basename($_REQUEST['anu']) : '';
+    if ($filex !== '') {
+        $displayName = $filex;
+        $filename = $backupDir . '/' . $filex;
+    }
+}
+
+if ($errorMessage === '') {
+    if ($displayName !== '' && substr(strtolower($displayName), -4) !== '.sql') {
+        $errorMessage = 'Format file harus .sql.';
+    } elseif ($filename === '' || !is_readable($filename)) {
+        $errorMessage = 'File backup tidak ditemukan atau tidak dapat dibaca.';
+    }
+}
+
+if ($errorMessage !== '') {
+    ?>
+    <br />
+    <div class="alert alert-danger alert-dismissable" id="ndelik">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+        <?php echo $errorMessage; ?>
+    </div>
+    <?php
+    exit;
+}
+
+
 // MySQL host
 $mysql_host = 'localhost:3306';
 // MySQL username
@@ -31,9 +69,9 @@ $mysql_database = 'beesmartv3';
 mysql_connect($mysql_host, $mysql_username, $mysql_password) or die('Error connecting to MySQL server: ' . mysql_error());
 // Select database
 mysql_select_db($mysql_database) or die('Error selecting MySQL database: ' . mysql_error());
-*/
 
-//$sqlupd = mysql_query("DROP TABLE cbt_jawaban, cbt_kelas,cbt_mapel,cbt_nilai,cbt_paketsoal,cbt_persen,cbt_siswa,cbt_siswa_ujian,cbt_soal,cbt_tugas,cbt_ujian");
+
+$sqlupd = mysql_query("DROP TABLE cbt_jawaban, cbt_kelas,cbt_mapel,cbt_nilai,cbt_paketsoal,cbt_persen,cbt_siswa,cbt_siswa_ujian,cbt_soal,cbt_tugas,cbt_ujian");
 
 // Temporary variable, used to store current query
 $templine = '';

@@ -1,41 +1,48 @@
 #!/bin/bash
 
 # Base directory
-BASE_DIR="/opt/lampp/htdocs/cbtsmkalq"
+BASE_DIR="/opt/lampp/htdocs/cbt-smkalq"
 BACKUP_DIR="/opt/lampp/backup"
+WEB_USER="daemon"
+WEB_GROUP="daemon"
+OWNER_USER="${SUDO_USER:-$(id -un)}"
+OWNER_GROUP="$(id -gn "${SUDO_USER:-$(id -un)}")"
+
+UPLOAD_DIRS=(
+  "$BASE_DIR/pictures"
+  "$BASE_DIR/video"
+  "$BASE_DIR/audio"
+  "$BASE_DIR/fotosiswa"
+  "$BASE_DIR/images"
+  "$BASE_DIR/output"
+  "$BASE_DIR/file-excel"
+)
+
+if [ ! -d "$BASE_DIR" ]; then
+  echo "Base directory not found: $BASE_DIR"
+  exit 1
+fi
 
 # Create upload directories if not exist
 echo "Creating upload directories..."
-mkdir -p $BASE_DIR/pictures
-mkdir -p $BASE_DIR/video
-mkdir -p $BASE_DIR/audio
-mkdir -p $BASE_DIR/fotosiswa
-mkdir -p $BASE_DIR/images
-mkdir -p $BASE_DIR/output
-mkdir -p $BASE_DIR/file-excel
-mkdir -p $BACKUP_DIR
+sudo mkdir -p "${UPLOAD_DIRS[@]}" "$BACKUP_DIR"
+
+# Set ownership to project owner for code edits
+echo "Setting ownership to $OWNER_USER:$OWNER_GROUP..."
+sudo chown -R "$OWNER_USER":"$OWNER_GROUP" "$BASE_DIR"
+
+# Set default permissions for project files
+echo "Setting project file permissions..."
+sudo find "$BASE_DIR" -type d -exec chmod 755 {} \;
+sudo find "$BASE_DIR" -type f -exec chmod 644 {} \;
 
 # Set ownership to Apache user (daemon:daemon for XAMPP)
-echo "Setting ownership to daemon:daemon..."
-sudo chown -R daemon:daemon $BASE_DIR/pictures
-sudo chown -R daemon:daemon $BASE_DIR/video
-sudo chown -R daemon:daemon $BASE_DIR/audio
-sudo chown -R daemon:daemon $BASE_DIR/fotosiswa
-sudo chown -R daemon:daemon $BASE_DIR/images
-sudo chown -R daemon:daemon $BASE_DIR/output
-sudo chown -R daemon:daemon $BASE_DIR/file-excel
-sudo chown -R daemon:daemon $BACKUP_DIR
+echo "Setting ownership to $WEB_USER:$WEB_GROUP..."
+sudo chown -R "$WEB_USER":"$WEB_GROUP" "${UPLOAD_DIRS[@]}" "$BACKUP_DIR"
 
-# Set directory permissions (755 = rwxr-xr-x)
-echo "Setting directory permissions..."
-sudo chmod -R 755 $BASE_DIR/pictures
-sudo chmod -R 755 $BASE_DIR/video
-sudo chmod -R 755 $BASE_DIR/audio
-sudo chmod -R 755 $BASE_DIR/fotosiswa
-sudo chmod -R 755 $BASE_DIR/images
-sudo chmod -R 755 $BASE_DIR/output
-sudo chmod -R 755 $BASE_DIR/file-excel
-sudo chmod -R 755 $BACKUP_DIR
+# Set directory permissions (775 = rwxrwxr-x)
+echo "Setting writable directory permissions..."
+sudo chmod -R 775 "${UPLOAD_DIRS[@]}" "$BACKUP_DIR"
 
 echo ""
 echo "Done! Folder permissions have been set."

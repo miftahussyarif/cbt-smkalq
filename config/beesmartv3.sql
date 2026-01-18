@@ -52,8 +52,9 @@ CREATE TABLE `cbt_admin` (
 -- Dumping data for table `cbt_admin`
 --
 
-INSERT INTO `cbt_admin` (`Urut`, `XSekolah`, `XTingkat`, `XIp`, `XAlamat`, `XTelp`, `XFax`, `XEmail`, `XWeb`, `XLogo`, `XBanner`, `XKepSek`, `XAdmin`, `XPicAdmin`, `XWarna`, `XStatus`, `XKodeSekolah`, `XNIPKepsek`, `XNIPAdmin`) VALUES
-(2, 'SMP BEESMART', 'SMP', '127.0.0.1', 'www.cbtbeesmart.com', '081615555611', '-', '-', 'www.tuwagapat.com', 'icon.gif', 'logo.png', 'Sigit Hariono', 'abizayra', '15541974_1211472018934821_4807101813906355199_n.png', 'ffca01', '1', 'P9999991', '99999999999', '3333333333');
+INSERT INTO `cbt_admin` (`Urut`, `XSekolah`, `XTingkat`, `XIp`, `XAlamat`, `XTelp`, `XFax`, `XEmail`, `XWeb`, `XLogo`, `XBanner`, `XKepSek`, `XAdmin`, `XPicAdmin`, `XWarna`, `XStatus`, `XKodeSekolah`, `XNIPKepsek`, `XNIPAdmin`)
+ VALUES (2,'SMK AL-QODIRIYAH','SMK','127.0.0.1','Jegedeh, Candisari, Windusari, Magelang, Jawa tengah','085293324702','-','smkalqodiriyah@gmail.com','https://alqodiriyah.sch.id','icon.gif','logo.png','Hendradno Syafi\'i,S.Pd.','Miftahussyarif','orang.png','#0a54c6','1','K69733875','0','0');
+
 
 -- --------------------------------------------------------
 
@@ -447,10 +448,8 @@ CREATE TABLE `cbt_user` (
 -- Dumping data for table `cbt_user`
 --
 
-INSERT INTO `cbt_user` (`Urut`, `Username`, `Password`, `NIP`, `Nama`, `HP`, `FacebookID`, `login`, `Status`) VALUES
-(1, 'admin', '21232f297a57a5a743894a0e4a801fc3', '', '', '', '', 1, '1'),
-(2, 'guru', '77e69c137812518e359196bb2f5e9bb9', '', '', '', '', 0, '1'),
-(4, 'guru1', '92afb435ceb16630e9827f54330c59c9', '', 'Guru ke 2', '', '', 0, '1');
+INSERT INTO `cbt_user` (`Urut`, `Username`, `Password`, `NIP`, `Nama`, `HP`, `FacebookID`, `login`, `Status`) VALUES (1,'admin','b56a6a0f16ee6d023e7f2c892a3b1673','','','','',1,'1');
+
 
 --
 -- Indexes for dumped tables
