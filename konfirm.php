@@ -514,7 +514,7 @@ $token_error = isset($_REQUEST['salah']) && $_REQUEST['salah'] == 1;
                 <form action="mulai.php" method="post">
                     <div class="confirm-card">
                         <div class="confirm-item">
-                            <div class="confirm-label">Kode NIS</div>
+                            <div class="confirm-label">Nomor Peserta</div>
                             <div class="confirm-value"><?php echo htmlspecialchars($user, ENT_QUOTES); ?></div>
                             <input id="KodeNik" name="KodeNik" type="hidden"
                                 value="<?php echo htmlspecialchars($user, ENT_QUOTES); ?>">
