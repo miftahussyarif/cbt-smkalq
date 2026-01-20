@@ -2418,7 +2418,7 @@ $r = mysql_fetch_array($sql);
         if (e.ctrlKey) {
             // Block Ctrl+C (copy), Ctrl+V (paste), Ctrl+X (cut), Ctrl+A (select all)
             if (e.key === 'c' || e.key === 'C' ||
-                e.key === 'v' || e.key === 'V' ||
+                // e.key === 'v' || e.key === 'V' || 
                 e.key === 'x' || e.key === 'X' ||
                 e.key === 'a' || e.key === 'A') {
                 e.preventDefault();

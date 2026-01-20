@@ -12,6 +12,8 @@ if(isset($_REQUEST['modul'])){
 	elseif($_REQUEST['modul']=="upl_siswa"){
 	$kata = "Data Siswa"; }
 	elseif($_REQUEST['modul']=="upl_soal"){
+	$kata = "Data Soal"; }
+	elseif($_REQUEST['modul']=="uploadsoal"){
 	$kata = "Data Soal"; }	
 }
 ?>
