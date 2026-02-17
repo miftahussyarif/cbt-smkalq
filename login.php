@@ -467,21 +467,50 @@ $has_server_error = !empty($error_messages);
                 }
             });
 
+            function replaceInputWithType($el, newType) {
+                var el = $el.get(0);
+                var $new = $("<input>");
+                // copy attributes
+                $.each(el.attributes, function () {
+                    if (this.specified && this.name !== 'type') {
+                        $new.attr(this.name, this.value);
+                    }
+                });
+                $new.attr('type', newType);
+                $new.val($el.val());
+                $new.addClass($el.attr('class'));
+                $new.css($el.css(['width','padding','margin','display']));
+                $el.replaceWith($new);
+                return $new;
+            }
+
             $togglePassword.on("click", function () {
                 var inputEl = $passwordInput.get(0);
                 var isPassword = inputEl && inputEl.type === "password";
+                var desiredType = isPassword ? "text" : "password";
+
+                var switched = false;
                 if (inputEl) {
                     try {
-                        inputEl.type = isPassword ? "text" : "password";
+                        inputEl.type = desiredType;
+                        switched = (inputEl.type === desiredType);
                     } catch (e) {
-                        $passwordInput.attr("type", isPassword ? "text" : "password");
+                        switched = false;
                     }
                 }
-                // Compatibility fallback for browsers that keep masking style.
-                $passwordInput.css("-webkit-text-security", isPassword ? "none" : "disc");
-                $(this).attr("aria-label", isPassword ? "Sembunyikan password" : "Tampilkan password");
-                $(this).attr("title", isPassword ? "Sembunyikan password" : "Tampilkan password");
-                $(this).text(isPassword ? "🙈" : "👁");
+
+                // If browser doesn't allow changing input.type, replace the element
+                if (!switched) {
+                    var $newEl = replaceInputWithType($passwordInput, desiredType);
+                    $passwordInput = $newEl;
+                }
+
+                // Ensure legacy masking on WebKit is cleared when showing text
+                $passwordInput.css("-webkit-text-security", desiredType === "text" ? "none" : "disc");
+
+                $(this).attr("aria-label", desiredType === "password" ? "Tampilkan password" : "Sembunyikan password");
+                $(this).attr("title", desiredType === "password" ? "Tampilkan password" : "Sembunyikan password");
+                $(this).text(desiredType === "password" ? "👁" : "🙈");
             });
         });
     </script>
