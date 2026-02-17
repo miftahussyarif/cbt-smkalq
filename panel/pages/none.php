@@ -151,7 +151,7 @@ $kodesekolah = $sk['XKodeSekolah'];
 								<div class="well" style="">
 									<h4>Server ID : 
 									<span class="label" style="background-color:<?php echo $bg; ?>; padding-left:40px; padding-right:40px;  padding-top:6px; padding-bottom:6px; 
-	                                font-size:24px">
+					                                font-size:23px">
 									<?php echo $serverIdDisplay; ?>
 									</span></h4>
 								</div>
@@ -192,9 +192,9 @@ $serverConnectText = $isLocalAccess ? "CBTSync Terhubung ke Server Lokal" : "CBT
 						<?php echo $serverConnectText; ?>
 						</div>
  <div class="well" style="">
-                        <h4>Server ID : 
+						<h4>Server ID : 
 							<span class="label" style="background-color:#33b68f; padding-left:40px; padding-right:40px;  padding-top:6px; padding-bottom:6px; 
-	                        font-size:24px">
+							font-size:23px">
 	                        <?php echo $serverIdDisplay; ?>
 	                        </span></h4>
  </div>
