@@ -15,14 +15,38 @@ $user = $_COOKIE['PESERTA'];
 
 $sqluser = mysql_query("
   SELECT * , u.XKodeKelas AS kelaz, s.XKodeKelas AS kelasx, s.XKodeJurusan AS jurusx, u.XKodeSoal AS soalz, u.XKodeUjian AS ujianz,s.XSesi as sesiz,
-  s.XSetId as setidx,u.XKodeMapel as mapelx,u.XSemester as semex FROM cbt_siswa s 
+  s.XSetId as setidx,u.XKodeMapel as mapelx,u.XSemester as semex,s.XNIK as nik_siswa,s.XKodeSekolah as sekolah_siswa,u.XKodeSekolah as sekolah_ujian FROM cbt_siswa s 
 LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') 
 and (s.XKodeJurusan = u.XKodeJurusan or u.XKodeJurusan = 'ALL')
-LEFT JOIN cbt_mapel m on m.XKodeMapel = u.XKodeMapel WHERE s.XNomerUjian = 
-  '$_COOKIE[PESERTA]' and u.XStatusUjian = '1'");
+LEFT JOIN cbt_mapel m on m.XKodeMapel = u.XKodeMapel
+WHERE s.XNomerUjian = '$_COOKIE[PESERTA]'
+  and u.XStatusUjian = '1'
+  and u.XSesi = s.XSesi
+  and NOW() between CONCAT(u.XTglUjian,' ',u.XJamUjian) and ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian)
+ORDER BY CONCAT(u.XTglUjian,' ',u.XJamUjian) DESC
+LIMIT 1");
+
+if (mysql_num_rows($sqluser) < 1) {
+    $sqluser = mysql_query("
+      SELECT * , u.XKodeKelas AS kelaz, s.XKodeKelas AS kelasx, s.XKodeJurusan AS jurusx, u.XKodeSoal AS soalz, u.XKodeUjian AS ujianz,s.XSesi as sesiz,
+      s.XSetId as setidx,u.XKodeMapel as mapelx,u.XSemester as semex,s.XNIK as nik_siswa,s.XKodeSekolah as sekolah_siswa,u.XKodeSekolah as sekolah_ujian FROM cbt_siswa s 
+    LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') 
+    and (s.XKodeJurusan = u.XKodeJurusan or u.XKodeJurusan = 'ALL')
+    LEFT JOIN cbt_mapel m on m.XKodeMapel = u.XKodeMapel
+    WHERE s.XNomerUjian = '$_COOKIE[PESERTA]'
+      and u.XStatusUjian = '1'
+      and u.XSesi = s.XSesi
+      and CONCAT(u.XTglUjian,' ',u.XJamUjian) > NOW()
+    ORDER BY CONCAT(u.XTglUjian,' ',u.XJamUjian) ASC
+    LIMIT 1");
+}
 
 
 $s = mysql_fetch_array($sqluser);
+if (!$s) {
+    header('Location:index.php');
+    exit;
+}
 $val_siswa = $s['XNamaSiswa'];
 $xsesi = $s['sesiz'];
 $xkodesoal = $s['soalz'];
@@ -47,9 +71,41 @@ $xmaxlambat = $s['XLambat'];
 $xagama = $s['XAgama'];
 $xmapelagama = $s['XMapelAgama'];
 $xpilih = $s['XPilihan'];
+$xniksiswa = $s['nik_siswa'];
+$xkodesekolah = $s['sekolah_siswa'] !== '' ? $s['sekolah_siswa'] : $s['sekolah_ujian'];
 
 $xjumlahpilganda = $s['XPilGanda'];
 $xjumlahesai = $s['XEsai'];
+
+$xnow_ts = time();
+$xmulai_ts = 0;
+$xbatasmasuk_ts = 0;
+$xbatasmasuk_efektif_ts = 0;
+
+if ($xtglujian !== '' && $xjamujian !== '') {
+    $xmulai_ts = strtotime($xtglujian . ' ' . $xjamujian);
+}
+if ($xtglujian !== '' && $xbatasmasuk !== '') {
+    $xbatasmasuk_ts = strtotime($xtglujian . ' ' . $xbatasmasuk);
+    if ($xmulai_ts > 0 && $xbatasmasuk_ts < $xmulai_ts) {
+        $xbatasmasuk_ts += 86400;
+    }
+}
+$xbatasmasuk_efektif_ts = $xbatasmasuk_ts;
+
+if ($xmulai_ts > 0 && $xlamaujian !== '') {
+    $durJam = (int) substr($xlamaujian, 0, 2);
+    $durMenit = (int) substr($xlamaujian, 3, 2);
+    $durDetik = (int) substr($xlamaujian, 6, 2);
+    $durasiDetik = ($durJam * 3600) + ($durMenit * 60) + $durDetik;
+    $batasDurasiTs = $xmulai_ts + $durasiDetik;
+
+    if ((string) $xmaxlambat === '0' || strtoupper(trim($xkodeujianx)) === 'PSAJ') {
+        if ($xbatasmasuk_efektif_ts <= 0 || $batasDurasiTs > $xbatasmasuk_efektif_ts) {
+            $xbatasmasuk_efektif_ts = $batasDurasiTs;
+        }
+    }
+}
 
 
 $sqlIP = mysql_query("SELECT * FROM  `cbt_siswa_ujian` WHERE XNomerUjian = '$user' and XTokenUjian = '$xtokenujian'");
@@ -145,7 +201,7 @@ if ($xstatusujian == 9) {
 if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login 
 
 
-    if ($xjam1 > $xbatasmasuk) {
+    if ($xbatasmasuk_efektif_ts > 0 && $xnow_ts > $xbatasmasuk_efektif_ts) {
         $sqlout = mysql_query("Update cbt_siswa_ujian set XStatusUjian = '9' where XNomerUjian = '$user' and XStatusUjian = '1' and XTokenUjian ='$xtokenujian' and XSesi ='$xsesi'");
         // header('location:logout.php');
     }
@@ -165,13 +221,17 @@ if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login
     $xdtk = substr($xjumlahjam, 6, 2);
 
     //  echo "$xjumlahjam  $xjam:$xmnt:$xdtk ";
-    $xtgl1 = "$xtgl1 $xjam1";
+    $xtglujiandb = $xtgl1 . " " . $xjam1;
+    $xsisawaktu = $xlamaujian;
+    $xdurasi = (((int) $xjam) * 3600) + (((int) $xmnt) * 60) + ((int) $xdtk);
+    $xtargetujian = date('H:i:s', strtotime($xtgl1 . " " . $xjam1) + $xdurasi);
+    $xselesaiujian = "00:00:00";
 
 
     $sqlinputsiswa = mysql_query("insert into cbt_siswa_ujian 
-		(XNomerUjian, XKodeKelas, XKodeMapel,XKodeSoal,XJumSoal,XTglUjian,XJamUjian, XMulaiUjian, XLastUpdate, XLamaUjian,XTokenUjian,XStatusUjian,XSesi,XPilGanda,XEsai,XGetIP) values 
-		('$user','$xkodekelasx','$xkodemapel','$xkodesoal','$xjumlahsoal','$xtgl1','$xjamujian','$xjam1',
-		'$xjam1','$xlamaujian','$xtokenujian','1','$xsesi','$xjumpilg','$xjumesai','$user_ip')");
+		(XNomerUjian, XNISN, XKodeKelas, XKodeMapel, XKodeSoal, XPilGanda, XEsai, XJumSoal, XTglUjian, XJamUjian, XMulaiUjian, XLastUpdate, XSisaWaktu, XLamaUjian, XTargetUjian, XTokenUjian, XSelesaiUjian, XSetId, XKodeUjian, XSesi, XStatusUjian, XKodeSekolah, XGetIP) values 
+		('$user','$xniksiswa','$xkodekelasx','$xkodemapel','$xkodesoal','$xjumpilg','$xjumesai','$xjumlahsoal','$xtglujiandb','$xjamujian','$xjam1',
+		'$xjam1','$xsisawaktu','$xlamaujian','$xtargetujian','$xtokenujian','$xselesaiujian','$xsetidx','$xkodeujianx','$xsesi','1','$xkodesekolah','$user_ip')");
     if (!$sqlinputsiswa && function_exists('bee_log')) {
         bee_log('ERROR', 'INSERT_SISWA_UJIAN_FAILED', 'Gagal insert data ke cbt_siswa_ujian', array(
             'user' => $user,
