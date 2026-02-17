@@ -1,351 +1,17 @@
+<?php
+$include_heavy_assets = true;
+if (isset($_REQUEST['assets'])) {
+    $include_heavy_assets = ((string) $_REQUEST['assets'] === '1');
+}
+?>
 <body>
-    <style>
-        input[type="radio"] {
-            /* hide the real radio button - but not with display:none as it causes x-browser problems */
-            opacity: 0.2;
-            position: absolute;
-            /*left:-10000;*/
-        }
-
-        input[type="radio"]+label {
-            cursor: pointer;
-        }
-
-        .jawaban {
-            padding-bottom: 10px;
-            font-size: 10pt;
-            border: solid;
-            border-color: #CCC;
-        }
-
-        .pilihanjawaban {
-            font-size: 10pt;
-            padding-bottom: 15px;
-        }
-
-        .noti-jawab {
-            position: absolute;
-            background-color: white;
-            color: #999;
-            padding: 4px;
-            -webkit-border-radius: 30px;
-            -moz-border-radius: 30px;
-            border-radius: 30px;
-            border-style: solid;
-            border-color: #999;
-            width: 27px;
-            height: 27px;
-            text-align: center;
-        }
-
-        .flatRoundedCheckbox {
-            width: 120px;
-            height: 40px;
-            margin: 20px 50px;
-            position: relative;
-        }
-
-        .flatRoundedCheckbox div {
-            width: 100%;
-            height: 100%;
-            background: #d3d3d3;
-            border-radius: 50px;
-            position: relative;
-            top: -30px;
-        }
-
-        .cc-selector input {
-            margin-left: 0px;
-            padding: 0;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            margin-top: -90px;
-            top: -90px;
-        }
-
-        .A {
-            background-image: url(images/A.png);
-        }
-
-        .B {
-            background-image: url(images/B.png);
-        }
-
-        .C {
-            background-image: url(images/C.png);
-        }
-
-        .D {
-            background-image: url(images/D.png);
-        }
-
-        .E {
-            background-image: url(images/E.png);
-        }
-
-        .piljwb {
-            margin-left: 0;
-            border-radius: 30px;
-            border-style: solid;
-            border-color: #999;
-            list-style: none;
-        }
-
-        .cc-selector input:active+.drinkcard-cc {
-            opacity: .9;
-        }
-
-        .cc-selector input:checked+.drinkcard-cc {
-            background-image: url(images/pilih.png);
-            -webkit-filter: none;
-            -moz-filter: none;
-            filter: none;
-        }
-
-        .drinkcard-cc {
-            cursor: pointer;
-            background-size: contain;
-            background-repeat: no-repeat;
-            display: inline-block;
-            width: 38px;
-            height: 28px;
-            ;
-
-        }
-
-        .drinkcard-cc:hover {
-            -webkit-filter: brightness(1.2) grayscale(.5) opacity(.9);
-            -moz-filter: brightness(1.2) grayscale(.5) opacity(.9);
-            filter: brightness(1.2) grayscale(.5) opacity(.9);
-        }
-
-        /* Gambar default di lembar soal: maksimal 30% layar */
-        #lembaransoal img,
-        #lembaransoal .cbt-media-img {
-            max-width: 30vw !important;
-            max-height: 30vh !important;
-            width: auto !important;
-            height: auto !important;
-            object-fit: contain;
-        }
-
-        /* Gambar saat preview/zoom di modal: maksimal 80% layar */
-        #lembaransoal .modal .panel-body img,
-        .modal .panel-body img {
-            max-width: 80vw !important;
-            max-height: 80vh !important;
-            width: auto !important;
-            height: auto !important;
-            object-fit: contain;
-        }
-    </style>
+<?php if ($include_heavy_assets) { ?>
+<link rel="stylesheet" href="css/getsoal.css">
+<?php } ?>
     <!-- Slider !-->
 
-    <style>
-        #slideMenu.closed {
-            right: -400px;
-        }
-
-        #slideMenu {
-            position: fixed;
-            right: 0;
-            top: 120px;
-            width: 358px;
-            height: 500px;
-            border-left: 0px;
-            background-color: #efefef;
-            z-index: 20;
-        }
-
-        #slideMenu a.toggleBtn {
-            position: absolute;
-            left: -440px;
-            margin-left: 300px;
-            top: 0;
-            outline: none;
-            display: block;
-            height: 50px;
-            background-color: #e46f69;
-            width: 98px;
-            border-width: 1px 1px 1px 0px;
-            padding: 0 5px 0;
-            color: #000;
-            text-decoration: none;
-            font: 12px/25px Verdana, Arial, Helvetica, sans-serif;
-            z-index: 0;
-        }
-
-        #slideMenu a.toggleBtnHighlight {
-            position: absolute;
-            right: 0px;
-            margin-right: 400px;
-            top: 0;
-            outline: none;
-            display: block;
-            height: 47px;
-            background-color: #e46f69;
-            width: 35px;
-            border-width: 1px 1px 1px 0px;
-            padding: 0 5px 0;
-            color: #000;
-            text-decoration: none;
-            font: 12px/25px Verdana, Arial, Helvetica, sans-serif;
-            z-index: 0;
-        }
-
-        .contente {
-            margin-top: 20px;
-            margin-left: 20px;
-            margin-bottom: 20px;
-            margin-right: 20px;
-            width: 330px;
-            z-index: 20;
-            border-style: solid;
-            border: thin;
-            border-color: #ccc;
-            padding: 20px;
-            background-color: #FFF;
-            overflow: scroll;
-            height: 460px;
-            font: 12px/25px Verdana, Arial, Helvetica, sans-serif;
-        }
-
-        @media (max-width: 500px) {
-            /*breakpoint*/
-
-            #slideMenu.closed {
-                right: -240px;
-            }
-
-            #slideMenu {
-                position: fixed;
-                right: 0;
-                top: 100px;
-                width: 238px;
-                height: 200px;
-                border-left: 0px;
-                /*background-color:#efefef;*/
-                background-color: #efefef;
-                z-index: 20;
-            }
-
-            #slideMenu a.toggleBtn {
-                position: absolute;
-                left: -260px;
-                margin-left: 160px;
-                top: 0;
-                outline: none;
-                display: block;
-                height: 50px;
-                background-color: #e46f69;
-                width: 98px;
-                border-width: 1px 1px 1px 0px;
-                padding: 0 5px 0;
-                color: #000;
-                text-decoration: none;
-                font: 12px/25px Verdana, Arial, Helvetica, sans-serif;
-                z-index: 0;
-            }
-
-            #slideMenu a.toggleBtnHighlight {
-                position: absolute;
-                right: 0px;
-                margin-right: 280px;
-                top: 0;
-                outline: none;
-                display: block;
-                height: 47px;
-                background-color: #e46f69;
-                width: 35px;
-                border-width: 1px 1px 1px 0px;
-                padding: 0 5px 0;
-                color: #000;
-                text-decoration: none;
-                font: 12px/25px Verdana, Arial, Helvetica, sans-serif;
-                z-index: 60;
-            }
-
-            .contente {
-                margin-top: 20px;
-                margin-left: 20px;
-                margin-bottom: 20px;
-                margin-right: 20px;
-                width: 200px;
-                z-index: 20;
-                border-style: solid;
-                border: thin;
-                border-color: #ccc;
-                padding: 20px;
-                background-color: #FFF;
-                overflow: scroll;
-                height: 160px;
-                font: 12px/25px Verdana, Arial, Helvetica, sans-serif;
-            }
-
-        }
-
-        #noti-count {
-            position: absolute;
-            top: -12px;
-            right: -15px;
-            background-color: white;
-            color: #313132;
-            padding: 5px;
-            -webkit-border-radius: 30px;
-            -moz-border-radius: 30px;
-            border-radius: 30px;
-            border-style: solid;
-            border-color: #313132;
-            width: 27px;
-            height: 27px;
-            text-align: center;
-        }
-
-        #noti-count div {
-            margin-top: -5px;
-        }
-    </style>
     <div id="slideMenu" class="closed">
         <div class="contente">
-            <style>
-                #awal {
-                    color: #FFF;
-                    font-family: Arial, Helvetica, sans-serif;
-                    line-height: 90%;
-                    margin: 0px auto;
-                    margin-top: 20px;
-                }
-
-                #ahir {
-                    color: #FFF;
-                    font-family: Arial, Helvetica, sans-serif;
-                    line-height: 120%;
-                    margin: 0px auto;
-                    margin-top: 10px;
-                }
-
-                #noti-count {
-                    position: absolute;
-                    top: -12px;
-                    right: -15px;
-                    background-color: white;
-                    color: #313132;
-                    padding: 5px;
-                    -webkit-border-radius: 30px;
-                    -moz-border-radius: 30px;
-                    border-radius: 30px;
-                    border-style: solid;
-                    border-color: #313132;
-                    width: 30px;
-                    height: 30px;
-                    text-align: center;
-                }
-
-                #noti-count div {
-                    margin-top: -5px;
-                }
-            </style>
             <div style="padding-bottom:20px; font-size:14px; color:#0066CC">Soal Pilihan Ganda</div>
 
             <div id="container" style="text-align:center; height:300px;">
@@ -645,34 +311,21 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
 
 
 </body>
-<style>
-    #container {
-        height: 300px;
-    }
-
-    .item {
-        width: 50px;
-        height: 50px;
-        /*            background-color: green; */
-        border: #313132;
-        color: #fff;
-        border-style: solid;
-        margin-bottom: 17px;
-        font-size: 18px;
-        line-height: normal;
-    }
-</style>
+<?php if ($include_heavy_assets) { ?>
 <script src="js/masonry.pkgd.min.js"></script>
+<?php } ?>
 <script>
-    var container = document.querySelector('#container');
-    var msnry = new Masonry(container, {
-        //here we define grid system column width to be 320px. This remains constant throughout all viewport sizes. Columns are dropped when they have no space which makes them a responsive grid system similarly columns are added when viewport size increases.
-        columnWidth: 55,
-        //select all grid boxes
-        itemSelector: '.item',
-        //gutter property here
-        gutter: 17
-    });
+    if (typeof Masonry !== 'undefined') {
+        var container = document.querySelector('#container');
+        var msnry = new Masonry(container, {
+            //here we define grid system column width to be 320px. This remains constant throughout all viewport sizes. Columns are dropped when they have no space which makes them a responsive grid system similarly columns are added when viewport size increases.
+            columnWidth: 55,
+            //select all grid boxes
+            itemSelector: '.item',
+            //gutter property here
+            gutter: 17
+        });
+    }
 
     //script to add elements using javascript
     /* var elem = document.createElement('div');
@@ -697,15 +350,17 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
 </script>
 
 <script>
-    var container = document.querySelector('#container2');
-    var msnry = new Masonry(container, {
-        //here we define grid system column width to be 320px. This remains constant throughout all viewport sizes. Columns are dropped when they have no space which makes them a responsive grid system similarly columns are added when viewport size increases.
-        columnWidth: 55,
-        //select all grid boxes
-        itemSelector: '.item',
-        //gutter property here
-        gutter: 17
-    });
+    if (typeof Masonry !== 'undefined') {
+        var container = document.querySelector('#container2');
+        var msnry = new Masonry(container, {
+            //here we define grid system column width to be 320px. This remains constant throughout all viewport sizes. Columns are dropped when they have no space which makes them a responsive grid system similarly columns are added when viewport size increases.
+            columnWidth: 55,
+            //select all grid boxes
+            itemSelector: '.item',
+            //gutter property here
+            gutter: 17
+        });
+    }
 
     //script to add elements using javascript
     /* var elem = document.createElement('div');
@@ -796,7 +451,9 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
         }//if close
     }
 </script>
+<?php if ($include_heavy_assets) { ?>
 <script type="text/javascript" src="js/jquery.js"></script>
+<?php } ?>
 
 
 
@@ -863,14 +520,20 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
     });//ready close
 </script>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-8">
+<?php if ($include_heavy_assets) { ?>
 <script type="text/javascript" src="js/jquery.jplayer.min.js"></script>
+<?php } ?>
 
 
+<?php if ($include_heavy_assets) { ?>
 <script type="text/javascript" src="MathJax/MathJax.js?config=AM_HTMLorMML-full"></script>
+<?php } ?>
 
 <!-- script untuk refresh/reload mathjax setiap content baru !-->
 <script>
-    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+    if (typeof MathJax !== 'undefined' && MathJax.Hub) {
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+    }
 </script>
 <!-- script untuk refresh/reload mathjax setiap content baru !-->
 
@@ -1056,35 +719,39 @@ if ($result) {
         <div id="lembaransoal">
             <div class="cc-selector">
 
+                <?php if ($include_heavy_assets) { ?>
                 <link type="text/css" rel="stylesheet" href="css/jfontsize.css" />
                 <link type="text/css" rel="stylesheet" href="css/shCoreDefault.css" />
 
                 <script type="text/javascript" language="javascript" src="js/jquery.jfontsize-1.0.js"></script>
+                <?php } ?>
                 <script type="text/javascript" language="javascript">
-                    $('.some-class-name2').jfontsize({
-                        btnMinusClasseId: '#jfontsize-m2',
-                        btnDefaultClasseId: '#jfontsize-d2',
-                        btnPlusClasseId: '#jfontsize-p2',
-                        btnMinusMaxHits: 1,
-                        btnPlusMaxHits: 1,
-                        sizeChange: 5
-                    });
-                    $('.pilihanjawaban').jfontsize({
-                        btnMinusClasseId: '#jfontsize-m2',
-                        btnDefaultClasseId: '#jfontsize-d2',
-                        btnPlusClasseId: '#jfontsize-p2',
-                        btnMinusMaxHits: 1,
-                        btnPlusMaxHits: 1,
-                        sizeChange: 5
-                    });
-                    $('.jawab').jfontsize({
-                        btnMinusClasseId: '#jfontsize-m2',
-                        btnDefaultClasseId: '#jfontsize-d2',
-                        btnPlusClasseId: '#jfontsize-p2',
-                        btnMinusMaxHits: 1,
-                        btnPlusMaxHits: 1,
-                        sizeChange: 5
-                    });
+                    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.jfontsize === 'function') {
+                        $('.some-class-name2').jfontsize({
+                            btnMinusClasseId: '#jfontsize-m2',
+                            btnDefaultClasseId: '#jfontsize-d2',
+                            btnPlusClasseId: '#jfontsize-p2',
+                            btnMinusMaxHits: 1,
+                            btnPlusMaxHits: 1,
+                            sizeChange: 5
+                        });
+                        $('.pilihanjawaban').jfontsize({
+                            btnMinusClasseId: '#jfontsize-m2',
+                            btnDefaultClasseId: '#jfontsize-d2',
+                            btnPlusClasseId: '#jfontsize-p2',
+                            btnMinusMaxHits: 1,
+                            btnPlusMaxHits: 1,
+                            sizeChange: 5
+                        });
+                        $('.jawab').jfontsize({
+                            btnMinusClasseId: '#jfontsize-m2',
+                            btnDefaultClasseId: '#jfontsize-d2',
+                            btnPlusClasseId: '#jfontsize-p2',
+                            btnMinusMaxHits: 1,
+                            btnPlusMaxHits: 1,
+                            sizeChange: 5
+                        });
+                    }
                 </script>
                 <?php
                 if (str_replace(" ", "", $result['XAudioTanya']) !== '') {
@@ -1129,12 +796,17 @@ if ($result) {
                 */
 
                 ?>
+                <?php if ($include_heavy_assets) { ?>
                 <link href="dist/skin/blue.monday/css/jplayer.blue.monday.min.css" rel="stylesheet" type="text/css" />
                 <script type="text/javascript" src="lib/jquery.min.js"></script>
                 <script type="text/javascript" src="dist/jplayer/jquery.jplayer.min.js"></script>
+                <?php } ?>
                 <script type="text/javascript">
                     //<![CDATA[
                     $(document).ready(function () {
+                        if (typeof jQuery.fn.jPlayer !== 'function') {
+                            return;
+                        }
 
 
                         $("#jquery_jplayer_1").jPlayer({
@@ -1372,133 +1044,6 @@ if ($result) {
                     $audfile = str_replace(" ", "", $result['XAudioTanya']);
                     $audfile = "audio/$audfile";
                     ?>
-                    <style>
-                        .jp-volume-controls {
-                            display: block
-                        }
-
-                        /*   .jp-progress{ display:block}
-                                                           .jp-duration{ display:block}  */
-                        .jp-progress {
-                            display: none
-                        }
-
-                        .jp-duration {
-                            display: none
-                        }
-
-                        .jp-time-holder {
-                            display: block
-                        }
-
-                        .jp-volume-bar {
-                            max-width: 50px
-                        }
-
-                        @media screen and (max-width: 500px) {
-
-                            /* jplayer */
-                            .jp-video video,
-                            .jp-audio,
-                            .jp-controls-holder {
-                                width: 100% !important;
-                            }
-
-                            .jp-video,
-                            .jp-video>div,
-                            .jp-video img {
-                                height: auto !important;
-                                width: 100% !important;
-                            }
-
-                            .jp-video-360p {
-                                max-width: 370px !important;
-                                height: 100px;
-                            }
-
-                            .jp-video-270p {
-                                max-width: 180px !important;
-                                height: 100px;
-                            }
-
-                            .jp-audio-360p {
-                                max-width: 570px !important;
-                            }
-
-                            .jp-audio-270p {
-                                max-width: 480px !important;
-                            }
-
-                            .jp-progress {
-                                display: none
-                            }
-
-                            .jp-volume-bar {
-                                max-width: 50px
-                            }
-
-                            #jquery_jplayer_1 {
-                                max-width: 168px;
-                                height;
-                                100px
-                            }
-
-                        }
-
-                        @media screen and (max-width: 360px) {
-
-                            /* jplayer */
-                            .jp-video video,
-                            .jp-audio,
-                            .jp-controls-holder {
-                                width: 100% !important;
-                            }
-
-                            .jp-video,
-                            .jp-video>div,
-                            .jp-video img {
-                                height: auto !important;
-                                width: 100% !important;
-                            }
-
-                            .jp-video-360p {
-                                max-width: 370px !important;
-                                height: 100px;
-                            }
-
-                            .jp-video-270p {
-                                max-width: 180px !important;
-                                height: 100px;
-                            }
-
-                            .jp-audio-360p {
-                                max-width: 570px !important;
-                            }
-
-                            .jp-audio-270p {
-                                max-width: 480px !important;
-                            }
-
-                            .jp-volume-controls {
-                                display: none
-                            }
-
-                            .jp-progress {
-                                display: none
-                            }
-
-                            .jp-volume-bar {
-                                max-width: 50px
-                            }
-
-                            #jquery_jplayer_1 {
-                                max-width: 168px;
-                                height;
-                                100px
-                            }
-
-                        }
-                    </style>
                     <script>
 
                     </script>
@@ -1550,89 +1095,6 @@ if ($result) {
                     $vidfile = str_replace(" ", "", $result['XVideoTanya']);
                     $vidfile = "video/$vidfile";
                     ?>
-                    <style>
-                        .jp-volume-controls {
-                            display: block
-                        }
-
-                        /*   .jp-progress{ display:block}
-                                                           .jp-duration{ display:block}  */
-                        .jp-progress {
-                            display: none
-                        }
-
-                        .jp-duration {
-                            display: none
-                        }
-
-                        .jp-time-holder {
-                            display: block
-                        }
-
-                        .jp-volume-bar {
-                            max-width: 50px
-                        }
-
-                        @media screen and (max-width: 500px) {
-
-                            /* jplayer */
-                            .jp-video video,
-                            .jp-audio,
-                            .jp-controls-holder {
-                                width: 100% !important;
-                            }
-
-                            .jp-video,
-                            .jp-video>div,
-                            .jp-video img {
-                                height: auto !important;
-                                width: 100% !important;
-                            }
-
-                            .jp-video-360p {
-                                max-width: 370px !important;
-                                height: 100px;
-                            }
-
-                            .jp-video-270p {
-                                max-width: 180px !important;
-                                height: 100px;
-                            }
-
-                            .jp-audio-360p {
-                                max-width: 570px !important;
-                            }
-
-                            .jp-audio-270p {
-                                max-width: 180px !important;
-                            }
-
-                            .jp-volume-controls {
-                                display: none
-                            }
-
-                            .jp-progress {
-                                display: none
-                            }
-
-                            .jp-volume-bar {
-                                max-width: 50px
-                            }
-
-                            #jquery_jplayer_3 {
-                                max-width: 160px;
-                                height;
-                                100px
-                            }
-
-                            #jquery_jplayer_1 {
-                                max-width: 160px;
-                                height;
-                                100px
-                            }
-
-                        }
-                    </style>
 
                     <input type="hidden" name="berhenti2" id="berhenti2">
                     <?php if ($putar2 == 0) { ?>
@@ -1746,23 +1208,15 @@ if ($result) {
 <script type="text/javascript" src="js/jquery.js"></script>
 
 !-->
-                <style>
-                    textarea {
-                        width: 100%;
-                    }
-
-                    .textwrapper {
-                        margin: 5px 0;
-                        padding: 0px;
-                    }
-                </style>
                 <input id="soale" type="hidden" name="soale"
                     value="<?php echo $current_picture; ?>" /><?php // echo $xkodesoal; ?>
 
                 <?php
                 if ($jensoal == 2) {
                     ?>
+                    <?php if ($include_heavy_assets) { ?>
                     <script src="js/jquery.min.js"></script>
+                    <?php } ?>
                     <script>
                         var $jnoc = jQuery.noConflict();
                         $jnoc(document).ready(function () {
@@ -2201,38 +1655,6 @@ if ($result) {
 
 
 
-<style>
-    .container1 {
-        font-size: 0;
-        /*fix white space*/
-
-    }
-
-    .container1>div {
-        font-size: 16px;
-        /*reset font size*/
-        display: inline-block;
-        vertical-align: top;
-        width: 30.33%;
-        border: thin;
-        border-color: #0000FF;
-        box-sizing: border-box;
-        text-align: left;
-        margin-left: 20px;
-
-    }
-
-    @media (max-width: 480px) {
-
-        /*breakpoint*/
-        .container1>div {
-            display: block;
-            width: 100%;
-            margin-left: 20px;
-            padding-bottom: 15px;
-        }
-    }
-</style>
 
 
 
@@ -2337,35 +1759,6 @@ if ($result) {
         </div>
     </section>
 </div>
-<style>
-    .labele {
-        display: block;
-        padding-top: 6px;
-        padding-bottom: 6px;
-        font-size: 16px;
-        background-color: #eaca08;
-        margin-top: -10px;
-        padding-left: 50px;
-        border-radius: 2px;
-        cursor: pointer;
-        width: 210px;
-        color: #FFF;
-
-        &:hover {
-            cursor: pointer;
-        }
-
-        input[type="checkbox"] {
-            position: relative;
-            top: 3px;
-            font-size: 18px;
-            border: 2px solid black;
-            width: 20px;
-            height: 20px;
-            margin: 0;
-            padding: 0;
-        }
-</style>
 
 <!-- Creates the bootstrap modal where the image will appear -->
 <div class="modal fade" id="imagemodal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

@@ -266,41 +266,23 @@ if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login
 
 }
 ?>
-<?php include "modal.php"; ?>
-
 <!DOCTYPE html>
 <!-- <script type="text/javascript" src="js/jquery.js"></script> !-->
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
 <script src="js/jquery-scrolltofixed.js" type="text/javascript"></script>
 
 <script>
-    $(document).ready(function () {
-
-        $(function () {//document ready event
-            setTimeout(function () {
-                $("#myModal").show();
-            }, 3000);//set interval to 3 second
-        });
-        // Dock the header to the top of the window when scrolled past the banner.
-        // This is the default behavior.
-
+    function initScrollLayout() {
         $('.header').scrollToFixed();
-        // Dock the footer to the bottom of the page, but scroll up to reveal more
-        // content if the page is scrolled far enough.
-
         $('.footer').scrollToFixed({
             bottom: 0,
             limit: $('.footer').offset().top
         });
-
-
-        // Dock each summary as it arrives just below the docked header, pushing the
-        // previous summary up the page.
-
         var summaries = $('.summary');
         summaries.each(function (i) {
             var summary = $(summaries[i]);
             var next = summaries[i + 1];
-
             summary.scrollToFixed({
                 marginTop: $('.header').outerHeight(true) + 10,
                 limit: function () {
@@ -315,6 +297,24 @@ if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login
                 zIndex: 999
             });
         });
+    }
+
+    $(document).ready(function () {
+        setTimeout(function () {
+            $("#myModal").show();
+        }, 3000);
+
+        initScrollLayout();
+
+        if (typeof window.__cbtInitCountdown === 'function') {
+            window.__cbtInitCountdown();
+        }
+        if (typeof window.__cbtStartMonitoring === 'function') {
+            window.__cbtStartMonitoring();
+        }
+        if (typeof window.__cbtInitQuestionLoader === 'function') {
+            window.__cbtInitQuestionLoader();
+        }
     });
 </script>
 
@@ -619,8 +619,6 @@ if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login
     }
 </style>
 
-<script type="text/javascript" src="js/jquery.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
 <script>
     function showUser(str) {
         alert();
@@ -1146,6 +1144,7 @@ $r = mysql_fetch_array($sql);
 ?>
 
 <body class="font-medium" style="background-color:#c9c9c9">
+    <?php include "modal.php"; ?>
     <header style="background-color:<?php echo "$r[XWarna]"; ?>">
         <div class="group">
             <div class="left" style="background-color:<?php echo "$r[XWarna]"; ?>"><a href=" "><img
@@ -1195,10 +1194,9 @@ $r = mysql_fetch_array($sql);
                 style="font-size:18px; text-decoration:none">&nbsp; A &nbsp;</a></span>
     </div>
 
-    <script type="text/javascript" src="js/jquery-2.0.3.js"></script>
     <script type="text/javascript" src="js/jquery.countdownTimer.js"></script>
     <script>
-        $(function () {
+        window.__cbtInitCountdown = function () {
             $('#h_timer').countdowntimer({
                 hours: <?php echo $xjam; ?>,
                 minutes: <?php echo $xmnt; ?>,
@@ -1206,9 +1204,12 @@ $r = mysql_fetch_array($sql);
                 size: "lg",
                 timeUp: timeisUp
             });
-        });
+        };
         function timeisUp() {
             alert("Waktu pengerjaan sudah habis");
+            if (typeof window.__cbtClearSoalCache === 'function') {
+                window.__cbtClearSoalCache();
+            }
 
             setTimeout(function () {
                 window.location.href = $("a")[0].href;
@@ -1224,7 +1225,7 @@ $r = mysql_fetch_array($sql);
     <script>
         (function () {
             var monitorUrl = 'monitor_event.php';
-            var statusUrl = 'monitor_status.php';
+            var stateUrl = 'monitor_state.php';
             var configUrl = 'pengawasan_get_config.php';
             var lastEvent = '';
             var lastSentAt = 0;
@@ -1308,12 +1309,34 @@ $r = mysql_fetch_array($sql);
                 }
             }
 
-            function checkLock() {
-                $.getJSON(statusUrl, function (resp) {
+            function pollMonitorState() {
+                var withRto = monitorConfig.monitor_rto ? '1' : '0';
+                $.ajax({
+                    url: stateUrl,
+                    type: 'GET',
+                    dataType: 'json',
+                    data: { rto: withRto },
+                    timeout: 4500
+                }).done(function (resp) {
                     if (!resp || resp.ok === false) {
+                        if (monitorConfig.monitor_rto) {
+                            handleRto();
+                        }
                         return;
                     }
-                    applyLockState(resp.locked);
+                    applyLockState(!!resp.locked);
+                    if (!monitorConfig.monitor_rto) {
+                        return;
+                    }
+                    if (resp.rto) {
+                        handleRto();
+                    } else {
+                        clearRto();
+                    }
+                }).fail(function () {
+                    if (monitorConfig.monitor_rto) {
+                        handleRto();
+                    }
                 });
             }
 
@@ -1432,44 +1455,32 @@ $r = mysql_fetch_array($sql);
                 lastSplitViewDetected = detected;
             }
 
-            function pingInternet() {
-                if (!monitorConfig.monitor_rto) return;
-                if (window.__cbtLocked) {
-                    return;
-                }
-                $.ajax({
-                    url: 'monitor_ping.php',
-                    type: 'GET',
-                    dataType: 'json',
-                    timeout: 4000
-                }).done(function (resp) {
-                    if (!resp || resp.ok === false) {
-                        handleRto();
-                        return;
-                    }
-                    if (resp.rto) {
-                        handleRto();
-                    } else {
-                        clearRto();
-                    }
-                }).fail(function () {
-                    handleRto();
-                });
-            }
+            window.__cbtStartMonitoring = function () {
+                var monitorPollTimer = null;
+                var monitorPollVisibleMs = 5000;
+                var monitorPollHiddenMs = 10000;
 
-            $(document).ready(function () {
+                function scheduleMonitorPoll(nextDelay) {
+                    if (monitorPollTimer) {
+                        clearTimeout(monitorPollTimer);
+                    }
+                    monitorPollTimer = setTimeout(function () {
+                        pollMonitorState();
+                        scheduleMonitorPoll(document.hidden ? monitorPollHiddenMs : monitorPollVisibleMs);
+                    }, nextDelay);
+                }
+
                 sendEvent('aman');
-                checkLock();
+                pollMonitorState();
                 checkSplitView();
-                setInterval(checkLock, 3000);
+                scheduleMonitorPoll(monitorPollVisibleMs);
                 setInterval(function () {
                     if (!document.hidden) {
                         sendEvent('aman');
                     }
                 }, 30000);
-                setInterval(pingInternet, 3000);
-                setInterval(checkSplitView, 3000);
-            });
+                setInterval(checkSplitView, 5000);
+            };
 
             window.addEventListener('resize', function () {
                 checkSplitView();
@@ -1479,9 +1490,190 @@ $r = mysql_fetch_array($sql);
 
     <!-- load jquery -->
     <script type="text/javascript">
-        $(document).ready(function () {
+        window.__cbtInitQuestionLoader = function () {
             var cbtStorageKey = 'cbt_last_soal_<?php echo $user; ?>_<?php echo $xtokenujian; ?>_<?php echo $xkodesoal; ?>';
+            var cbtCachePrefix = 'cbt_cache_<?php echo $user; ?>_<?php echo $xtokenujian; ?>_<?php echo $xkodesoal; ?>_';
+            var cbtCacheIndexKey = cbtCachePrefix + 'index';
             var initialSoal = 1;
+            var memoryCache = {};
+            var prefetchQueue = [];
+            var prefetchInFlight = {};
+            var prefetchTimer = null;
+            var PREFETCH_DELAY_MS = 800;
+
+            function readCacheIndex() {
+                try {
+                    var raw = localStorage.getItem(cbtCacheIndexKey);
+                    if (!raw) return [];
+                    var parsed = JSON.parse(raw);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function writeCacheIndex(arr) {
+                try {
+                    localStorage.setItem(cbtCacheIndexKey, JSON.stringify(arr));
+                } catch (e) {
+                }
+            }
+
+            function cacheSet(pictureId, html) {
+                var id = String(pictureId);
+                memoryCache[id] = html;
+                try {
+                    localStorage.setItem(cbtCachePrefix + id, html);
+                    var idx = readCacheIndex();
+                    if (idx.indexOf(id) === -1) {
+                        idx.push(id);
+                    }
+                    if (idx.length > 8) {
+                        while (idx.length > 8) {
+                            var oldId = idx.shift();
+                            if (oldId) {
+                                localStorage.removeItem(cbtCachePrefix + oldId);
+                            }
+                        }
+                    }
+                    writeCacheIndex(idx);
+                } catch (e) {
+                }
+            }
+
+            function cacheGet(pictureId) {
+                var id = String(pictureId);
+                if (memoryCache[id]) {
+                    return memoryCache[id];
+                }
+                try {
+                    var html = localStorage.getItem(cbtCachePrefix + id);
+                    if (html) {
+                        memoryCache[id] = html;
+                        return html;
+                    }
+                } catch (e) {
+                }
+                return null;
+            }
+
+            function extractNextIdFromHtml(html) {
+                var wrapper = document.createElement('div');
+                wrapper.innerHTML = html;
+                var nextLink = wrapper.querySelector('a#tomb.get_pic');
+                if (!nextLink) {
+                    return null;
+                }
+                return nextLink.getAttribute('data-id');
+            }
+
+            function isQueued(id) {
+                for (var i = 0; i < prefetchQueue.length; i++) {
+                    if (prefetchQueue[i].id === id) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function runPrefetchQueue() {
+                if (prefetchTimer || prefetchQueue.length === 0) {
+                    return;
+                }
+                var task = prefetchQueue.shift();
+                if (!task || !task.id) {
+                    return;
+                }
+                var id = task.id;
+                if (cacheGet(id) || prefetchInFlight[id]) {
+                    if (typeof task.onDone === 'function') {
+                        task.onDone(cacheGet(id));
+                    }
+                    runPrefetchQueue();
+                    return;
+                }
+                prefetchInFlight[id] = true;
+                $.post("getsoal.php?assets=0", { pic: id }, function (data) {
+                    cacheSet(id, data);
+                    if (typeof task.onDone === 'function') {
+                        task.onDone(data);
+                    }
+                }).always(function () {
+                    delete prefetchInFlight[id];
+                    prefetchTimer = setTimeout(function () {
+                        prefetchTimer = null;
+                        runPrefetchQueue();
+                    }, PREFETCH_DELAY_MS);
+                });
+            }
+
+            function prefetchQuestion(pictureId, onDone) {
+                if (!pictureId) {
+                    return;
+                }
+                var id = String(pictureId);
+                var cachedHtml = cacheGet(id);
+                if (cachedHtml) {
+                    if (typeof onDone === 'function') {
+                        onDone(cachedHtml);
+                    }
+                    return;
+                }
+                if (prefetchInFlight[id] || isQueued(id)) {
+                    return;
+                }
+                prefetchQueue.push({ id: id, onDone: onDone || null });
+                runPrefetchQueue();
+            }
+
+            function prefetchNextAfterRender(renderedHtml) {
+                var nextId = extractNextIdFromHtml(renderedHtml);
+                if (!nextId) {
+                    return;
+                }
+                prefetchQuestion(nextId, function (nextHtml) {
+                    if (!nextHtml) {
+                        return;
+                    }
+                    var next2Id = extractNextIdFromHtml(nextHtml);
+                    if (next2Id) {
+                        prefetchQuestion(next2Id);
+                    }
+                });
+            }
+
+            function renderQuestion(pictureId, html, shouldCache) {
+                var id = String(pictureId);
+                $("#picture").html(html);
+                $("#soal").html(id);
+                try {
+                    localStorage.setItem(cbtStorageKey, id);
+                } catch (e) {
+                }
+                if (shouldCache) {
+                    cacheSet(id, html);
+                }
+                prefetchNextAfterRender(html);
+            }
+
+            window.__cbtClearSoalCache = function () {
+                memoryCache = {};
+                prefetchQueue = [];
+                prefetchInFlight = {};
+                if (prefetchTimer) {
+                    clearTimeout(prefetchTimer);
+                    prefetchTimer = null;
+                }
+                try {
+                    var idx = readCacheIndex();
+                    for (var i = 0; i < idx.length; i++) {
+                        localStorage.removeItem(cbtCachePrefix + idx[i]);
+                    }
+                    localStorage.removeItem(cbtCacheIndexKey);
+                    localStorage.removeItem(cbtStorageKey);
+                } catch (e) {
+                }
+            };
 
             try {
                 var savedSoal = localStorage.getItem(cbtStorageKey);
@@ -1496,9 +1688,8 @@ $r = mysql_fetch_array($sql);
             }
 
             $("#soal").html(initialSoal);
-            $.post("getsoal.php?kode=<?php echo $xkodesoal; ?>", { pic: String(initialSoal) }, function (data) {
-                $("#picture").html(data);
-                $("#soal").html(initialSoal);
+            $.post("getsoal.php?kode=<?php echo $xkodesoal; ?>&assets=1", { pic: String(initialSoal) }, function (data) {
+                renderQuestion(initialSoal, data, false);
             });
 
             $("#picture").on("click", ".get_pic", function (e) {
@@ -1508,62 +1699,23 @@ $r = mysql_fetch_array($sql);
                 }
                 var picture_id = $(this).attr('data-id');
                 $("#picture").html("<div style=\"margin:50px auto;width:50px;\"><img src=\"loader.gif\" /></div>");
-                $("#soal").html(picture_id);
-                try {
-                    localStorage.setItem(cbtStorageKey, String(picture_id));
-                } catch (e) {
+                var cached = cacheGet(picture_id);
+                if (cached) {
+                    renderQuestion(picture_id, cached, false);
+                    return false;
                 }
-                $.post("getsoal.php", { pic: picture_id }, function (data) {
-                    $("#picture").html(data);
+                $.post("getsoal.php?assets=0", { pic: picture_id }, function (data) {
+                    renderQuestion(picture_id, data, true);
                 });
                 return false;
             });
 
-        });
-    </script>
-
-    <script src="js/jquery-scrolltofixed.js" type="text/javascript"></script>
-    <script>
-        $(document).ready(function () {
-
-            // Dock the header to the top of the window when scrolled past the banner.
-            // This is the default behavior.
-
-            $('.header').scrollToFixed();
-
-
-            // Dock the footer to the bottom of the page, but scroll up to reveal more
-            // content if the page is scrolled far enough.
-
-            $('.footer').scrollToFixed({
-                bottom: 0,
-                limit: $('.footer').offset().top
+            $(document).on("click", "a[href='logout.php']", function () {
+                if (typeof window.__cbtClearSoalCache === 'function') {
+                    window.__cbtClearSoalCache();
+                }
             });
-
-
-            // Dock each summary as it arrives just below the docked header, pushing the
-            // previous summary up the page.
-
-            var summaries = $('.summary');
-            summaries.each(function (i) {
-                var summary = $(summaries[i]);
-                var next = summaries[i + 1];
-
-                summary.scrollToFixed({
-                    marginTop: $('.header').outerHeight(true) + 10,
-                    limit: function () {
-                        var limit = 0;
-                        if (next) {
-                            limit = $(next).offset().top - $(this).outerHeight(true) - 10;
-                        } else {
-                            limit = $('.footer').offset().top - $(this).outerHeight(true) - 10;
-                        }
-                        return limit;
-                    },
-                    zIndex: 999
-                });
-            });
-        });
+        };
     </script>
 
     <div id="picture">
@@ -1919,6 +2071,9 @@ $r = mysql_fetch_array($sql);
             console.log('selesaiTes() dipanggil - Mengarahkan ke akhir.php');
             console.log('Current URL:', window.location.href);
             console.log('Target URL: akhir.php');
+            if (typeof window.__cbtClearSoalCache === 'function') {
+                window.__cbtClearSoalCache();
+            }
             
             // Verifikasi bahwa window.location tersedia
             if (typeof window.location === 'undefined') {

@@ -86,8 +86,30 @@ $backup_file = $backup_dir . '/dbee-ujian_' . time() . '.sql';
 //$mybackup = backup_tables("localhost:3306","root","","beesmartv3","*");
 $mybackup = backup_tables("localhost:3306", "root", "", "beesmartv3", $tabel);
 
+if (!is_writable($backup_dir)) {
+  ?>
+  <br />
+  <div class="alert alert-danger alert-dismissable">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+    Folder backup tidak bisa ditulis: <?php echo $backup_dir; ?><br />
+    Atur permission folder agar web server dapat menulis.
+  </div>
+  <?php
+  exit;
+}
+
 // save to file
 $handle = fopen($backup_file, 'w+');
+if ($handle === false) {
+  ?>
+  <br />
+  <div class="alert alert-danger alert-dismissable">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+    Gagal membuat file backup: <?php echo $backup_file; ?>
+  </div>
+  <?php
+  exit;
+}
 fwrite($handle, $mybackup);
 fclose($handle);
 

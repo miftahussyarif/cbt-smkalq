@@ -86,8 +86,17 @@ $backup_file = $backup_dir . '/dbee-ujian_' . time() . '.sql';
 //$mybackup = backup_tables("localhost:3306","root","","beesmartv3","*");
 $mybackup = backup_tables("localhost:3306", "root", "", "beesmartv3", $tabel);
 
+if (!is_writable($backup_dir)) {
+  echo "Folder backup tidak bisa ditulis: " . $backup_dir;
+  exit;
+}
+
 // save to file
 $handle = fopen($backup_file, 'w+');
+if ($handle === false) {
+  echo "Gagal membuat file backup: " . $backup_file;
+  exit;
+}
 fwrite($handle, $mybackup);
 fclose($handle);
 

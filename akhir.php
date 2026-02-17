@@ -459,6 +459,25 @@ $brand_name = "CBT " . $school_name;
     </div>
 
     <script>
+        (function () {
+            try {
+                var keysToRemove = [];
+                for (var i = 0; i < localStorage.length; i++) {
+                    var key = localStorage.key(i);
+                    if (!key) {
+                        continue;
+                    }
+                    if (key.indexOf('cbt_cache_') === 0 || key.indexOf('cbt_last_soal_') === 0) {
+                        keysToRemove.push(key);
+                    }
+                }
+                for (var j = 0; j < keysToRemove.length; j++) {
+                    localStorage.removeItem(keysToRemove[j]);
+                }
+            } catch (e) {
+            }
+        })();
+
         setTimeout(function() {
             window.location.href = "logout.php";
         }, 300000);
