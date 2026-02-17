@@ -217,23 +217,41 @@ $secs3 =  $diffSeconds3 - ($hrs3 *3600 + $mins3 * 60);
 
 }
 ?>
+<?php include "modal.php"; ?>
+
 <!DOCTYPE html>
 <!-- <script type="text/javascript" src="js/jquery.js"></script> !-->
-<script type="text/javascript" src="js/jquery.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="js/jquery-scrolltofixed.js" type="text/javascript"></script>
+ <script src="js/jquery-scrolltofixed.js" type="text/javascript"></script>
 
 <script>
-    function initScrollLayout() {
+    $(document).ready(function() {
+		
+		$(function(){//document ready event
+   setTimeout(function(){
+        $("#myModal").show();
+   },3000);//set interval to 3 second
+}); 
+        // Dock the header to the top of the window when scrolled past the banner.
+        // This is the default behavior.
+
         $('.header').scrollToFixed();
+        // Dock the footer to the bottom of the page, but scroll up to reveal more
+        // content if the page is scrolled far enough.
+
         $('.footer').scrollToFixed( {
             bottom: 0,
             limit: $('.footer').offset().top
         });
+
+
+        // Dock each summary as it arrives just below the docked header, pushing the
+        // previous summary up the page.
+
         var summaries = $('.summary');
         summaries.each(function(i) {
             var summary = $(summaries[i]);
             var next = summaries[i + 1];
+
             summary.scrollToFixed({
                 marginTop: $('.header').outerHeight(true) + 10,
                 limit: function() {
@@ -248,21 +266,6 @@ $secs3 =  $diffSeconds3 - ($hrs3 *3600 + $mins3 * 60);
                 zIndex: 999
             });
         });
-    }
-
-    $(document).ready(function() {
-        setTimeout(function(){
-            $("#myModal").show();
-        },3000);
-
-        initScrollLayout();
-
-        if (typeof window.__cbtInitCountdown === 'function') {
-            window.__cbtInitCountdown();
-        }
-        if (typeof window.__cbtInitQuestionLoader === 'function') {
-            window.__cbtInitQuestionLoader();
-        }
     });
 </script>   
 
@@ -500,6 +503,7 @@ $secs3 =  $diffSeconds3 - ($hrs3 *3600 + $mins3 * 60);
 
 </style>
 
+<script type="text/javascript" src="js/jquery.min.js"></script>
 <script>
 function showUser(str) {
 	alert();
@@ -610,6 +614,7 @@ box.addEventListener('change', function no_email_confirm() {
 <link href="css/klien.css" rel="stylesheet">
 
 <link href="css/sikil.css" rel="stylesheet">
+<link href="css/getsoal.css" rel="stylesheet">
 <script src="js/inline.js"></script>
 <!--<script type="text/javascript"
   src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=AM_HTMLorMML-full"></script>
@@ -899,7 +904,6 @@ img {
 </style>
    
 <body>
-<?php include "modal.php"; ?>
 <header>
 <div class="group1">
     <div class="left1"><a href=" "><img src="images/logo.png" style=" margin-left:0px;"></a>
@@ -932,26 +936,24 @@ img {
 <div id="fontlembarsoal" class="fontlembarsoal">
 <span id="hurufsoal"> Ukuran font soal : <a id="jfontsize-m2" href="#" style="font-size:14px; text-decoration:none">&nbsp; A &nbsp;</a> <a id="jfontsize-d2" href="#" style="font-size:16px; text-decoration:none">&nbsp; A &nbsp;</a> <a id="jfontsize-p2" href="#" style="font-size:18px; text-decoration:none">&nbsp; A &nbsp;</a></span></div>   
 
-                    <script type="text/javascript" src="js/jquery.countdownTimer.js"></script>
+                    <script type="text/javascript" src="js/jquery-2.0.3.js"></script>
+                    <script type="text/javascript" src="js/jquery.countdownTimer.js"></script>                   
                     <script>
-                                window.__cbtInitCountdown = function(){
+                                $(function(){
                                     $('#h_timer').countdowntimer({
                                         hours : <?php echo $xjam; ?>,
                                         minutes :<?php echo $xmnt; ?>,
 										seconds:<?php echo $xdtk; ?>,														
                                         size : "lg",
-							                timeUp : timeisUp																														
+						                timeUp : timeisUp																														
                                     });
-                                };
-							function timeisUp() {
-						alert("Waktu pengerjaan sudah habis");
-                        if (typeof window.__cbtClearSoalCache === 'function') {
-                            window.__cbtClearSoalCache();
-                        }
-						
-							setTimeout(function() { 
-							window.location.href = $("a")[0].href; 
-							}, 2000);
+                                });
+					function timeisUp() {
+					alert("Waktu pengerjaan sudah habis");
+					
+						setTimeout(function() { 
+						window.location.href = $("a")[0].href; 
+						}, 2000);
 						//Code to be executed when timer expires.
 						window.location="akhir.php";
 					
@@ -960,230 +962,81 @@ img {
 
                             </script>
 
+<<<<<<< ours
 <!-- load jquery -->
 <script type="text/javascript">
 window.__cbtInitQuestionLoader = function() {
-    var cbtStorageKey = 'cbt_last_soal_<?php echo $user; ?>_<?php echo $xtokenujian; ?>_<?php echo $xkodesoal; ?>';
-    var cbtCachePrefix = 'cbt_cache_<?php echo $user; ?>_<?php echo $xtokenujian; ?>_<?php echo $xkodesoal; ?>_';
-    var cbtCacheIndexKey = cbtCachePrefix + 'index';
-    var initialSoal = 1;
-    var memoryCache = {};
-    var prefetchQueue = [];
-    var prefetchInFlight = {};
-    var prefetchTimer = null;
-    var PREFETCH_DELAY_MS = 800;
+$("#soal").html(1);
+	$.post( "getsoal.php?kode=<?php echo $xkodesoal; ?>&assets=1", { pic: "1"}, function( data ) {
+	  $("#picture").html( data );
+	  $("#soal").html(1);
+	});
+=======
+<!-- load jquery -->
+<script type="text/javascript">
+$(document).ready(function() {
+$("#soal").html(1);
+	$.post( "getsoal.php?kode=<?php echo $xkodesoal; ?>", { pic: "1"}, function( data ) {
+	  $("#picture").html( data );
+	  $("#soal").html(1);
+	});
+>>>>>>> theirs
+	
+	$("#picture").on("click",".get_pic", function(e){
+		var picture_id = $(this).attr('data-id');
+		$("#picture").html("<div style=\"margin:50px auto;width:50px;\"><img src=\"loader.gif\" /></div>");
+		$("#soal").html(picture_id);
+		$.post( "getsoal.php?assets=0", { pic: picture_id}, function( data ) {
+			$("#picture").html( data );
+		});
+		return false;
+	});
+	
+});
+</script>
 
-    function readCacheIndex() {
-        try {
-            var raw = localStorage.getItem(cbtCacheIndexKey);
-            if (!raw) return [];
-            var parsed = JSON.parse(raw);
-            return Array.isArray(parsed) ? parsed : [];
-        } catch (e) {
-            return [];
-        }
-    }
+<script src="js/jquery-scrolltofixed.js" type="text/javascript"></script>
+<script>
+    $(document).ready(function() {
 
-    function writeCacheIndex(arr) {
-        try {
-            localStorage.setItem(cbtCacheIndexKey, JSON.stringify(arr));
-        } catch (e) {
-        }
-    }
+        // Dock the header to the top of the window when scrolled past the banner.
+        // This is the default behavior.
 
-    function cacheSet(pictureId, html) {
-        var id = String(pictureId);
-        memoryCache[id] = html;
-        try {
-            localStorage.setItem(cbtCachePrefix + id, html);
-            var idx = readCacheIndex();
-            if (idx.indexOf(id) === -1) {
-                idx.push(id);
-            }
-            if (idx.length > 8) {
-                while (idx.length > 8) {
-                    var oldId = idx.shift();
-                    if (oldId) {
-                        localStorage.removeItem(cbtCachePrefix + oldId);
+        $('.header').scrollToFixed();
+
+
+        // Dock the footer to the bottom of the page, but scroll up to reveal more
+        // content if the page is scrolled far enough.
+
+        $('.footer').scrollToFixed( {
+            bottom: 0,
+            limit: $('.footer').offset().top
+        });
+
+
+        // Dock each summary as it arrives just below the docked header, pushing the
+        // previous summary up the page.
+
+        var summaries = $('.summary');
+        summaries.each(function(i) {
+            var summary = $(summaries[i]);
+            var next = summaries[i + 1];
+
+            summary.scrollToFixed({
+                marginTop: $('.header').outerHeight(true) + 10,
+                limit: function() {
+                    var limit = 0;
+                    if (next) {
+                        limit = $(next).offset().top - $(this).outerHeight(true) - 10;
+                    } else {
+                        limit = $('.footer').offset().top - $(this).outerHeight(true) - 10;
                     }
-                }
-            }
-            writeCacheIndex(idx);
-        } catch (e) {
-        }
-    }
-
-    function cacheGet(pictureId) {
-        var id = String(pictureId);
-        if (memoryCache[id]) {
-            return memoryCache[id];
-        }
-        try {
-            var html = localStorage.getItem(cbtCachePrefix + id);
-            if (html) {
-                memoryCache[id] = html;
-                return html;
-            }
-        } catch (e) {
-        }
-        return null;
-    }
-
-    function extractNextIdFromHtml(html) {
-        var wrapper = document.createElement('div');
-        wrapper.innerHTML = html;
-        var nextLink = wrapper.querySelector('a#tomb.get_pic');
-        if (!nextLink) {
-            return null;
-        }
-        return nextLink.getAttribute('data-id');
-    }
-
-    function isQueued(id) {
-        for (var i = 0; i < prefetchQueue.length; i++) {
-            if (prefetchQueue[i].id === id) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    function runPrefetchQueue() {
-        if (prefetchTimer || prefetchQueue.length === 0) {
-            return;
-        }
-        var task = prefetchQueue.shift();
-        if (!task || !task.id) {
-            return;
-        }
-        var id = task.id;
-        if (cacheGet(id) || prefetchInFlight[id]) {
-            if (typeof task.onDone === 'function') {
-                task.onDone(cacheGet(id));
-            }
-            runPrefetchQueue();
-            return;
-        }
-        prefetchInFlight[id] = true;
-        $.post("getsoal.php?assets=0", { pic: id }, function (data) {
-            cacheSet(id, data);
-            if (typeof task.onDone === 'function') {
-                task.onDone(data);
-            }
-        }).always(function () {
-            delete prefetchInFlight[id];
-            prefetchTimer = setTimeout(function () {
-                prefetchTimer = null;
-                runPrefetchQueue();
-            }, PREFETCH_DELAY_MS);
+                    return limit;
+                },
+                zIndex: 999
+            });
         });
-    }
-
-    function prefetchQuestion(pictureId, onDone) {
-        if (!pictureId) {
-            return;
-        }
-        var id = String(pictureId);
-        var cachedHtml = cacheGet(id);
-        if (cachedHtml) {
-            if (typeof onDone === 'function') {
-                onDone(cachedHtml);
-            }
-            return;
-        }
-        if (prefetchInFlight[id] || isQueued(id)) {
-            return;
-        }
-        prefetchQueue.push({ id: id, onDone: onDone || null });
-        runPrefetchQueue();
-    }
-
-    function prefetchNextAfterRender(renderedHtml) {
-        var nextId = extractNextIdFromHtml(renderedHtml);
-        if (!nextId) {
-            return;
-        }
-        prefetchQuestion(nextId, function (nextHtml) {
-            if (!nextHtml) {
-                return;
-            }
-            var next2Id = extractNextIdFromHtml(nextHtml);
-            if (next2Id) {
-                prefetchQuestion(next2Id);
-            }
-        });
-    }
-
-    function renderQuestion(pictureId, html, shouldCache) {
-        var id = String(pictureId);
-        $("#picture").html(html);
-        $("#soal").html(id);
-        try {
-            localStorage.setItem(cbtStorageKey, id);
-        } catch (e) {
-        }
-        if (shouldCache) {
-            cacheSet(id, html);
-        }
-        prefetchNextAfterRender(html);
-    }
-
-    window.__cbtClearSoalCache = function () {
-        memoryCache = {};
-        prefetchQueue = [];
-        prefetchInFlight = {};
-        if (prefetchTimer) {
-            clearTimeout(prefetchTimer);
-            prefetchTimer = null;
-        }
-        try {
-            var idx = readCacheIndex();
-            for (var i = 0; i < idx.length; i++) {
-                localStorage.removeItem(cbtCachePrefix + idx[i]);
-            }
-            localStorage.removeItem(cbtCacheIndexKey);
-            localStorage.removeItem(cbtStorageKey);
-        } catch (e) {
-        }
-    };
-
-    try {
-        var savedSoal = localStorage.getItem(cbtStorageKey);
-        if (savedSoal !== null) {
-            var parsed = parseInt(savedSoal, 10);
-            if (!isNaN(parsed) && parsed > 0) {
-                initialSoal = parsed;
-            }
-        }
-    } catch (e) {
-        initialSoal = 1;
-    }
-
-    $("#soal").html(initialSoal);
-    $.post("getsoal.php?kode=<?php echo $xkodesoal; ?>&assets=1", { pic: String(initialSoal) }, function (data) {
-        renderQuestion(initialSoal, data, false);
     });
-
-    $("#picture").on("click", ".get_pic", function (e) {
-        var picture_id = $(this).attr('data-id');
-        $("#picture").html("<div style=\"margin:50px auto;width:50px;\"><img src=\"loader.gif\" /></div>");
-        var cached = cacheGet(picture_id);
-        if (cached) {
-            renderQuestion(picture_id, cached, false);
-            return false;
-        }
-        $.post("getsoal.php?assets=0", { pic: picture_id }, function (data) {
-            renderQuestion(picture_id, data, true);
-        });
-        return false;
-    });
-
-    $(document).on("click", "a[href='logout.php']", function () {
-        if (typeof window.__cbtClearSoalCache === 'function') {
-            window.__cbtClearSoalCache();
-        }
-    });
-};
 </script>
 
 <div id="picture"> 

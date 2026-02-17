@@ -5,9 +5,6 @@ if (isset($_REQUEST['assets'])) {
 }
 ?>
 <body>
-<?php if ($include_heavy_assets) { ?>
-<link rel="stylesheet" href="css/getsoal.css">
-<?php } ?>
     <!-- Slider !-->
 
     <div id="slideMenu" class="closed">
