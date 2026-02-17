@@ -60,6 +60,7 @@ $xsetidx = $s['setidx'];
 $xjumlahsoal = $s['XJumSoal'];
 $xtokenujian = $s['XTokenUjian'];
 $xbatasmasuk = $s['XBatasMasuk'];
+$xlamaujian = $s['XLamaUjian'];
 $xnamamapel = $s['XNamaMapel'];
 $xjamujian = $s['XJamUjian'];
 $xjumpilg = $s['XPilGanda'];
