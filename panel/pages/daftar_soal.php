@@ -125,6 +125,8 @@ $(document).ready(function(){
                     <div class="panel panel-default">
                         <div class="panel-heading">
                            <table width="100%"><tr><td>Daftar Bank Soal</td><td align="right">
+										<button type="button" class="btn btn-success btn-small" data-toggle="modal" data-target="#myConvertImageModal">
+                                        <i class="fa fa-file-image-o"></i>&nbsp;Convert Image</button>
                                         <button type="button" class="btn btn-info btn-small"  data-toggle="modal" data-target="#myModal">
                                         <i class="fa fa-file-o"></i>&nbsp;Buat Bank Soal Baru</button>
                                         </td></tr>
@@ -669,6 +671,35 @@ function confirmDialog2(message, onConfirm){
  
 <!-- Modal -->
 
+<div class="modal fade" id="myConvertImageModal" tabindex="-1" role="dialog" aria-labelledby="myConvertImageModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myConvertImageModalLabel">Convert Image ke WebP</h4>
+      </div>
+      <div class="modal-body">
+        <p>Proses ini akan mengonversi gambar soal/jawaban ke format WebP pada folder <code>pictures_webp</code>.</p>
+        <div class="radio">
+          <label><input type="radio" name="convertMode" value="missing" checked> Convert yang belum terconvert</label>
+        </div>
+        <div class="radio">
+          <label><input type="radio" name="convertMode" value="force"> Convert ulang semua gambar</label>
+        </div>
+        <hr />
+        <div class="progress" style="margin-bottom:8px;">
+          <div id="convertProgressBar" class="progress-bar progress-bar-success" role="progressbar" style="width:0%">0%</div>
+        </div>
+        <div id="convertProgressText" style="font-size:12px; color:#555;">Siap diproses.</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal" id="btnCloseConvert">Tutup</button>
+        <button type="button" class="btn btn-success" id="btnStartConvertImage"><i class="fa fa-play"></i> Mulai Convert</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
   <div class="modal-dialog" role="document">
   <div class="modal-content">
@@ -697,11 +728,81 @@ function confirmDialog2(message, onConfirm){
 	 // alert("tes");
 	})
 	
-	$('#confirmModal').on('hidden.bs.modal', function () {
-	  document.location.reload();
-	  //alert("hapus");
-	})
-</script>
+		$('#confirmModal').on('hidden.bs.modal', function () {
+		  document.location.reload();
+		  //alert("hapus");
+		})
+
+		var cbtConvertRun = false;
+		function cbtUpdateConvertProgress(percent, text) {
+			var p = percent;
+			if (p < 0) { p = 0; }
+			if (p > 100) { p = 100; }
+			$('#convertProgressBar').css('width', p + '%').text(p + '%');
+			if (typeof text !== 'undefined') {
+				$('#convertProgressText').text(text);
+			}
+		}
+
+		function cbtRunConvertBatch(offset, mode, stat) {
+			$.ajax({
+				type: 'POST',
+				url: 'convert_image_batch.php',
+				dataType: 'json',
+				data: { offset: offset, limit: 20, mode: mode },
+				success: function(resp) {
+					if (!resp || !resp.ok) {
+						cbtConvertRun = false;
+						$('#btnStartConvertImage').prop('disabled', false);
+						$('#btnCloseConvert').prop('disabled', false);
+						cbtUpdateConvertProgress(0, 'Gagal convert: ' + ((resp && resp.error) ? resp.error : 'unknown_error'));
+						return;
+					}
+
+					stat.converted += parseInt(resp.converted || 0, 10);
+					stat.skipped += parseInt(resp.skipped || 0, 10);
+					stat.failed += parseInt(resp.failed || 0, 10);
+					stat.source_missing += parseInt(resp.source_missing || 0, 10);
+
+					var total = parseInt(resp.total || 0, 10);
+					var nextOffset = parseInt(resp.next_offset || 0, 10);
+					var percent = (total > 0) ? Math.round((nextOffset / total) * 100) : 100;
+					cbtUpdateConvertProgress(percent, 'Diproses: ' + nextOffset + '/' + total + ' bank soal | converted: ' + stat.converted + ' | skip: ' + stat.skipped + ' | gagal: ' + stat.failed + ' | source missing: ' + stat.source_missing);
+
+					if (resp.done) {
+						cbtConvertRun = false;
+						$('#btnStartConvertImage').prop('disabled', false);
+						$('#btnCloseConvert').prop('disabled', false);
+						cbtUpdateConvertProgress(100, 'Selesai. Converted: ' + stat.converted + ', skip: ' + stat.skipped + ', gagal: ' + stat.failed + ', source missing: ' + stat.source_missing + ' (diabaikan, cek file asal di folder pictures bila perlu).');
+						return;
+					}
+					cbtRunConvertBatch(nextOffset, mode, stat);
+				},
+				error: function() {
+					cbtConvertRun = false;
+					$('#btnStartConvertImage').prop('disabled', false);
+					$('#btnCloseConvert').prop('disabled', false);
+					cbtUpdateConvertProgress(0, 'Gagal convert: koneksi/server error');
+				}
+			});
+		}
+
+		$('#myConvertImageModal').on('shown.bs.modal', function () {
+			cbtUpdateConvertProgress(0, 'Siap diproses.');
+		});
+
+		$('#btnStartConvertImage').on('click', function() {
+			if (cbtConvertRun) {
+				return;
+			}
+			var mode = $('input[name="convertMode"]:checked').val();
+			cbtConvertRun = true;
+			$('#btnStartConvertImage').prop('disabled', true);
+			$('#btnCloseConvert').prop('disabled', true);
+			cbtUpdateConvertProgress(1, 'Memulai proses convert...');
+			cbtRunConvertBatch(0, mode, { converted: 0, skipped: 0, failed: 0, source_missing: 0 });
+		});
+	</script>
 
 </body>
 

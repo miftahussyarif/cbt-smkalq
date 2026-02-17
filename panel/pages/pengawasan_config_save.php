@@ -28,5 +28,10 @@ foreach ($configs as $key => $value) {
     mysql_query("UPDATE cbt_pengawasan_config SET config_value = '$value', updated_at = '$now', updated_by = '$admin' WHERE config_key = '$key'");
 }
 
+bee_log('INFO', 'PENGAWASAN_CONFIG_SAVE', 'Konfigurasi pengawasan diperbarui', array(
+    'updated_by' => isset($_COOKIE['beeuser']) ? $_COOKIE['beeuser'] : 'admin',
+    'keys' => array_keys($configs)
+));
+
 echo json_encode(array('ok' => true));
 ?>

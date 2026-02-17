@@ -119,6 +119,26 @@
             -moz-filter: brightness(1.2) grayscale(.5) opacity(.9);
             filter: brightness(1.2) grayscale(.5) opacity(.9);
         }
+
+        /* Gambar default di lembar soal: maksimal 30% layar */
+        #lembaransoal img,
+        #lembaransoal .cbt-media-img {
+            max-width: 30vw !important;
+            max-height: 30vh !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain;
+        }
+
+        /* Gambar saat preview/zoom di modal: maksimal 80% layar */
+        #lembaransoal .modal .panel-body img,
+        .modal .panel-body img {
+            max-width: 80vw !important;
+            max-height: 80vh !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain;
+        }
     </style>
     <!-- Slider !-->
 
@@ -330,6 +350,7 @@
 
             <div id="container" style="text-align:center; height:300px;">
                 <?php include "config/server.php";
+                include_once "ip.php";
                 $xkodemapel = "GAL1";
                 //$xkodesoal = "XGAL1SOAL1";
                 //$user = "P090100000";
@@ -351,6 +372,21 @@
                 $s0 = mysql_fetch_array($sqlgabung);
                 $xkodesoal = $s0['XKodeSoal'];
                 $xtokenujian = $s0['XTokenUjian'];
+                $savedIp = '';
+                if (!cbt_validate_single_ip_session($user, $xtokenujian, $xkodesoal, $user_ip, $savedIp)) {
+                    if (function_exists('bee_log')) {
+                        bee_log('WARN', 'MULTI_IP_BLOCK', 'Akses getsoal ditolak karena IP berbeda', array(
+                            'user' => $user,
+                            'token' => $xtokenujian,
+                            'kodesoal' => $xkodesoal,
+                            'current_ip' => $user_ip,
+                            'saved_ip' => $savedIp
+                        ));
+                    }
+                    header('HTTP/1.1 403 Forbidden');
+                    echo "IP_MISMATCH";
+                    exit;
+                }
 
                 $sqluser = mysql_query("
 SELECT u.*,m.XNamaMapel FROM cbt_ujian u LEFT JOIN cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal and p.XKodeMapel = u.XKodeMapel 
@@ -462,6 +498,7 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
             <div style="padding-bottom:20px; font-size:14px; color:#0066CC"> Soal Esai </div>
             <div id="container2" style="text-align:center; height:300px;">
                 <?php include "config/server.php";
+                include_once "ip.php";
                 $xkodemapel = "GAL1";
                 //$xkodesoal = "XGAL1SOAL1";
                 //$user = "P090100000";
@@ -483,6 +520,21 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
                 $s0 = mysql_fetch_array($sqlgabung);
                 $xkodesoal = $s0['XKodeSoal'];
                 $xtokenujian = $s0['XTokenUjian'];
+                $savedIp = '';
+                if (!cbt_validate_single_ip_session($user, $xtokenujian, $xkodesoal, $user_ip, $savedIp)) {
+                    if (function_exists('bee_log')) {
+                        bee_log('WARN', 'MULTI_IP_BLOCK', 'Akses getsoal ditolak karena IP berbeda', array(
+                            'user' => $user,
+                            'token' => $xtokenujian,
+                            'kodesoal' => $xkodesoal,
+                            'current_ip' => $user_ip,
+                            'saved_ip' => $savedIp
+                        ));
+                    }
+                    header('HTTP/1.1 403 Forbidden');
+                    echo "IP_MISMATCH";
+                    exit;
+                }
 
                 $sqluser = mysql_query("
 SELECT u.*,m.XNamaMapel FROM cbt_ujian u LEFT JOIN cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal and p.XKodeMapel = u.XKodeMapel 
@@ -830,6 +882,24 @@ if (isset($_POST["pic"]) && is_numeric($_POST["pic"])) {
     $current_picture = filter_var($_POST["pic"], FILTER_SANITIZE_NUMBER_INT);
 } else {
     $current_picture = 1;
+}
+
+if (!function_exists('cbt_resolve_soal_image_url')) {
+    function cbt_resolve_soal_image_url($filename)
+    {
+        $filename = trim($filename);
+        if ($filename === '') {
+            return '';
+        }
+
+        $clean = basename(str_replace("\\", "/", $filename));
+        $base = pathinfo($clean, PATHINFO_FILENAME);
+        $webpRel = "pictures_webp/" . $base . ".webp";
+        if (file_exists($webpRel)) {
+            return $webpRel;
+        }
+        return "pictures/" . $clean;
+    }
 }
 
 //Connect to Database
@@ -1632,12 +1702,13 @@ if ($result) {
                     $str = str_replace("'<", "`<", $str);
 
                     echo "
-	
-	<p class=jawab>$str<br />";
+		
+		<p class=jawab>$str<br />";
                     if ($result['XGambarTanya'] == '') {
                     } else {
+                        $imgTanyaSrc = cbt_resolve_soal_image_url($result['XGambarTanya']);
                         echo "<a href='#'  data-toggle='modal' data-target='#myModalP'>";
-                        echo "<img src='pictures/$result[XGambarTanya]' width='150px'></a><br /><br />";
+                        echo "<img src='$imgTanyaSrc' class='cbt-media-img'></a><br /><br />";
                     }
                     echo "</p>";
 
@@ -1652,7 +1723,7 @@ if ($result) {
                             <div class="panel-body">
                                 <div class="inner-content">
                                     <div class="row" style="background-color:#fff">
-                                        <?php echo "<img src='pictures/$result[XGambarTanya]' height='100%'></a><br />"; ?>
+                                        <?php if (isset($imgTanyaSrc) && $imgTanyaSrc !== '') { echo "<img src='$imgTanyaSrc' class='cbt-media-img'></a><br />"; } ?>
                                     </div>
                                 </div>
                             </div>
@@ -1845,8 +1916,9 @@ if ($result) {
                             } else {
                                 $gambarA = "XGambarJawab" . $result['XA'];
                                 $pilgbrA = "$result[$gambarA]";
+                                $pilgbrAUrl = cbt_resolve_soal_image_url($pilgbrA);
                                 //echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalZ1'><img src='pictures/$result[XGambarJawab1]' style='max-height:190px'></a></td>";} 
-                                echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalA'><img src='pictures/$pilgbrA' style='max-height:190px'></a></td>";
+                                echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalA'><img src='$pilgbrAUrl' class='cbt-media-img'></a></td>";
                             } ?>
                             <div class="modal fade" id="myModalA" role="dialog">
                                 <div class="modal-dialog" style="width:95%">
@@ -1860,7 +1932,7 @@ if ($result) {
                                                     <?php
                                                     if (str_replace("  ", "", $pilgbrA) == '') {
                                                     } else {
-                                                        echo "<img src='pictures/$pilgbrA' width='100%'></a><br />";
+                                                        echo "<img src='$pilgbrAUrl' class='cbt-media-img'></a><br />";
                                                     }
                                                     ?>
                                                 </div>
@@ -1891,8 +1963,9 @@ if ($result) {
                             } else {
                                 $gambarB = "XGambarJawab" . $result['XB'];
                                 $pilgbrB = "$result[$gambarB]";
+                                $pilgbrBUrl = cbt_resolve_soal_image_url($pilgbrB);
                                 //	echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalZ2'><img src='pictures/$result[XGambarJawab2]' style='max-height:190px'></a></td>";}
-                                echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalB'><img src='pictures/$pilgbrB' style='max-height:190px'></a></td>";
+                                echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalB'><img src='$pilgbrBUrl' class='cbt-media-img'></a></td>";
                             } ?>
 
                             <div class="modal fade" id="myModalB" role="dialog">
@@ -1907,7 +1980,7 @@ if ($result) {
                                                     <?php
                                                     if (str_replace("  ", "", $pilgbrB) == '') {
                                                     } else {
-                                                        echo "<img src='pictures/$pilgbrB' width='100%'></a><br />";
+                                                        echo "<img src='$pilgbrBUrl' class='cbt-media-img'></a><br />";
                                                     }
                                                     ?>
                                                 </div>
@@ -1938,8 +2011,9 @@ if ($result) {
                             } else {
                                 $gambarC = "XGambarJawab" . $result['XC'];
                                 $pilgbrC = "$result[$gambarC]";
+                                $pilgbrCUrl = cbt_resolve_soal_image_url($pilgbrC);
                                 //echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalZ3'><img src='pictures/$result[XGambarJawab3]' style='max-height:190px'></td>";}
-                                echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalC'><img src='pictures/$pilgbrC' style='max-height:190px'></a></td>";
+                                echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalC'><img src='$pilgbrCUrl' class='cbt-media-img'></a></td>";
                             } ?>
 
                             <div class="modal fade" id="myModalC" role="dialog">
@@ -1954,7 +2028,7 @@ if ($result) {
                                                     <?php
                                                     if (str_replace("  ", "", $pilgbrC) == '') {
                                                     } else {
-                                                        echo "<img src='pictures/$pilgbrC' width='100%'></a><br />";
+                                                        echo "<img src='$pilgbrCUrl' class='cbt-media-img'></a><br />";
                                                     }
                                                     ?>
                                                 </div>
@@ -1986,8 +2060,9 @@ if ($result) {
                             } else {
                                 $gambarD = "XGambarJawab" . $result['XD'];
                                 $pilgbrD = "$result[$gambarD]";
+                                $pilgbrDUrl = cbt_resolve_soal_image_url($pilgbrD);
                                 //echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalZ4'><img src='pictures/$result[XGambarJawab4]' style='max-height:190px'></td>";} 
-                                echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalD'><img src='pictures/$pilgbrD' style='max-height:190px'></a></td>";
+                                echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalD'><img src='$pilgbrDUrl' class='cbt-media-img'></a></td>";
                             } ?>
 
                             <div class="modal fade" id="myModalD" role="dialog">
@@ -2002,7 +2077,7 @@ if ($result) {
                                                     <?php
                                                     if (str_replace("  ", "", $pilgbrD) == '') {
                                                     } else {
-                                                        echo "<img src='pictures/$pilgbrD' width='100%'></a><br />";
+                                                        echo "<img src='$pilgbrDUrl' class='cbt-media-img'></a><br />";
                                                     }
                                                     ?>
                                                 </div>
@@ -2035,8 +2110,9 @@ if ($result) {
                                 } else {
                                     $gambarE = "XGambarJawab" . $result['XE'];
                                     $pilgbrE = "$result[$gambarE]";
+                                    $pilgbrEUrl = cbt_resolve_soal_image_url($pilgbrE);
                                     //echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalZ5'><img src='pictures/$result[XGambarJawab5]' style='max-height:190px'></td>";} 
-                                    echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalE'><img src='pictures/$pilgbrE' style='max-height:190px'></a></td>";
+                                    echo "<td valign='top'><a href='#'  data-toggle='modal' data-target='#myModalE'><img src='$pilgbrEUrl' class='cbt-media-img'></a></td>";
                                 }
                                 ?>
 
@@ -2052,7 +2128,7 @@ if ($result) {
                                                         <?php
                                                         if (str_replace("  ", "", $pilgbrE) == '') {
                                                         } else {
-                                                            echo "<img src='pictures/$pilgbrE' width='100%'></a><br />";
+                                                            echo "<img src='$pilgbrEUrl' class='cbt-media-img'></a><br />";
                                                         }
                                                         ?>
                                                     </div>

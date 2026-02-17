@@ -1,17 +1,36 @@
 <?php 
 include "../../config/server.php";	
-				  	
-// $sqlubah2 = mysql_query("update cbt_ujian set XStatusUjian = '0'");
- 
-							  $tgl = substr($_REQUEST['txt_waktu'],0,10);
-							  $jam = substr($_REQUEST['txt_waktu'],11,5);
-							  $jam = "$jam:00";
+
+$requestIdTes = isset($_REQUEST['txt_idtes']) ? (int) $_REQUEST['txt_idtes'] : 0;
+$requestKodeSoal = isset($_REQUEST['txt_kodesoal']) ? $_REQUEST['txt_kodesoal'] : '';
+$requestKodeUjian = isset($_REQUEST['txt_ujian']) ? $_REQUEST['txt_ujian'] : '';
+$requestSemester = isset($_REQUEST['txt_semester']) ? $_REQUEST['txt_semester'] : '';
+$requestToken = isset($_REQUEST['txt_token']) ? $_REQUEST['txt_token'] : '';
+$requestSesi = isset($_REQUEST['txt_sesi']) ? $_REQUEST['txt_sesi'] : '';
+$requestDurasi = isset($_REQUEST['txt_durasi']) ? $_REQUEST['txt_durasi'] : '';
+$requestTelat = isset($_REQUEST['txt_telat']) ? $_REQUEST['txt_telat'] : '';
+$requestWaktu = isset($_REQUEST['txt_waktu']) ? $_REQUEST['txt_waktu'] : '';
+
+bee_log('INFO', 'TEST_SCHEDULE_REQUEST', 'Permintaan rilis token/jadwal ujian', array(
+    'idtes' => $requestIdTes,
+    'kodesoal' => $requestKodeSoal,
+    'kodeujian' => $requestKodeUjian,
+    'semester' => $requestSemester,
+    'token' => $requestToken,
+    'sesi' => $requestSesi,
+    'durasi' => $requestDurasi,
+    'telat' => $requestTelat
+));
+
+$tgl = substr($requestWaktu, 0, 10);
+$jam = substr($requestWaktu, 11, 5);
+$jam = "$jam:00";
 
 //=========================
 // Tentukan Durasi Ujian
 //=========================
 
-$minutes = $_REQUEST['txt_durasi'];
+$minutes = $requestDurasi;
 $d = floor ($minutes / 1440);
 $h = floor (($minutes - $d * 1440) / 60);
 $m = $minutes - ($d * 1440) - ($h * 60);
@@ -27,14 +46,14 @@ $jame = "$hi:$mi:00";
 //=========================
 // Tentukan Batas Keterlambatan Masuk Ujian
 //=========================
-$xlambat = $_REQUEST['txt_telat'];
+$xlambat = $requestTelat;
 if($xlambat==""){$xlambat = 0;}
 elseif($xlambat>0){$xlambat = 1;}
 
 if($xlambat==0){
-$minutest = $_REQUEST['txt_durasi'];
+$minutest = $requestDurasi;
 }else{
-$minutest = $_REQUEST['txt_telat'];
+$minutest = $requestTelat;
 }
 
 $dt = floor ($minutest / 1440);
@@ -68,19 +87,47 @@ $telatujian = "$tjam:$tmnt:$tdtk";
 //=========================
 // Ambil Paket Soal
 //=========================
-$loop = mysql_query("select * from cbt_paketsoal where XStatusSoal ='Y' and XKodeSoal = '$_REQUEST[txt_kodesoal]'");
+$wherePaket = $requestIdTes > 0
+    ? "XStatusSoal ='Y' and Urut = '$requestIdTes'"
+    : "XStatusSoal ='Y' and XKodeSoal = '$requestKodeSoal'";
+
+$loop = mysql_query("select * from cbt_paketsoal where $wherePaket");
+$msg = array();
+$msgClass = "success";
+$jumlahDiproses = 0;
+$jumlahSukses = 0;
+
+if (!$loop) {
+    bee_log('ERROR', 'TEST_SCHEDULE_QUERY_FAILED', 'Gagal membaca data paket soal', array(
+        'where' => $wherePaket,
+        'db_error' => mysql_error()
+    ));
+    echo "<div class='alert alert-danger alert-dismissable' id='ndelik'>Gagal membaca data paket soal.</div>";
+    exit;
+}
+
 while($s = mysql_fetch_array($loop)){
+$jumlahDiproses++;
 $val_jumsoal = $s['XJumSoal'];
 $val_pilganda = $s['XPilGanda'];
 $val_esai = $s['XEsai'];
+$urutUjian = (int) $s['Urut'];
 
-	$sqlubah = mysql_num_rows(mysql_query("select * from cbt_ujian where XKodeSoal = '$_REQUEST[txt_kodesoal]' and  XKodeUjian = '$_REQUEST[txt_ujian]' and XSemester = '$_REQUEST[txt_semester]' and XKodeKelas = '$s[XKodeKelas]' and XKodeJurusan = '$s[XKodeJurusan]' and XKodeMapel = '$s[XKodeMapel]' and XSetId = '$_COOKIE[beetahun]' "));
+	$sqlubah = mysql_num_rows(mysql_query("select * from cbt_ujian where XKodeSoal = '$requestKodeSoal' and  XKodeUjian = '$requestKodeUjian' and XSemester = '$requestSemester' and XKodeKelas = '$s[XKodeKelas]' and XKodeJurusan = '$s[XKodeJurusan]' and XKodeMapel = '$s[XKodeMapel]' and XSetId = '$_COOKIE[beetahun]' "));
 
-	$cekNilai = mysql_num_rows(mysql_query("select 1 from cbt_nilai where XKodeKelas = '$s[XKodeKelas]' and XKodeMapel = '$s[XKodeMapel]' and XKodeUjian = '$_REQUEST[txt_ujian]' and XSemester = '$_REQUEST[txt_semester]' and XSetId = '$_COOKIE[beetahun]' limit 1"));
+	$cekNilai = mysql_num_rows(mysql_query("select 1 from cbt_nilai where XKodeKelas = '$s[XKodeKelas]' and XKodeMapel = '$s[XKodeMapel]' and XKodeUjian = '$requestKodeUjian' and XSemester = '$requestSemester' and XSetId = '$_COOKIE[beetahun]' limit 1"));
 	if($cekNilai>0){
-		echo "<div class='alert alert-danger alert-dismissable' id='ndelik'>
-		Data hasil ujian lama untuk Mapel <b>$s[XKodeMapel]</b> Kelas <b>$s[XKodeKelas]</b> Jenis Ujian <b>$_REQUEST[txt_ujian]</b> masih ada. 
-		Hapus dulu melalui menu <b>Status Tes</b> (tab Selesai) dengan tombol <b>Hapus Data</b>.</div>";
+        $msgClass = "danger";
+        $msg[] = "Data hasil ujian lama untuk Mapel <b>$s[XKodeMapel]</b> Kelas <b>$s[XKodeKelas]</b> Jenis Ujian <b>$requestKodeUjian</b> masih ada. Hapus dulu melalui menu <b>Status Tes</b> (tab Selesai) dengan tombol <b>Hapus Data</b>.";
+        bee_log('WARN', 'TEST_SCHEDULE_BLOCKED_BY_SCORE', 'Rilis token ditolak karena nilai lama masih ada', array(
+            'idtes' => $urutUjian,
+            'kodesoal' => $s['XKodeSoal'],
+            'kodeujian' => $requestKodeUjian,
+            'semester' => $requestSemester,
+            'kelas' => $s['XKodeKelas'],
+            'jurusan' => $s['XKodeJurusan'],
+            'mapel' => $s['XKodeMapel']
+        ));
 		continue;
 	}
 	
@@ -95,7 +142,7 @@ $val_esai = $s['XEsai'];
 // Ambil Bank Soal
 //=========================
 
-$jumsoal = mysql_num_rows(mysql_query("select * from cbt_soal where  XKodeSoal = '$_REQUEST[txt_kodesoal]'"));
+$jumsoal = mysql_num_rows(mysql_query("select * from cbt_soal where  XKodeSoal = '$requestKodeSoal'"));
 $val_banksoal =  "$jumsoal"; 
 
 
@@ -119,22 +166,83 @@ $tglsekarang = date("Y-m-d");
 $tglujian = "$ss[XTglUjian]";	
 		}
 	
-$sqlcek = mysql_num_rows(mysql_query("select * from cbt_ujian where XTokenUjian = '$_REQUEST[txt_token]'"));
-	if($sqlcek>0){echo "<div class='alert alert-danger alert-dismissable' id='ndelik'>Simpan Data Gagal Token Sudah ada.</div>     ";
+$sqlcek = mysql_num_rows(mysql_query("select * from cbt_ujian where XTokenUjian = '$requestToken' and Urut <> '$urutUjian'"));
+	if($sqlcek>0){
+        $msgClass = "danger";
+        $msg[] = "Simpan Data Gagal Token sudah ada.";
+        bee_log('WARN', 'TEST_SCHEDULE_TOKEN_EXISTS', 'Rilis token ditolak karena token sudah dipakai', array(
+            'idtes' => $urutUjian,
+            'token' => $requestToken
+        ));
 	} else {
-				$sqlinsert = mysql_query("insert into cbt_ujian 						  
-				(XKodeKelas,XKodeUjian,XSemester,XKodeJurusan,XJumPilihan,XAcakSoal,XKodeMapel,
-				 XTokenUjian,XTglUjian,XJamUjian,XLamaUjian,XBatasMasuk,XJumSoal
-				,XKodeSoal,XStatusUjian,XGuru,XSetId,XSesi,XPilGanda,XEsai,XLambat) values 		
-				('$s[XKodeKelas]','$_REQUEST[txt_ujian]','$_REQUEST[txt_semester]','$s[XKodeJurusan]','$s[XJumPilihan]',
-				'$s[XAcakSoal]','$s[XKodeMapel]','$_REQUEST[txt_token]','$tgl','$jam','$jame','$telatujian','$ambilsoal',
-				'$s[XKodeSoal]','1','$s[XGuru]','$_COOKIE[beetahun]','$_REQUEST[txt_sesi]','$val_pilganda','$val_esai','$xlambat')");
-				echo "<div class='alert alert-success alert-dismissable' id='ndelik'>
-                                Simpan Data Sukses. 
-                            </div>     ";
+        $cekUjianById = mysql_num_rows(mysql_query("select 1 from cbt_ujian where Urut = '$urutUjian' limit 1"));
+        if ($cekUjianById > 0) {
+            $sqlinsert = mysql_query("update cbt_ujian set 
+                XKodeKelas='$s[XKodeKelas]', XKodeUjian='$requestKodeUjian', XSemester='$requestSemester',
+                XKodeJurusan='$s[XKodeJurusan]', XJumPilihan='$s[XJumPilihan]', XAcakSoal='$s[XAcakSoal]',
+                XKodeMapel='$s[XKodeMapel]', XTokenUjian='$requestToken', XTglUjian='$tgl', XJamUjian='$jam',
+                XLamaUjian='$jame', XBatasMasuk='$telatujian', XJumSoal='$ambilsoal', XKodeSoal='$s[XKodeSoal]',
+                XStatusUjian='1', XGuru='$s[XGuru]', XSetId='$_COOKIE[beetahun]', XSesi='$requestSesi',
+                XPilGanda='$val_pilganda', XEsai='$val_esai', XLambat='$xlambat'
+                where Urut = '$urutUjian'");
+            $aksiLog = 'TEST_EDIT_SUCCESS';
+            $pesanLog = 'Edit tes/rilis token berhasil disimpan';
+        } else {
+            $sqlinsert = mysql_query("insert into cbt_ujian 						  
+                (Urut,XKodeKelas,XKodeUjian,XSemester,XKodeJurusan,XJumPilihan,XAcakSoal,XKodeMapel,
+                 XTokenUjian,XTglUjian,XJamUjian,XLamaUjian,XBatasMasuk,XJumSoal
+                ,XKodeSoal,XStatusUjian,XGuru,XSetId,XSesi,XPilGanda,XEsai,XLambat) values 		
+                ('$urutUjian','$s[XKodeKelas]','$requestKodeUjian','$requestSemester','$s[XKodeJurusan]','$s[XJumPilihan]',
+                '$s[XAcakSoal]','$s[XKodeMapel]','$requestToken','$tgl','$jam','$jame','$telatujian','$ambilsoal',
+                '$s[XKodeSoal]','1','$s[XGuru]','$_COOKIE[beetahun]','$requestSesi','$val_pilganda','$val_esai','$xlambat')");
+            $aksiLog = 'TEST_CREATE_SUCCESS';
+            $pesanLog = 'Buat tes/rilis token berhasil disimpan';
+        }
+
+        if ($sqlinsert) {
+            $jumlahSukses++;
+            bee_log('INFO', $aksiLog, $pesanLog, array(
+                'idtes' => $urutUjian,
+                'kodesoal' => $s['XKodeSoal'],
+                'kodeujian' => $requestKodeUjian,
+                'semester' => $requestSemester,
+                'token' => $requestToken
+            ));
+        } else {
+            $msgClass = "danger";
+            $msg[] = "Simpan data gagal untuk ID Tes <b>$urutUjian</b>.";
+            bee_log('ERROR', 'TEST_SCHEDULE_SAVE_FAILED', 'Gagal menyimpan jadwal/rilis token', array(
+                'idtes' => $urutUjian,
+                'kodesoal' => $s['XKodeSoal'],
+                'kodeujian' => $requestKodeUjian,
+                'semester' => $requestSemester,
+                'token' => $requestToken,
+                'db_error' => mysql_error()
+            ));
+        }
 
 	}
 }
+
+$sumber = $requestIdTes > 0 ? 'edit_tes' : 'set_jadwal';
+if ($jumlahDiproses < 1) {
+    $msgClass = "danger";
+    $msg[] = "Data paket soal tidak ditemukan atau belum aktif.";
+    bee_log('WARN', 'TEST_SCHEDULE_EMPTY', 'Rilis token tidak memproses data apa pun', array(
+        'sumber' => $sumber,
+        'idtes' => $requestIdTes,
+        'kodesoal' => $requestKodeSoal
+    ));
+} elseif ($jumlahSukses > 0 && empty($msg)) {
+    $msg[] = "Simpan Data Sukses.";
+}
+
+if (empty($msg)) {
+    $msgClass = "danger";
+    $msg[] = "Simpan Data Gagal.";
+}
+
+echo "<div class='alert alert-$msgClass alert-dismissable' id='ndelik'>" . implode("<br>", $msg) . "</div>";
 
 ?>
                               

@@ -169,9 +169,18 @@ if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login
 
 
     $sqlinputsiswa = mysql_query("insert into cbt_siswa_ujian 
-	(XNomerUjian, XKodeKelas, XKodeMapel,XKodeSoal,XJumSoal,XTglUjian,XJamUjian, XMulaiUjian, XLastUpdate, XLamaUjian,XTokenUjian,XStatusUjian,XSesi,XPilGanda,XEsai,XGetIP) values 
-	('$user','$xkodekelasx','$xkodemapel','$xkodesoal','$xjumlahsoal','$xtgl1','$xjamujian','$xjam1',
-	'$xjam1','$xlamaujian','$xtokenujian','1','$xsesi','$xjumpilg','$xjumesai','$user_ip')");
+		(XNomerUjian, XKodeKelas, XKodeMapel,XKodeSoal,XJumSoal,XTglUjian,XJamUjian, XMulaiUjian, XLastUpdate, XLamaUjian,XTokenUjian,XStatusUjian,XSesi,XPilGanda,XEsai,XGetIP) values 
+		('$user','$xkodekelasx','$xkodemapel','$xkodesoal','$xjumlahsoal','$xtgl1','$xjamujian','$xjam1',
+		'$xjam1','$xlamaujian','$xtokenujian','1','$xsesi','$xjumpilg','$xjumesai','$user_ip')");
+    if (!$sqlinputsiswa && function_exists('bee_log')) {
+        bee_log('ERROR', 'INSERT_SISWA_UJIAN_FAILED', 'Gagal insert data ke cbt_siswa_ujian', array(
+            'user' => $user,
+            'token' => $xtokenujian,
+            'kodesoal' => $xkodesoal,
+            'ip' => $user_ip,
+            'mysql_error' => mysql_error()
+        ));
+    }
 
 
 } else {
@@ -1222,9 +1231,13 @@ $r = mysql_fetch_array($sql);
             window.__cbtLocked = false;
             var hideTimer = null;
             var unloadEventSent = false;
+            var lastSplitViewDetected = false;
             var monitorConfig = {
                 monitor_tab_switch: true,
+                monitor_app_switch: true,
+                monitor_split_view: true,
                 monitor_printscreen: true,
+                monitor_key_violation: true,
                 monitor_tab_close: true,
                 monitor_rto: true,
                 auto_lock_on_violation: true
@@ -1318,7 +1331,7 @@ $r = mysql_fetch_array($sql);
                         var autoLock = monitorConfig.auto_lock_on_violation ? 1 : 0;
                         sendEvent('tab_hidden', { auto_lock: autoLock });
                     }
-                }, 5000);
+                }, 3000);
             }
 
             document.addEventListener('visibilitychange', function () {
@@ -1350,9 +1363,25 @@ $r = mysql_fetch_array($sql);
                 sendBeaconEvent('tab_close', { auto_lock: autoLock, reason: 'beforeunload', force: 1 });
             });
             document.addEventListener('keydown', function (e) {
-                if (!monitorConfig.monitor_printscreen) return;
-                if (e.key === 'PrintScreen' || e.keyCode === 44) {
+                if (window.__cbtLocked) return;
+
+                if (monitorConfig.monitor_printscreen && (e.key === 'PrintScreen' || e.keyCode === 44)) {
                     sendEvent('printscreen');
+                }
+
+                if (!monitorConfig.monitor_key_violation) return;
+                var keyName = '';
+                if (e.key === 'Control' || e.keyCode === 17 || e.ctrlKey) {
+                    keyName = 'ctrl';
+                } else if (e.key === 'Tab' || e.keyCode === 9) {
+                    keyName = 'tab';
+                } else if (e.key === 'Alt' || e.keyCode === 18 || e.altKey) {
+                    keyName = 'alt';
+                }
+
+                if (keyName !== '') {
+                    var autoLock = monitorConfig.auto_lock_on_violation ? 1 : 0;
+                    sendEvent('key_violation', { key_pressed: keyName, auto_lock: autoLock });
                 }
             });
 
@@ -1374,6 +1403,33 @@ $r = mysql_fetch_array($sql);
 
             function clearRto() {
                 rtoSince = null;
+            }
+
+            function isDesktopSplitView() {
+                if (!window.screen || !window.screen.availWidth || !window.screen.availHeight) {
+                    return false;
+                }
+                // Skip split-view check for small/mobile layouts.
+                if (window.innerWidth < 900 || window.innerHeight < 500) {
+                    return false;
+                }
+                var widthRatio = window.innerWidth / window.screen.availWidth;
+                var heightRatio = window.innerHeight / window.screen.availHeight;
+                return (widthRatio < 0.78 || heightRatio < 0.78);
+            }
+
+            function checkSplitView() {
+                if (!monitorConfig.monitor_split_view) return;
+                if (window.__cbtLocked || document.hidden) return;
+
+                var detected = isDesktopSplitView();
+                if (detected && !lastSplitViewDetected) {
+                    var autoLock = monitorConfig.auto_lock_on_violation ? 1 : 0;
+                    sendEvent('split_view', { auto_lock: autoLock, force: 1 });
+                } else if (!detected && lastSplitViewDetected) {
+                    sendEvent('aman');
+                }
+                lastSplitViewDetected = detected;
             }
 
             function pingInternet() {
@@ -1404,13 +1460,19 @@ $r = mysql_fetch_array($sql);
             $(document).ready(function () {
                 sendEvent('aman');
                 checkLock();
-                setInterval(checkLock, 5000);
+                checkSplitView();
+                setInterval(checkLock, 3000);
                 setInterval(function () {
                     if (!document.hidden) {
                         sendEvent('aman');
                     }
                 }, 30000);
-                setInterval(pingInternet, 5000);
+                setInterval(pingInternet, 3000);
+                setInterval(checkSplitView, 3000);
+            });
+
+            window.addEventListener('resize', function () {
+                checkSplitView();
             });
         })();
     </script>
@@ -1418,10 +1480,25 @@ $r = mysql_fetch_array($sql);
     <!-- load jquery -->
     <script type="text/javascript">
         $(document).ready(function () {
-            $("#soal").html(1);
-            $.post("getsoal.php?kode=<?php echo $xkodesoal; ?>", { pic: "1" }, function (data) {
+            var cbtStorageKey = 'cbt_last_soal_<?php echo $user; ?>_<?php echo $xtokenujian; ?>_<?php echo $xkodesoal; ?>';
+            var initialSoal = 1;
+
+            try {
+                var savedSoal = localStorage.getItem(cbtStorageKey);
+                if (savedSoal !== null) {
+                    var parsed = parseInt(savedSoal, 10);
+                    if (!isNaN(parsed) && parsed > 0) {
+                        initialSoal = parsed;
+                    }
+                }
+            } catch (e) {
+                initialSoal = 1;
+            }
+
+            $("#soal").html(initialSoal);
+            $.post("getsoal.php?kode=<?php echo $xkodesoal; ?>", { pic: String(initialSoal) }, function (data) {
                 $("#picture").html(data);
-                $("#soal").html(1);
+                $("#soal").html(initialSoal);
             });
 
             $("#picture").on("click", ".get_pic", function (e) {
@@ -1432,6 +1509,10 @@ $r = mysql_fetch_array($sql);
                 var picture_id = $(this).attr('data-id');
                 $("#picture").html("<div style=\"margin:50px auto;width:50px;\"><img src=\"loader.gif\" /></div>");
                 $("#soal").html(picture_id);
+                try {
+                    localStorage.setItem(cbtStorageKey, String(picture_id));
+                } catch (e) {
+                }
                 $.post("getsoal.php", { pic: picture_id }, function (data) {
                     $("#picture").html(data);
                 });

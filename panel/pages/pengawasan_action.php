@@ -27,9 +27,9 @@ $lockedBy = isset($_COOKIE['beeuser']) ? mysql_real_escape_string($_COOKIE['beeu
 
 if ($action === 'lock') {
     $sql = "INSERT INTO cbt_pengawasan
-        (XNomerUjian, XTokenUjian, XKodeSoal, XLastEvent, XLastEventAt, XPindahTabCount, XPrintscreenCount, XIsLocked, XLockedBy, XLockedAt, XUpdatedAt)
+        (XNomerUjian, XTokenUjian, XKodeSoal, XLastEvent, XLastEventAt, XPindahTabCount, XAppSwitchCount, XPrintscreenCount, XIsLocked, XLockedBy, XLockedAt, XUpdatedAt)
         VALUES
-        ('$nomer', '$token', '$kodesoal', 'lock_admin', '$now', '0', '0', '1', '$lockedBy', '$now', '$now')
+        ('$nomer', '$token', '$kodesoal', 'lock_admin', '$now', '0', '0', '0', '1', '$lockedBy', '$now', '$now')
         ON DUPLICATE KEY UPDATE
         XLastEvent = 'lock_admin',
         XIsLocked = '1',
@@ -38,9 +38,9 @@ if ($action === 'lock') {
         XUpdatedAt = '$now'";
 } else {
     $sql = "INSERT INTO cbt_pengawasan
-        (XNomerUjian, XTokenUjian, XKodeSoal, XLastEvent, XLastEventAt, XPindahTabCount, XPrintscreenCount, XIsLocked, XLockedBy, XLockedAt, XUpdatedAt)
+        (XNomerUjian, XTokenUjian, XKodeSoal, XLastEvent, XLastEventAt, XPindahTabCount, XAppSwitchCount, XPrintscreenCount, XIsLocked, XLockedBy, XLockedAt, XUpdatedAt)
         VALUES
-        ('$nomer', '$token', '$kodesoal', 'aman', '$now', '0', '0', '0', NULL, NULL, '$now')
+        ('$nomer', '$token', '$kodesoal', 'aman', '$now', '0', '0', '0', '0', NULL, NULL, '$now')
         ON DUPLICATE KEY UPDATE
         XLastEvent = 'aman',
         XIsLocked = '0',

@@ -1,7 +1,11 @@
 $(function() {
+    if (typeof Morris === 'undefined') {
+        return;
+    }
 
-    Morris.Area({
-        element: 'morris-area-chart',
+    if (document.getElementById('morris-area-chart')) {
+        Morris.Area({
+            element: 'morris-area-chart',
         data: [{
             period: '2010 Q1',
             iphone: 2666,
@@ -59,10 +63,12 @@ $(function() {
         pointSize: 2,
         hideHover: 'auto',
         resize: true
-    });
+        });
+    }
 
-    Morris.Donut({
-        element: 'morris-donut-chart',
+    if (document.getElementById('morris-donut-chart')) {
+        Morris.Donut({
+            element: 'morris-donut-chart',
         data: [{
             label: "Download Sales",
             value: 12
@@ -74,10 +80,12 @@ $(function() {
             value: 20
         }],
         resize: true
-    });
+        });
+    }
 
-    Morris.Bar({
-        element: 'morris-bar-chart',
+    if (document.getElementById('morris-bar-chart')) {
+        Morris.Bar({
+            element: 'morris-bar-chart',
         data: [{
             y: '2006',
             a: 100,
@@ -112,6 +120,7 @@ $(function() {
         labels: ['Series A', 'Series B'],
         hideHover: 'auto',
         resize: true
-    });
+        });
+    }
     
 });

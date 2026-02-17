@@ -248,6 +248,7 @@ $(document).ready(function(){
  var txt_telat = $("#txt_telat<?php echo $s['Urutan']; ?>").val();
  var txt_kodesoal = $("#txt_kodesoal<?php echo $s['Urutan']; ?>").val();
  var txt_sesi = $("#txt_sesi<?php echo $s['Urutan']; ?>").val();
+ var txt_idtes = "<?php echo $s['Urutan']; ?>";
  
  
  if(txt_durasi==""){
@@ -263,7 +264,7 @@ $(document).ready(function(){
      type:"POST",
      url:"simpan_jadwal.php",    
      data: "aksi=simpan&txt_ujian=" + txt_ujian + "&txt_waktu=" + txt_waktu + "&txt_token=" + txt_token + "&txt_telat=" + txt_telat + "&txt_durasi=" + txt_durasi
-	  + "&txt_kodesoal=" + txt_kodesoal + "&txt_semester=" + txt_semester + "&txt_sesi=" + txt_sesi,
+	  + "&txt_kodesoal=" + txt_kodesoal + "&txt_semester=" + txt_semester + "&txt_sesi=" + txt_sesi + "&txt_idtes=" + txt_idtes,
 	 success: function(data){
 	  $("#infoz").html(data);
 	  document.getElementById("ndelik").style.display = "block";

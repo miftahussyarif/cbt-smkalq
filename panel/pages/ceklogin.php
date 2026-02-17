@@ -1,44 +1,44 @@
 <?php
-if(isset($_POST['userz'], $_POST['passz'])) {
-		include "../../config/server.php";
-			require("../../config/fungsi_thn.php");		
-		$userz = mysql_real_escape_string($_REQUEST['userz']);
-		$passz = mysql_real_escape_string($_REQUEST['passz']);
-		$passz = md5($passz);
-		$loginz = mysql_real_escape_string($_REQUEST['login']);
-		if ($loginz == "admin") {
-			$peran = "1";
-		} elseif ($loginz == "pengawas") {
-			$peran = "2";
-		} else {
-			$peran = "0";
-		}
-		$sqladmin = mysql_num_rows(mysql_query("select * from cbt_user where Username = '$userz' and Password = '$passz' and login = '$peran'"));
-		if($sqladmin>0){
-					//if(!isset($_COOKIE['beeuser'], $_COOKIE['beelogin'])){
-		$sqltahun = mysql_query("select * from cbt_setid where XStatus = '1'");
-		$st = mysql_fetch_array($sqltahun);
-		$tahunz = $st['XKodeAY'];
+if (!isset($_POST['userz'], $_POST['passz'])) {
+    header("Location: login.php?err=required");
+    exit;
+}
 
-		$sqlsekolah = mysql_query("select * from cbt_admin");
-		$sk = mysql_fetch_array($sqlsekolah);
-					
-						setcookie('beeuser',$userz);
-						setcookie('beelogin',$loginz);
-						setcookie('beetahun',$tahunz);
-						setcookie('beesekolah',$sk['XKodeSekolah']);
-						$_COOKIE['beeuser']==$userz;
-						$_COOKIE['beelogin']==$loginz;
-						$_COOKIE['beetahun']==$tahunz;
-						$_COOKIE['beesekolah']==$sk['XKodeSekolah'];						
-						header("Location: ../pages/?");
-					//}
+include "../../config/server.php";
+require("../../config/fungsi_thn.php");
 
-		
-		} else { header("Location: login.php"); }
+$userz = mysql_real_escape_string(isset($_POST['userz']) ? $_POST['userz'] : '');
+$passzRaw = isset($_POST['passz']) ? $_POST['passz'] : '';
+$passz = md5(mysql_real_escape_string($passzRaw));
+$loginz = mysql_real_escape_string(isset($_POST['login']) ? $_POST['login'] : '');
+
+if ($loginz === "admin") {
+    $peran = "1";
+} elseif ($loginz === "pengawas") {
+    $peran = "2";
 } else {
+    $peran = "0";
+}
 
-	header("Location: login.php");
+$sqladmin = mysql_num_rows(mysql_query("select * from cbt_user where Username = '$userz' and Password = '$passz' and login = '$peran'"));
+if ($sqladmin > 0) {
+    $sqltahun = mysql_query("select * from cbt_setid where XStatus = '1'");
+    $st = $sqltahun ? mysql_fetch_array($sqltahun) : array();
+    $tahunz = (is_array($st) && isset($st['XKodeAY'])) ? $st['XKodeAY'] : '';
 
-}?>
+    $sqlsekolah = mysql_query("select * from cbt_admin");
+    $sk = $sqlsekolah ? mysql_fetch_array($sqlsekolah) : array();
+    $kodeSekolah = (is_array($sk) && isset($sk['XKodeSekolah'])) ? $sk['XKodeSekolah'] : '';
+
+    setcookie('beeuser', $userz);
+    setcookie('beelogin', $loginz);
+    setcookie('beetahun', $tahunz);
+    setcookie('beesekolah', $kodeSekolah);
+    header("Location: ../pages/?");
+    exit;
+}
+
+header("Location: login.php?err=invalid");
+exit;
+?>
 

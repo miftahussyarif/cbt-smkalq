@@ -18,10 +18,15 @@ $(document).ready(function() {
 </script> 
 </head>
 <body>
-<iframe src="<?php echo "cetakberita.php?token=$_REQUEST[token]"; ?>" style="display:none;" name="frame"></iframe>
+<?php
+$tokenReq = isset($_REQUEST['token']) ? $_REQUEST['token'] : '';
+$ruangReq = isset($_REQUEST['ruang']) ? $_REQUEST['ruang'] : '';
+$iframeSrc = "cetakberita.php?token=" . urlencode($tokenReq) . "&ruang=" . urlencode($ruangReq);
+?>
+<iframe src="<?php echo $iframeSrc; ?>" style="display:none;" name="frame"></iframe>
 <button type="button" class="btn btn-default btn-sm" onClick="frames['frame'].print()" style="margin-top:10px; margin-bottom:5px"><i class="glyphicon glyphicon-print"></i> Cetak 
 </button>
-<?php echo "Cetak Berita Acara"; ?>
+<?php echo "Cetak Berita Acara"; ?> <?php if ($ruangReq !== '') { echo "(Ruang: " . htmlspecialchars($ruangReq) . ")"; } ?>
 
 <?php
 
@@ -37,13 +42,25 @@ $logsek = $ad['XLogo'];
 $BatasAwal = 50;
 
 
-								$sqk = mysql_query("select * from cbt_ujian where XTokenUjian = '$_REQUEST[token]'");
+$tokenReqSafe = mysql_real_escape_string($tokenReq);
+$ruangReqTrim = trim($ruangReq);
+$ruangReqSafe = mysql_real_escape_string($ruangReqTrim);
+
+								$sqk = mysql_query("select * from cbt_ujian where XTokenUjian = '$tokenReqSafe' order by XTglUjian desc, XJamUjian desc limit 1");
 								$rs = mysql_fetch_array($sqk);
 								$tanggal = "$rs[XTglUjian]";
 								$kelas = "$rs[XKodeKelas]";
 								$jurus = "$rs[XKodeJurusan]";
 								$pengawas = "$rs[XPengawas]";
 								$nip = "$rs[XNIPPengawas]";
+								$rs2 = strtoupper($rs['XKodeMapel']);
+								$sqk2 = mysql_query("select * from cbt_mapel where XKodeMapel = '$rs[XKodeMapel]'");
+								if ($sqk2 && mysql_num_rows($sqk2) > 0) {
+									$rs1 = mysql_fetch_array($sqk2);
+									if (isset($rs1['XNamaMapel']) && trim($rs1['XNamaMapel']) !== '') {
+										$rs2 = strtoupper($rs1['XNamaMapel']);
+									}
+								}
 																								
 								$timestamp = strtotime($tanggal);								
 								$hari = date('l', $timestamp);
@@ -78,29 +95,41 @@ $start = "$thn-$bln2-$tgl $j1:$m1:$d1";
 //display the converted time
 $habis = date('H:i',strtotime($jum_menit,strtotime($start)));
 
+	$filterRuangSiswa = '';
+	$filterRuangIkut = '';
+	if ($ruangReqTrim !== '') {
+		$filterRuangSiswa = " and XRuang = '$ruangReqSafe'";
+		$filterRuangIkut = " and sw.XRuang = '$ruangReqSafe'";
+	}
+
 if(!$kelas=="ALL"&&!$jurus=="ALL"){ 
 $kondisi = "1";
-$cekQuery = mysql_query("SELECT * FROM cbt_siswa where XKodeKelas = '$kelas' and XKodeJurusan = '$jurus'");
+$cekQuery = mysql_query("SELECT * FROM cbt_siswa where XKodeKelas = '$kelas' and XKodeJurusan = '$jurus' $filterRuangSiswa");
 }elseif(!$kelas=="ALL"&&$jurus=="ALL"){ 
 $kondisi = "2";
-$cekQuery = mysql_query("SELECT * FROM cbt_siswa where  XKodeKelas = '$kelas'");
+$cekQuery = mysql_query("SELECT * FROM cbt_siswa where  XKodeKelas = '$kelas' $filterRuangSiswa");
 }elseif($kelas=="ALL"&&!$jurus=="ALL"){ 
 $kondisi = "3";
-$cekQuery = mysql_query("SELECT * FROM cbt_siswa where  XKodeJurusan = '$jurus'");
+$cekQuery = mysql_query("SELECT * FROM cbt_siswa where  XKodeJurusan = '$jurus' $filterRuangSiswa");
 }elseif($kelas=="ALL"&&$jurus=="ALL"){ 
 $kondisi = "4";
-$cekQuery = mysql_query("SELECT * FROM cbt_siswa");
+$cekQuery = mysql_query("SELECT * FROM cbt_siswa where 1=1 $filterRuangSiswa");
 } else {
 $kondisi = "5";
-$cekQuery = mysql_query("SELECT * FROM cbt_siswa where XKodeKelas = '$kelas' and XKodeJurusan = '$jurus'");
+$cekQuery = mysql_query("SELECT * FROM cbt_siswa where XKodeKelas = '$kelas' and XKodeJurusan = '$jurus' $filterRuangSiswa");
 }
 
-$ikutSiswa = mysql_query("SELECT * FROM cbt_siswa_ujian where XTokenUjian = '$rs[XTokenUjian]'");
+$ikutSiswa = mysql_query("SELECT su.*
+FROM cbt_siswa_ujian su
+LEFT JOIN cbt_siswa sw ON TRIM(sw.XNomerUjian) = TRIM(su.XNomerUjian)
+where su.XTokenUjian = '$rs[XTokenUjian]' and su.XKodeSoal = '$rs[XKodeSoal]' $filterRuangIkut");
 
 
 $jumlahSiswaSemua = mysql_num_rows($cekQuery);
 $jumlahSiswaUjian = mysql_num_rows($ikutSiswa);
 $jumlahSiswaAbsen = $jumlahSiswaSemua-$jumlahSiswaUjian;
+$jumlahHadirManual = "";
+$jumlahTidakHadirManual = "";
 ?>
 	<div style="background:#999; width:100%; height:1275px;" ><br>
 	<div style="background:#fff; width:90%; margin:0 auto; padding:30px; height:90%;">
@@ -204,18 +233,23 @@ $jumlahSiswaAbsen = $jumlahSiswaSemua-$jumlahSiswaUjian;
   </tr>
   <tr height="30">
   <td height="30" width="10px"></td>
+  <td height="30">Ruang</td>
+  <td height="30" width="60%" style="border-bottom:thin solid #000000"><?php echo ($ruangReqTrim !== '') ? htmlspecialchars($ruangReqTrim) : 'SEMUA RUANG'; ?></td>  
+  </tr>
+  <tr height="30">
+  <td height="30" width="10px"></td>
   <td height="30">Jumlah Peserta Seharusnya</td>
   <td height="30" width="60%" style="border-bottom:thin solid #000000"><?php echo "$jumlahSiswaSemua"; ?></td>  
   </tr>
   <tr height="30">
   <td height="30" width="10px"></td>
-  <td height="30">Jumlah Hadir (ikut ujian)</td>
-  <td height="30" width="60%" style="border-bottom:thin solid #000000"><?php echo "$jumlahSiswaUjian"; ?></td>  
+  <td height="30">Jumlah Hadir (diisi manual)</td>
+  <td height="30" width="60%" style="border-bottom:thin solid #000000"><?php echo $jumlahHadirManual; ?></td>  
   </tr>
   <tr height="30">
   <td height="30" width="10px"></td>
-  <td height="30">Jumlah Tidak Hadir</td>
-  <td height="30" width="60%" style="border-bottom:thin solid #000000"><?php echo "$jumlahSiswaAbsen"; ?></td>  
+  <td height="30">Jumlah Tidak Hadir (diisi manual)</td>
+  <td height="30" width="60%" style="border-bottom:thin solid #000000"><?php echo $jumlahTidakHadirManual; ?></td>  
   </tr>
   <tr height="30">
   <td height="30" width="10px"></td>

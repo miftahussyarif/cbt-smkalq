@@ -139,6 +139,7 @@ $(document).ready(function(){
  var txt_telat = $("#txt_telat<?php echo $s['Urutan']; ?>").val();
  var txt_kodesoal = $("#txt_kodesoal<?php echo $s['Urutan']; ?>").val();
  var txt_sesi = $("#txt_sesi<?php echo $s['Urutan']; ?>").val();
+ var txt_idtes = $("#txt_idtes<?php echo $s['Urutan']; ?>").val();
  
  
  if(txt_durasi==""){
@@ -154,7 +155,7 @@ $(document).ready(function(){
      type:"POST",
      url:"simpan_jadwal.php",    
      data: "aksi=simpan&txt_ujian=" + txt_ujian + "&txt_waktu=" + txt_waktu + "&txt_token=" + txt_token + "&txt_telat=" + txt_telat + "&txt_durasi=" + txt_durasi
-	  + "&txt_kodesoal=" + txt_kodesoal + "&txt_semester=" + txt_semester + "&txt_sesi=" + txt_sesi,
+	  + "&txt_kodesoal=" + txt_kodesoal + "&txt_semester=" + txt_semester + "&txt_sesi=" + txt_sesi + "&txt_idtes=" + txt_idtes,
 	 success: function(data){
 	  $("#infoz").html(data);
 	  document.getElementById("ndelik").style.display = "block";
@@ -214,6 +215,7 @@ function myFunction() {
 		 <p> <span class="asd" class="asd">
                                     Maksimum Keterlambatan </span><span>: <input type="text" size="3" id="txt_telat<?php echo $s['Urutan']; ?>">
                                     <input type="hidden" size="3" id="txt_kodesoal<?php echo $s['Urutan']; ?>" value="<?php echo $s['XKodeSoal']; ?>">
+                                    <input type="hidden" size="3" id="txt_idtes<?php echo $s['Urutan']; ?>" value="<?php echo $s['Urutan']; ?>">
                                      menit </span><font color="#cd0202">*</font></p>
  		 <p> <span class="asd" class="asd">Token </span><span>: <input type="text" size="10" id="txt_token<?php echo $s['Urutan']; ?>"></span></p>
           <p><button type="button" class="btn btn-info btn-small" id="kirim<?php echo $s['Urutan']; ?>"> Rilis Token </i></button> <a href="?modul=daftar_tesbaru">

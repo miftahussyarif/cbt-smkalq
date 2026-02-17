@@ -178,7 +178,9 @@ $('#datetimepicker_dark').datetimepicker({theme:'dark'})
                                 <tbody>
 <?php 
 $sql = mysql_query("select u.*,m.*,u.Urut as Urutan,u.XKodeKelas as kokel from cbt_ujian u left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel 
-left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal where u.XStatusUjian='1'");
+left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal
+where u.XStatusUjian='1'
+and ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian) > NOW()");
 								while($s = mysql_fetch_array($sql)){ 
 					$sqlsoal  = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$s[XKodeSoal]'"));
 					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$s[XKodeSoal]' and XStatusUjian = '1'"));
@@ -451,7 +453,10 @@ function confirmDialog(message, onConfirm){
                                 <tbody>
 <?php 
 $sql = mysql_query("select u.*,m.*,u.Urut as Urutan,u.XKodeKelas as kokel from cbt_ujian u left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel 
-left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal where u.XStatusUjian='9' order by u.XTglUjian desc, u.XJamUjian desc");
+left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal
+where u.XStatusUjian in ('0','9')
+or ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian) <= NOW()
+order by u.XTglUjian desc, u.XJamUjian desc");
 $no = 1;
 while($s = mysql_fetch_array($sql)){ 
 ?>
@@ -551,8 +556,16 @@ while($s = mysql_fetch_array($sql)){
                     type: "POST",
                     url: "hapus_tes_selesai.php",
                     data: "aksi=hapus&txt_ujian=" + txt_ujian,
-                    success: function () {
-                        location.reload();
+                    success: function (data) {
+                        if (data.trim() == "OK") {
+                            location.reload();
+                        } else if (data.trim() == "NOTDONE") {
+                            alert("Tes belum dianggap selesai, tidak bisa hapus data.");
+                        } else if (data.trim() == "NOTFOUND") {
+                            alert("Data ujian tidak ditemukan.");
+                        } else {
+                            alert("Gagal menghapus data tes: " + data);
+                        }
                     }
                 });
             });

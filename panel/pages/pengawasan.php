@@ -28,6 +28,7 @@ if (!isset($_COOKIE['beelogin']) || ($_COOKIE['beelogin'] != 'admin' && $_COOKIE
                                 <th width="14%">Mapel</th>
                                 <th width="12%">Status</th>
                                 <th width="8%">Pindah Tab</th>
+                                <th width="8%">Buka Aplikasi</th>
                                 <th width="8%">Printscreen</th>
                                 <th width="8%">Terkunci</th>
                                 <th width="10%">Aksi</th>
@@ -66,6 +67,18 @@ if (isset($_GET['debug']) && $_GET['debug'] == '1') {
             function statusLabel(status) {
                 if (status === 'pindah_tab') {
                     return '<span class="label label-warning">Pindah Tab</span>';
+                }
+                if (status === 'app_switch') {
+                    return '<span class="label label-warning">Buka Aplikasi Lain</span>';
+                }
+                if (status === 'split_view') {
+                    return '<span class="label label-danger">Split View Terdeteksi</span>';
+                }
+                if (status === 'key_violation') {
+                    return '<span class="label label-danger">Pelanggaran Tombol (Ctrl/Tab/Alt)</span>';
+                }
+                if (status === 'pointer_leave') {
+                    return '<span class="label label-warning">Pointer Keluar Area Ujian</span>';
                 }
                 if (status === 'tab_hidden') {
                     return '<span class="label label-warning">Minimize / Fokus Keluar</span>';
@@ -112,6 +125,7 @@ if (isset($_GET['debug']) && $_GET['debug'] == '1') {
                                 '<td>' + item.mapel + '</td>' +
                                 '<td>' + statusLabel(item.status) + '</td>' +
                                 '<td align="center">' + item.pindah_tab + '</td>' +
+                                '<td align="center">' + item.app_switch + '</td>' +
                                 '<td align="center">' + item.printscreen + '</td>' +
                                 '<td align="center">' + (item.locked ? 'Ya' : 'Tidak') + '</td>' +
                                 '<td align="center">' +
@@ -146,7 +160,7 @@ if (isset($_GET['debug']) && $_GET['debug'] == '1') {
             });
 
             loadPengawasan();
-            setInterval(loadPengawasan, 5000);
+            setInterval(loadPengawasan, 3000);
         }
 
         if (document.readyState === 'complete') {

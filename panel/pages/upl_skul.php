@@ -465,7 +465,9 @@ $colhead= $xadm['XWarna'];  //#ffca01
                             <tr height="42px"><td>Warna Header &nbsp;</td><td>: <input id="txt_col" class="school-field" type="text" value="<?php echo $colhead; ?>" />
 <script>
     $(function() {
-        $('#cp1').colorpicker();
+        if ($.fn && typeof $.fn.colorpicker === 'function' && $('#txt_col').length) {
+            $('#txt_col').colorpicker();
+        }
     });
 </script>
 <div class="field-error" id="err_txt_col"></div></td></tr>

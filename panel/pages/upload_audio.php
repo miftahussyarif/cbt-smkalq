@@ -1,13 +1,43 @@
 <?php
 include "../../config/server.php";
-$uploaddir = '../../audio/'; 
-$namafile = basename($_FILES['uploadfile2']['name']);
-$file = $uploaddir . basename($_FILES['uploadfile2']['name']); 
- if (move_uploaded_file($_FILES['uploadfile2']['tmp_name'], $file)) { 
-//$sql = mysql_query("update cbt_admin set XLogo = '$namafile'");
-  echo "success"; 
-} else {
-//	echo "error";
+$uploaddir = '../../audio/';
+
+if (!is_dir($uploaddir)) {
+    @mkdir($uploaddir, 0775, true);
 }
 
+$field = 'uploadfile2';
+if (!isset($_FILES[$field])) {
+    echo 'error: field file tidak ditemukan';
+    exit;
+}
+if ($_FILES[$field]['error'] !== UPLOAD_ERR_OK) {
+    echo 'error: upload gagal (code ' . intval($_FILES[$field]['error']) . ')';
+    exit;
+}
+if (!is_writable($uploaddir)) {
+    echo 'error: folder audio tidak writable';
+    exit;
+}
+
+$namaAsli = basename($_FILES[$field]['name']);
+if ($namaAsli === '') {
+    echo 'error: nama file kosong';
+    exit;
+}
+
+$ext = strtolower(pathinfo($namaAsli, PATHINFO_EXTENSION));
+$allow = array('mp3', 'wav', 'ogg', 'm4a');
+if (!in_array($ext, $allow, true)) {
+    echo 'error: ekstensi tidak diizinkan';
+    exit;
+}
+
+$target = $uploaddir . $namaAsli;
+if (move_uploaded_file($_FILES[$field]['tmp_name'], $target)) {
+    @chmod($target, 0644);
+    echo "success";
+} else {
+    echo "error: gagal memindahkan file upload";
+}
 ?>

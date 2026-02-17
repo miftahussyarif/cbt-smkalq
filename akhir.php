@@ -23,19 +23,21 @@ $sqlgabung = mysql_query("
 		SELECT s.*, s1.XNIK, s1.XNamaSiswa, s1.XKodeJurusan, u.XSemester FROM `cbt_siswa_ujian` s 
         LEFT JOIN cbt_siswa s1 on s1.XNomerUjian = s.XNomerUjian 
         LEFT JOIN cbt_ujian u on u.XKodeSoal = s.XKodeSoal
-        WHERE s.XNomerUjian = '$user' and s.XStatusUjian = '1'");
+        WHERE s.XNomerUjian = '$user'
+        ORDER BY (s.XStatusUjian='1') DESC, s.Urut DESC
+        LIMIT 1");
 
 //=======================
 $s0 = mysql_fetch_array($sqlgabung);
-$xkodesoal = $s0['XKodeSoal'];
-$xtokenujian = $s0['XTokenUjian'];
-$xnomerujian = $s0['XNomerUjian'];
-$xnik = $s0['XNIK'];
-$xkodeujian = $s0['XKodeUjian'];
-$xkodemapel = $s0['XKodeMapel'];
-$xkodekelas = $s0['XKodeKelas'];
-$xkodejurusan = $s0['XKodeJurusan'];
-$xsemester = $s0['XSemester'];
+$xkodesoal = isset($s0['XKodeSoal']) ? $s0['XKodeSoal'] : '';
+$xtokenujian = isset($s0['XTokenUjian']) ? $s0['XTokenUjian'] : '';
+$xnomerujian = isset($s0['XNomerUjian']) ? $s0['XNomerUjian'] : $user;
+$xnik = isset($s0['XNIK']) ? $s0['XNIK'] : '';
+$xkodeujian = isset($s0['XKodeUjian']) ? $s0['XKodeUjian'] : '';
+$xkodemapel = isset($s0['XKodeMapel']) ? $s0['XKodeMapel'] : '';
+$xkodekelas = isset($s0['XKodeKelas']) ? $s0['XKodeKelas'] : '';
+$xkodejurusan = isset($s0['XKodeJurusan']) ? $s0['XKodeJurusan'] : '';
+$xsemester = isset($s0['XSemester']) ? $s0['XSemester'] : '';
 
 // Update Status Ujian to 9 (Selesai) IMMEDIATELY once we confirm the user and token
 // This ensures that even if scoring fails, the user is marked as finished.
@@ -49,8 +51,8 @@ if (isset($xtokenujian) && $xtokenujian != "") {
 $sqlsoal = mysql_query("SELECT * FROM cbt_ujian  WHERE XKodeSoal = '$xkodesoal'");
 $sa = mysql_fetch_array($sqlsoal);
 //$xkodeujian = $sa['XKodeUjian'];
-$xjumsoal = $sa['XJumSoal'];
-$xjumpil = $sa['XPilGanda'];
+$xjumsoal = isset($sa['XJumSoal']) ? (int)$sa['XJumSoal'] : 0;
+$xjumpil = isset($sa['XPilGanda']) ? (int)$sa['XPilGanda'] : 0;
 $xjumbenar = 0;
 $xjumsalah = 0;
 $nilai_tampil = "0,00";
@@ -424,15 +426,12 @@ $brand_name = "CBT " . $school_name;
                 <div class="result-card">
                     <div style="font-size:12px; text-transform:uppercase; color:var(--muted); font-weight:700; text-align:center; margin-bottom:15px;">Hasil Pilihan Ganda</div>
                     
-                    <?php if (!$has_esai) { ?>
-                        <div class="score-circle">
-                            <?php echo $nilai_tampil; ?>
-                        </div>
-                    <?php } else { ?>
-                        <div class="score-circle" style="font-size:16px; line-height:1.2">
-                            <div style="text-align:center">
-                                TUNGGU<br>NILAI
-                            </div>
+                    <div class="score-circle">
+                        <?php echo $nilai_tampil; ?>
+                    </div>
+                    <?php if ($has_esai) { ?>
+                        <div style="text-align:center; margin-top:-5px; margin-bottom:8px; font-size:11px; color:#856404; background:#fff3cd; border:1px solid #ffeeba; padding:6px 10px; border-radius:8px;">
+                            Nilai esai menunggu koreksi guru.
                         </div>
                     <?php } ?>
 

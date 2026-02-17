@@ -39,7 +39,8 @@ $sql = mysql_query("SELECT *,u.XStatusUjian as ujsta
 FROM cbt_siswa s
 LEFT JOIN `cbt_siswa_ujian` u ON u.XNomerUjian = s.XNomerUjian
 LEFT JOIN cbt_ujian c ON (u.XKodeSoal = c.XKodeSoal and u.XTokenUjian = c.XTokenUjian)
-WHERE c.XStatusUjian = '1'"); 
+WHERE c.XStatusUjian = '1'
+AND ADDTIME(CONCAT(c.XTglUjian,' ',c.XJamUjian),c.XLamaUjian) > NOW()"); 
 $nom = 1;								
 while($s= mysql_fetch_array($sql)){ 
 $nama = str_replace("  ","",$s['XNamaSiswa']); 

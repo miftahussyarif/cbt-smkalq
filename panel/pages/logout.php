@@ -5,30 +5,23 @@ include "../../config/server.php";
 // Status Ujian XStatusUjian = 0 BelumAktif
 // Status Ujian XStatusUjian = 9 Selesai
 
-$tgl = date("H:i:s");
-if(isset($_COOKIE['beeuser'])){
-$user = $_COOKIE['beelogin'];
-}
-?>
-<?php
-
 if (isset($_SERVER['HTTP_COOKIE'])) {
     $cookies = explode(';', $_SERVER['HTTP_COOKIE']);
     foreach($cookies as $cookie) {
         $parts = explode('=', $cookie);
-        $user = trim($parts[0]);
-        setcookie($beeuser, '', time()-1000);
-        setcookie($beeuser, '', time()-1000, '/');
-		setcookie("beeuser", '', time()-1000);
-		setcookie("beelogin", '', time()-1000);		
-    	unset($_COOKIE['beeuser']);
-    	unset($_COOKIE['beelogin']);
-    	setcookie('beeuser', '', time() - 3600, '/'); // empty value and old timestamp
-    	setcookie('beelogin', '', time() - 3600, '/'); // empty value and old timestamp
-
+        $cookieName = trim($parts[0]);
+        if ($cookieName !== '') {
+            setcookie($cookieName, '', time() - 3600, '/');
+            setcookie($cookieName, '', time() - 3600);
+        }
     }
 }
 
+setcookie('beeuser', '', time() - 3600, '/');
+setcookie('beelogin', '', time() - 3600, '/');
+setcookie('beetahun', '', time() - 3600, '/');
+setcookie('beesekolah', '', time() - 3600, '/');
+unset($_COOKIE['beeuser'], $_COOKIE['beelogin'], $_COOKIE['beetahun'], $_COOKIE['beesekolah']);
 
 header('location:../pages/login.php');
 

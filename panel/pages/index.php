@@ -9,6 +9,7 @@ if (!isset($_COOKIE['beeuser'])) {
 <head>
 <?php
 include "../../config/server.php";
+include "../../config/pengawasan.php";
 $sql = mysql_query("select * from cbt_admin");
 $xadm = mysql_fetch_array($sql);
 $skull = $xadm['XSekolah'];
@@ -255,6 +256,10 @@ if (!isset($_REQUEST['modul']) || $_REQUEST['modul'] == '') {
     $bread = "Pengawasan";
 } elseif ($_REQUEST['modul'] == "pengawasan_config") {
     $bread = "Konfigurasi Pengawasan";
+} elseif ($_REQUEST['modul'] == "log_admin") {
+    $bread = "Log Aktivitas & Error";
+} elseif ($_REQUEST['modul'] == "server_test") {
+    $bread = "Tes Kekuatan Server";
 } elseif ($_REQUEST['modul'] == "daftar_soal") {
     $bread = "Bank Soal";
 } elseif ($_REQUEST['modul'] == "upl_soal") {
@@ -292,10 +297,13 @@ if ($_COOKIE['beelogin'] == "admin") { ?>
                                     <li>
                                         <a href="?modul=info_skul"><i class="fa fa-credit-card"></i> Identitas Sekolah</a>                                </li>  
                                     <li>
-                                        <a href="?modul=buat_user"><i class="fa fa-group"></i> Manajemen User</a>                                </li>
+                                        <a href="?modul=daftar_kelas"><i class="fa fa-list-alt "></i> Daftar Kelas</a>                                </li>
                                     <li>
-                                        <!-- <a href="?modul=backup_db"> !-->
-                                        <a href="?modul=backup"><i class="fa fa-database fa-fw"></i> Database</a>                                </li>                        
+                                        <a href="?modul=daftar_mapel"><i class="fa fa-flask "></i> Mata Pelajaran</a>                                </li>
+                                    <li>
+                                        <a href="?modul=jenis_ujian"><i class="fa fa-tags"></i> Jenis Ujian</a>                                </li>
+                                    <li>
+                                        <a href="?modul=daftar_siswa"><i class="fa fa-group"></i> Daftar Siswa</a>                                </li>
                                 </ul>
                             </li>
 
@@ -303,14 +311,14 @@ if ($_COOKIE['beelogin'] == "admin") { ?>
                                 <a href="#"><i class="fa fa-gears fa-fw"></i> Sistem <span class="fa arrow"></span></a>
                                 <ul class="nav nav-second-level">
                                     <li>
-                                        <a href="?modul=daftar_kelas"><i class="fa fa-list-alt "></i> Daftar Kelas</a>                                </li>
+                                        <a href="?modul=buat_user"><i class="fa fa-group"></i> Manajemen User</a>                                </li>
                                     <li>
-                                        <a href="?modul=daftar_mapel"><i class="fa fa-flask "></i> Mata Pelajaran</a>                                </li>
+                                        <!-- <a href="?modul=backup_db"> !-->
+                                        <a href="?modul=backup"><i class="fa fa-database fa-fw"></i> Database</a>                                </li>
                                     <li>
-                                        <a href="?modul=jenis_ujian"><i class="fa fa-tags"></i> Jenis Ujian</a>                                </li>
-
+                                        <a href="?modul=log_admin"><i class="fa fa-file-text-o"></i> Log Aktivitas</a>                                </li>
                                     <li>
-                                        <a href="?modul=daftar_siswa"><i class="fa fa-group"></i> Daftar Siswa</a>                                </li> 
+                                        <a href="?modul=server_test"><i class="fa fa-dashboard"></i> Tes Kekuatan Server</a>                                </li>
                                 </ul>
                                 <!-- /.nav-second-level -->
                           </li>
@@ -345,12 +353,8 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
                                      <li>
                                         <a href="?modul=berita_acara"><i class="fa fa-file-o fa-fw"></i> Berita Acara</a>                                </li>
 
-                                    <li>
-                                        <a href="#" data-toggle="modal" data-target="#myCetakHasil"><i class="fa fa-file-text-o fa-fw"></i> Daftar Nilai</a>                                </li>
                                     <li><a href="#" data-toggle="modal" data-target="#myCetakSingle"><i class="fa fa-file-text-o fa-fw"></i> Nilai Tunggal</a>
                                     </li>
-                                    <li>
-                                        <a href="#" data-toggle="modal" data-target="#myCetakTO"><i class="fa fa-file-text-o fa-fw"></i> Hasil Try Out</a>                                </li>
                                 </ul>
                                 <!-- /.nav-second-level -->
                             </li>                        
@@ -400,10 +404,6 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
                                 <li>
                                     <a href="?modul=hasil_peserta" >Hasil Peserta</a>
                                 </li>
-                                <li>
-                                    <a href="#" data-toggle="modal" data-target="#myCetakHasil">Analisa Soal</a>
-                                </li>
-
                             </ul>
                             <!-- /.nav-second-level -->
                             </li>                        
@@ -419,7 +419,7 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
             </div>
 
 
-            <div id="page-wrapper">
+	            <div id="page-wrapper">
               <?php
               if ($pengawasDenied) {
                   echo "<div class=\"alert alert-danger\" style=\"margin:15px;\">Akses ditolak.</div>";
@@ -550,6 +550,10 @@ if ($_COOKIE['beelogin'] == 'guru' || $_COOKIE['beelogin'] == 'admin') { ?>
                   include "pengawasan.php";
               } elseif ($_REQUEST['modul'] == "pengawasan_config") {
                   include "pengawasan_config.php";
+              } elseif ($_REQUEST['modul'] == "log_admin") {
+                  include "log_admin.php";
+              } elseif ($_REQUEST['modul'] == "server_test") {
+                  include "server_test.php";
               }
               /*
               elseif($_REQUEST['modul']=="backup"){
@@ -726,86 +730,6 @@ while ($rs = mysql_fetch_array($sqk)) {
 </div>
 
     <!-- Modal -->
-<div class="modal fade" id="myCetakHasil" role="dialog">
-    <div class="modal-dialog">
-        <!-- Modal content-->
-        <div class="modal-content">
-            <div class="panel-default">
-                <div class="panel-heading">
-                    <h1 class="panel-title page-label"><i class="glyphicon glyphicon-print"></i> | Hasil Ujian</h1>
-                </div><form action="?modul=cetak_hasil" method="post">
-                <div class="panel-body">
-                    <div class="inner-content">
-                        <div class="wysiwyg-content">
-                            <p><table width="100%">
-<tr height="30px"><td>Jenis Tes</td><td>:                                 
-                                <select id="tes3"  name="tes3">
-<?php
-$sqk = mysql_query("select * from cbt_tes where XKodeUjian in ('UH','UTS','UAS') order by Urut");
-echo "<option value='A' selected>Semua</option>";
-while($rs = mysql_fetch_array($sqk)){
-echo "<option value='$rs[XKodeUjian]'>$rs[XNamaUjian]</option>";
-} 
-?>                                
-                                </select>
-</td></tr>        
-                                <tr><td width="30%">Semester</td><td>:
-                                <select id="sem3"  name="sem3">
-<?php
-echo "<option value=1>Ganjil</option>";
-echo "<option value=2>Genap</option>";
-?>                                
-                                </select>
-                                </td></tr>
-                     
-                                <tr height="30px"><td>Jurusan </td><td>:                                 
-                                <select id="jur3"  name="jur3">
-<?php
-$sqk = mysql_query("select * from cbt_kelas group by XKodeJurusan");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeJurusan]'>$rs[XKodeJurusan]</option>";
-} ?>                                
-                                </select>
-</td></tr> 
-                                <tr><td width="30%">Kelas </td><td>:
-                                <select id="iki3"  name="iki3">
-<?php
-$sqk = mysql_query("select * from cbt_kelas group by XKodeKelas");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeKelas]'>$rs[XKodeKelas]</option>";
-} ?>                                
-                                </select>
-                                </td></tr>
-                                <tr height="30px"><td>Mata Pelajaran </td><td>:                                 
-                                <select id="map3"  name="map3">
-<?php
-$sqk = mysql_query("select * from cbt_mapel");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeMapel]'>$rs[XNamaMapel]</option>";
-} ?>                                
-                                </select>
-</td></tr> 
-                                </table>                               
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel-footer">
-                    <div class="row">
-                        <div class="col-xs-offset-7 col-xs-6">
-                           <button type="submit" class="btn btn-default btn-sm">
-                           <i class="glyphicon glyphicon-print"></i> Tampilkan</button>
-                           <button type="submit" class="btn btn-default btn-sm" data-dismiss="modal">
-                           <i class="glyphicon glyphicon-minus-sign"></i> Tutup</button>
-                        </div>
-                    </div>
-                </div></form>
-            </div>
-        </div>
-    </div>
-</div>
-
-    <!-- Modal -->
 <div class="modal fade" id="myCetakSingle" role="dialog">
     <div class="modal-dialog">
         <!-- Modal content-->
@@ -884,88 +808,6 @@ while ($rs = mysql_fetch_array($sqk)) {
     </div>
 </div>
 
-    <!-- Modal -->
-<div class="modal fade" id="myCetakTO" role="dialog">
-    <div class="modal-dialog">
-        <!-- Modal content-->
-        <div class="modal-content">
-            <div class="panel-default">
-                <div class="panel-heading">
-                    <h1 class="panel-title page-label"><i class="glyphicon glyphicon-print"></i> | Hasil Ujian</h1>
-                </div><form action="?modul=cetak_TO" method="post">
-                <div class="panel-body">
-                    <div class="inner-content">
-                        <div class="wysiwyg-content">
-                            <p><table width="100%">
-<tr height="30px"><td>Jenis Tes</td><td>:                                 
-                                <select id="tes3"  name="tes3">
-<?php
-$sqk = mysql_query("select * from cbt_tes");
-echo "<option value='TO' >Try Out</option>";
-//while($rs = mysql_fetch_array($sqk)){
-//echo "<option value=$rs[XKodeUjian]>$rs[XNamaUjian]</option>";
-//} 
-?>                                
-                                </select>
-</td></tr>        
-                                <tr><td width="30%">Semester</td><td>:
-                                <select id="sem3"  name="sem3">
-<?php
-
-echo "<option value=1>Ganjil</option>";
-echo "<option value=2>Genap</option>";
-
-?>                                
-                                </select>
-                                </td></tr>
-                     
-                                <tr height="30px"><td>Jurusan </td><td>:                                 
-                                <select id="jur3"  name="jur3">
-<?php
-$sqk = mysql_query("select * from cbt_kelas group by XKodeJurusan");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeJurusan]'>$rs[XKodeJurusan]</option>";
-} ?>                                
-                                </select>
-</td></tr> 
-                                <tr><td width="30%">Kelas </td><td>:
-                                <select id="iki3"  name="iki3">
-<?php
-$sqk = mysql_query("select * from cbt_kelas group by XKodeKelas");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeKelas]'>$rs[XKodeKelas]</option>";
-} ?>                                
-                                </select>
-                                </td></tr>
-                                <tr height="30px"><td>Mata Pelajaran </td><td>:                                 
-                                <select id="map3"  name="map3">
-<?php
-$sqk = mysql_query("select * from cbt_mapel");
-while ($rs = mysql_fetch_array($sqk)) {
-    echo "<option value='$rs[XKodeMapel]'>$rs[XNamaMapel]</option>";
-} ?>                                
-                                </select>
-</td></tr> 
-                                </table>                               
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel-footer">
-                    <div class="row">
-                        <div class="col-xs-offset-7 col-xs-6">
-                           <button type="submit" class="btn btn-default btn-sm">
-                           <i class="glyphicon glyphicon-print"></i> Tampilkan</button>
-                           <button type="submit" class="btn btn-default btn-sm" data-dismiss="modal">
-                           <i class="glyphicon glyphicon-minus-sign"></i> Tutup</button>
-                        </div>
-                    </div>
-                </div></form>
-            </div>
-        </div>
-    </div>
-</div>
-
 </div>
 
 <!-- Sticky Footer -->
@@ -1002,3 +844,105 @@ while ($rs = mysql_fetch_array($sqk)) {
     <script src="../vendor/datatables/js/jquery.dataTables.min.js"></script>
     <script src="../vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
     <script src="../vendor/datatables-responsive/dataTables.responsive.js"></script>
+    <script>
+        (function () {
+            var endpoint = 'admin_activity_event.php';
+            var modul = (new URLSearchParams(window.location.search).get('modul') || 'dashboard');
+            var lastSentKey = '';
+            var lastSentAt = 0;
+
+            function safeText(el) {
+                if (!el) return '';
+                var text = (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
+                if (text.length > 120) text = text.substring(0, 120);
+                return text;
+            }
+
+            function shouldSkip(key) {
+                var now = Date.now();
+                if (key === lastSentKey && (now - lastSentAt) < 1200) {
+                    return true;
+                }
+                lastSentKey = key;
+                lastSentAt = now;
+                return false;
+            }
+
+            function sendLog(level, action, message, context) {
+                var payload = new URLSearchParams();
+                payload.append('level', level || 'INFO');
+                payload.append('action', action || 'ADMIN_ACTIVITY');
+                payload.append('message', message || 'Activity');
+                payload.append('module', modul);
+
+                if (context) {
+                    Object.keys(context).forEach(function (k) {
+                        var v = context[k];
+                        if (v === undefined || v === null) return;
+                        payload.append(k, String(v));
+                    });
+                }
+
+                var body = payload.toString();
+                if (navigator.sendBeacon) {
+                    var blob = new Blob([body], { type: 'application/x-www-form-urlencoded; charset=UTF-8' });
+                    navigator.sendBeacon(endpoint, blob);
+                    return;
+                }
+                if (window.fetch) {
+                    fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                        body: body,
+                        credentials: 'same-origin'
+                    });
+                }
+            }
+
+            document.addEventListener('submit', function (e) {
+                var form = e.target;
+                if (!form) return;
+                var actionUrl = form.getAttribute('action') || window.location.pathname;
+                var method = (form.getAttribute('method') || 'GET').toUpperCase();
+                var key = ['submit', modul, actionUrl, method].join('|');
+                if (shouldSkip(key)) return;
+
+                sendLog('INFO', 'ADMIN_FORM_SUBMIT', 'Submit form admin', {
+                    target: form.getAttribute('id') || form.getAttribute('name') || 'form',
+                    url: actionUrl,
+                    method: method
+                });
+            }, true);
+
+            window.addEventListener('error', function (e) {
+                var file = e.filename || '';
+                var msg = e.message || 'JavaScript error';
+                sendLog('ERROR', 'FRONTEND_JS_ERROR', msg, {
+                    target: file,
+                    extra: 'line=' + (e.lineno || 0) + ',col=' + (e.colno || 0)
+                });
+            });
+
+            window.addEventListener('unhandledrejection', function (e) {
+                var reason = '';
+                if (e && e.reason) {
+                    reason = (typeof e.reason === 'string') ? e.reason : (e.reason.message || JSON.stringify(e.reason));
+                }
+                if (reason.length > 250) reason = reason.substring(0, 250);
+                sendLog('ERROR', 'FRONTEND_PROMISE_ERROR', 'Unhandled promise rejection', {
+                    extra: reason
+                });
+            });
+
+            if (window.jQuery) {
+                window.jQuery(document).ajaxError(function (event, jqxhr, settings, thrownError) {
+                    var status = jqxhr ? jqxhr.status : 0;
+                    sendLog('ERROR', 'FRONTEND_AJAX_ERROR', 'Ajax request gagal', {
+                        url: settings && settings.url ? settings.url : '',
+                        status: status,
+                        extra: thrownError || ''
+                    });
+                });
+            }
+        })();
+    </script>

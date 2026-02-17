@@ -206,8 +206,8 @@ sudo cp -r cbt-smkalq /opt/lampp/htdocs/
 # 4. Konfigurasi koneksi (edit config/server.php)
 
 # 5. Set permission folder
-sudo chmod +x /opt/lampp/htdocs/cbt-smkalq/setup_permissions.sh
-sudo /opt/lampp/htdocs/cbt-smkalq/setup_permissions.sh
+sudo chmod +x /opt/lampp/htdocs/cbt-smkalq/install.sh
+sudo /opt/lampp/htdocs/cbt-smkalq/install.sh
 
 # Atau manual:
 sudo chown -R daemon:daemon /opt/lampp/htdocs/cbt-smkalq/fotosiswa
@@ -462,7 +462,7 @@ Folder dengan owner `daemon:daemon`, mode `755`:
 - `/opt/lampp/htdocs/cbt-smkalq/video`
 - `/opt/lampp/backup`
 
-Gunakan script `setup_permissions.sh` untuk mengatur ulang permission.
+Gunakan script `install.sh` untuk mengatur ulang permission.
 
 ---
 

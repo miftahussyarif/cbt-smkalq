@@ -3,6 +3,74 @@
 header('Content-type: text/html; charset=utf-8');
 $sss= str_replace("'","\'",$_REQUEST['txt_tanya']);
 
+if (!function_exists('cbt_convert_image_to_webp')) {
+	function cbt_convert_image_to_webp($filename)
+	{
+		$filename = basename(str_replace("\\", "/", trim($filename)));
+		if ($filename === '') {
+			return false;
+		}
+
+		$srcDir = __DIR__ . "/../../pictures";
+		$dstDir = __DIR__ . "/../../pictures_webp";
+		$srcFile = $srcDir . "/" . $filename;
+
+		if (!file_exists($srcFile) || !is_file($srcFile)) {
+			return false;
+		}
+
+		if (!is_dir($dstDir)) {
+			@mkdir($dstDir, 0775, true);
+		}
+		if (!is_dir($dstDir) || !is_writable($dstDir)) {
+			return false;
+		}
+
+		$baseName = pathinfo($filename, PATHINFO_FILENAME);
+		$ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+		$dstFile = $dstDir . "/" . $baseName . ".webp";
+
+		if (!function_exists('imagewebp')) {
+			return false;
+		}
+
+		$img = false;
+		if ($ext === 'jpg' || $ext === 'jpeg') {
+			$img = @imagecreatefromjpeg($srcFile);
+		} elseif ($ext === 'png') {
+			$img = @imagecreatefrompng($srcFile);
+			if ($img) {
+				imagepalettetotruecolor($img);
+				imagealphablending($img, true);
+				imagesavealpha($img, true);
+			}
+		} elseif ($ext === 'gif') {
+			$img = @imagecreatefromgif($srcFile);
+			if ($img) {
+				imagepalettetotruecolor($img);
+				imagealphablending($img, true);
+				imagesavealpha($img, true);
+			}
+		} elseif ($ext === 'webp' && function_exists('imagecreatefromwebp')) {
+			$img = @imagecreatefromwebp($srcFile);
+		} else {
+			$raw = @file_get_contents($srcFile);
+			if ($raw !== false) {
+				$img = @imagecreatefromstring($raw);
+			}
+		}
+
+		if (!$img) {
+			return false;
+		}
+
+		$ok = @imagewebp($img, $dstFile, 82);
+		imagedestroy($img);
+
+		return $ok && file_exists($dstFile);
+	}
+}
+
 $file = $_REQUEST['txt_gbr'];
 $file = basename($file);
 $file = str_replace( "\\", '/',$file);
@@ -68,6 +136,14 @@ if($gbr2==""){$gambar2 = $gambar2;} else {$gambar2 = $gbr2;}
 if($gbr3==""){$gambar3 = $gambar3;} else {$gambar3 = $gbr3;}
 if($gbr4==""){$gambar4 = $gambar4;} else {$gambar4 = $gbr4;}
 if($gbr5==""){$gambar5 = $gambar5;} else {$gambar5 = $gbr5;}
+
+// Konversi gambar ke WebP untuk kebutuhan render ujian (folder khusus pictures_webp)
+cbt_convert_image_to_webp($gambar);
+cbt_convert_image_to_webp($gambar1);
+cbt_convert_image_to_webp($gambar2);
+cbt_convert_image_to_webp($gambar3);
+cbt_convert_image_to_webp($gambar4);
+cbt_convert_image_to_webp($gambar5);
 
 
  	$sql0 = mysql_query("update cbt_soal set XTanya = '$sss', 

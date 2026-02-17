@@ -436,7 +436,7 @@ $maks = $sm['maksi']+1; ?>
 			action: 'upload_gambar.php',
 			name: 'uploadfile',
 			onSubmit: function(file, ext){
-				 if (! (ext && /^(jpg|png|jpeg|gif)$/.test(ext))){ 
+				 if (! (ext && /^(jpg|png|jpeg|gif)$/i.test(ext))){ 
                     // extension is not allowed 
 					status.text('Only JPG, PNG or GIF files are allowed');
 					return false;
@@ -469,7 +469,7 @@ $maks = $sm['maksi']+1; ?>
 			action: 'upload_audio.php',
 			name: 'uploadfile2',
 			onSubmit: function(file2, ext2){
-				 if (! (ext2 && /^(mp3|wav)$/.test(ext2))){ 
+				 if (! (ext2 && /^(mp3|wav|ogg|m4a)$/i.test(ext2))){ 
                     // extension is not allowed 
 					status2.text('Only JPG, PNG or GIF files are allowed');
 					return false;
@@ -502,7 +502,7 @@ $maks = $sm['maksi']+1; ?>
 			action: 'upload_video.php',
 			name: 'uploadfile3',
 			onSubmit: function(file3, ext3){
-				 if (! (ext3 && /^(mp4|avi)$/.test(ext3))){ 
+				 if (! (ext3 && /^(mp4|avi|webm|mov|mkv)$/i.test(ext3))){ 
                     // extension is not allowed 
 					status3.text('Upload file dengan format mp4');
 					return false;

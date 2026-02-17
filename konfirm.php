@@ -75,8 +75,22 @@ $sqlada0 = mysql_query("SELECT * FROM  `cbt_siswa_ujian` WHERE XNomerUjian = '$t
 $ad0 = mysql_fetch_array($sqlada0);
 $user_ip2 = str_replace(" ", "", $ad0['XGetIP']);
 $user_ip1 = $user_ip;
-if ($user_ip1 <> $user_ip2 && !$user_ip2 == "") {
+if ($user_ip2 !== "" && $user_ip1 !== $user_ip2) {
     header('Location:login.php?salah=3');
+}
+$savedIp = '';
+if ($xkodesoal !== '' && $xtokenujian !== '' && !cbt_validate_single_ip_session($txtuser, $xtokenujian, $xkodesoal, $user_ip, $savedIp)) {
+    if (function_exists('bee_log')) {
+        bee_log('WARN', 'MULTI_IP_BLOCK', 'Konfirmasi ujian ditolak karena IP berbeda', array(
+            'user' => $txtuser,
+            'token' => $xtokenujian,
+            'kodesoal' => $xkodesoal,
+            'current_ip' => $user_ip,
+            'saved_ip' => $savedIp
+        ));
+    }
+    header('Location:login.php?salah=3');
+    exit;
 }
 
 $sql_admin = mysql_query("select * from cbt_admin");

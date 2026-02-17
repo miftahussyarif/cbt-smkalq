@@ -87,6 +87,23 @@ $baris = $data->rowcount($sheet_index=0);
 // nilai awal counter untuk jumlah data yang sukses dan yang gagal diimport
 $sukses = 0;
 $gagal = 0;
+$dilewati = 0;
+$importErrors = array();
+
+$urutAwal = 1;
+$cekUrut = mysql_query("SELECT MAX(Urut) AS max_urut FROM cbt_soal");
+if ($cekUrut) {
+    $rowUrut = mysql_fetch_assoc($cekUrut);
+    if ($rowUrut && isset($rowUrut['max_urut']) && $rowUrut['max_urut'] !== null) {
+        $urutAwal = ((int) $rowUrut['max_urut']) + 1;
+    }
+}
+
+bee_log('INFO', 'SOAL_IMPORT_REQUEST', 'Mulai import soal dari excel', array(
+    'kodesoal' => $xkodesoal,
+    'mapel' => $xkodemapel,
+    'baris_excel' => $baris
+));
 
 // import data excel mulai baris ke-2 (karena baris pertama adalah nama kolom)
 for ($i=3; $i<=$baris; $i++)
@@ -116,44 +133,106 @@ for ($i=3; $i<=$baris; $i++)
   $xacakopsi	= $data->val($i, 20);
   $xagama		= $data->val($i, 21);  
   
-  $xtanya 		= str_replace("'","`",$xtanya);
-  $xjawab1 		= str_replace("'","`",$xjawab1);
-  $xjawab2 		= str_replace("'","`",$xjawab2);  
-  $xjawab3 		= str_replace("'","`",$xjawab3);
-  $xjawab4 		= str_replace("'","`",$xjawab4);  
-  $xjawab5 		= str_replace("'","`",$xjawab5);
- 
- 
- // if tanya = kosong 
-	if(!str_replace(" ","",$xkat)==""){ 
-			 
-					  // setelah data dibaca, sisipkan ke dalam tabel mhs
-			/*		  $query = "INSERT INTO cbt_soal (XNomerSoal, XKodeMapel, XKodeSoal,XKodeKelas, XTanya, XJawab1, XGambarJawab1, XJawab2,XGambarJawab2, XJawab3,XGambarJawab3, XJawab4,XGambarJawab4, XJawab5,XGambarJawab5, 
-					  XAudioTanya, XVideoTanya, XGambarTanya, XKunciJawaban) VALUES ('$xnomer', '$xkodemapel', '$xkodesoal','$xkodekelas','$xtanya','$xjawab1','$xfilejawab1',
-					  '$xjawab2','$xfilejawab2','$xjawab3','$xfilejawab3','$xjawab4','$xfilejawab4','$xjawab5','$xfilejawab5','$xaudio','$xvideo','$xgambar','$xjwban')";
-			*/
-					  $query = "INSERT INTO cbt_soal (XNomerSoal, XKodeMapel, XKodeSoal, XTanya, XJawab1, XGambarJawab1, XJawab2,XGambarJawab2, XJawab3,XGambarJawab3, 
-					  XJawab4,XGambarJawab4, XJawab5,XGambarJawab5, XAudioTanya, XVideoTanya, XGambarTanya, XKunciJawaban,XJenisSoal,XKategori,XAcakSoal,XAcakOpsi,XAgama) 
-					  VALUES ('$xnomer', '$xkodemapel','$xkodesoal','$xtanya','$xjawab1','$xfilejawab1','$xjawab2','$xfilejawab2','$xjawab3',
-					  '$xfilejawab3','$xjawab4','$xfilejawab4','$xjawab5','$xfilejawab5','$xaudio','$xvideo','$xgambar',
-					  '$xjwban','$xjen','$xkat','$xacak','$xacakopsi','$xagama')";
-			
-					  $hasil = mysql_query($query);
-			  if ($hasil) $sukses++;
-			  else $gagal++;
-	}		 
+  $xtanyaTrim = trim($xtanya);
+  if ($xtanyaTrim === '') {
+      $dilewati++;
+      continue;
+  }
+
+  $xnomer = (int) $xnomer;
+  if ($xnomer < 1) {
+      $xnomer = $i - 2;
+  }
+
+  $xjen = (int) $xjen;
+  if ($xjen < 1) {
+      $xjen = 1;
+  }
+  $xkat = (int) $xkat;
+  if ($xkat < 1) {
+      $xkat = 1;
+  }
+
+  $xacak = strtoupper(trim($xacak));
+  if ($xacak !== 'A' && $xacak !== 'T') {
+      $xacak = 'A';
+  }
+
+  $xacakopsi = strtoupper(trim($xacakopsi));
+  if ($xacakopsi === '') {
+      $xacakopsi = 'N';
+  }
+
+  $xjwban = strtoupper(trim($xjwban));
+  if ($xjwban === '') {
+      $xjwban = 'A';
+  }
+
+  $xtanya = mysql_real_escape_string(str_replace("'", "`", $xtanyaTrim));
+  $xjawab1 = mysql_real_escape_string(str_replace("'", "`", $xjawab1));
+  $xjawab2 = mysql_real_escape_string(str_replace("'", "`", $xjawab2));
+  $xjawab3 = mysql_real_escape_string(str_replace("'", "`", $xjawab3));
+  $xjawab4 = mysql_real_escape_string(str_replace("'", "`", $xjawab4));
+  $xjawab5 = mysql_real_escape_string(str_replace("'", "`", $xjawab5));
+  $xfilejawab1 = mysql_real_escape_string(trim($xfilejawab1));
+  $xfilejawab2 = mysql_real_escape_string(trim($xfilejawab2));
+  $xfilejawab3 = mysql_real_escape_string(trim($xfilejawab3));
+  $xfilejawab4 = mysql_real_escape_string(trim($xfilejawab4));
+  $xfilejawab5 = mysql_real_escape_string(trim($xfilejawab5));
+  $xaudio = mysql_real_escape_string(trim($xaudio));
+  $xvideo = mysql_real_escape_string(trim($xvideo));
+  $xgambar = mysql_real_escape_string(trim($xgambar));
+  $xagama = mysql_real_escape_string(trim($xagama));
+  $xkodemapelEsc = mysql_real_escape_string($xkodemapel);
+  $xkodesoalEsc = mysql_real_escape_string($xkodesoal);
+  $urutInsert = (int) $urutAwal;
+
+  $query = "INSERT INTO cbt_soal (Urut, XNomerSoal, XKodeMapel, XKodeSoal, XTanya, XJawab1, XGambarJawab1, XJawab2, XGambarJawab2, XJawab3, XGambarJawab3, 
+          XJawab4, XGambarJawab4, XJawab5, XGambarJawab5, XAudioTanya, XVideoTanya, XGambarTanya, XKunciJawaban, XJenisSoal, XKategori, XAcakSoal, XAcakOpsi, XAgama) 
+          VALUES ('$urutInsert', '$xnomer', '$xkodemapelEsc', '$xkodesoalEsc', '$xtanya', '$xjawab1', '$xfilejawab1', '$xjawab2', '$xfilejawab2', '$xjawab3',
+          '$xfilejawab3', '$xjawab4', '$xfilejawab4', '$xjawab5', '$xfilejawab5', '$xaudio', '$xvideo', '$xgambar',
+          '$xjwban', '$xjen', '$xkat', '$xacak', '$xacakopsi', '$xagama')";
+
+  $hasil = mysql_query($query);
+  if ($hasil) {
+      $sukses++;
+      $urutAwal++;
+  } else {
+      $gagal++;
+      $err = mysql_error();
+      $importErrors[] = "Baris $i gagal: $err";
+      bee_log('ERROR', 'SOAL_IMPORT_ROW_FAILED', 'Gagal import baris soal dari excel', array(
+          'baris' => $i,
+          'urut_target' => $urutInsert,
+          'nomor_soal' => $xnomer,
+          'kodesoal' => $xkodesoal,
+          'mapel' => $xkodemapel,
+          'db_error' => $err
+      ));
+  }
+		 
 			  // jika proses insert data sukses, maka counter $sukses bertambah
 			  // jika gagal, maka counter $gagal yang bertambah
 			
 }
   
 	// Calculate the percentation
-	$percent = intval($i/$baris * 100)."%";
+	$processedRows = max(0, $baris - 2);
+	$doneRows = $sukses + $gagal + $dilewati;
+	if ($processedRows > 0) {
+	    $percent = intval(($doneRows / $processedRows) * 100);
+	    if ($percent > 100) {
+	        $percent = 100;
+	    }
+	} else {
+	    $percent = 100;
+	}
+	$percent = $percent . "%";
     
     // Javascript for updating the progress bar and information
     echo '<script language="javascript">
     document.getElementById("progress").innerHTML="<div style=\"width:'.$percent.';background-image:url(images/pbar-ani1.gif);\">&nbsp;</div>";
-    document.getElementById("information").innerHTML="  Proses Entri : Soal ... <b>'.$i.'</b> row(s) of <b>'. $baris.'</b> processed.";
+    document.getElementById("information").innerHTML="  Proses Entri : Soal ... <b>'.$doneRows.'</b> row(s) of <b>'. $processedRows.'</b> processed.";
     </script>';
 // This is for the buffer achieve the minimum size in order to flush data
     echo str_repeat(' ',1024*64);
@@ -163,6 +242,15 @@ for ($i=3; $i<=$baris; $i++)
     flush();
 // Tell user that the process is completed
    echo '<script language="javascript">document.getElementById("information").innerHTML=" Proses update database Bank Soal : Completed"</script>';
+
+   bee_log('INFO', 'SOAL_IMPORT_SUMMARY', 'Import soal excel selesai', array(
+       'kodesoal' => $xkodesoal,
+       'mapel' => $xkodemapel,
+       'total_baris' => $baris,
+       'sukses' => $sukses,
+       'gagal' => $gagal,
+       'dilewati_kosong' => $dilewati
+   ));
   
 //  } end if jika tanya = kosong
 
@@ -177,6 +265,7 @@ for ($i=3; $i<=$baris; $i++)
     <div class="alert alert-success">
     <?php
     echo "<p>Jumlah data yang sukses diimport : ".$sukses."<br>";
+    echo "Jumlah data yang dilewati (pertanyaan kosong) : ".$dilewati."</p>";
     ?>
     </div>
     
@@ -186,6 +275,14 @@ for ($i=3; $i<=$baris; $i++)
         <div class="alert alert-danger">
         <?php
         echo "Jumlah data yang gagal diimport : ".$gagal."</p>";
+        $maxPreview = min(5, count($importErrors));
+        if ($maxPreview > 0) {
+            echo "<p>Detail error (maks 5):<br>";
+            for ($x = 0; $x < $maxPreview; $x++) {
+                echo htmlspecialchars($importErrors[$x]) . "<br>";
+            }
+            echo "Lihat menu Log Aktivitas untuk detail lengkap.</p>";
+        }
         ?></div>
         <?php
         }

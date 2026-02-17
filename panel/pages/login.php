@@ -459,6 +459,15 @@ if (!$db_selected) {
     }
 }
 $val = mysql_query('select 1 from `cbt_admin` LIMIT 1');
+$loginErrMsg = '';
+if (isset($_GET['err'])) {
+    $err = trim($_GET['err']);
+    if ($err === 'invalid') {
+        $loginErrMsg = 'Username, password, atau role login salah';
+    } elseif ($err === 'required') {
+        $loginErrMsg = 'Username dan password harus diisi';
+    }
+}
 ?>
 
 <div class="login-page">
@@ -513,6 +522,15 @@ $val = mysql_query('select 1 from `cbt_admin` LIMIT 1');
                     ?>
                 </div>
             </div>
+            <?php if ($loginErrMsg !== '') { ?>
+                <script>
+                    $(document).ready(function () {
+                        var peluru = '\u2022';
+                        document.getElementById("ingat").style.display = "block";
+                        document.getElementById("isine").textContent = peluru + " <?php echo addslashes($loginErrMsg); ?>";
+                    });
+                </script>
+            <?php } ?>
             <form id="loginform" name="loginform" onSubmit="return validateForm();" action="../pages/ceklogin.php"
                 method="post">
                 <div class="form-field">

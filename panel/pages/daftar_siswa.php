@@ -95,6 +95,9 @@ Tambah Siswa</button>
                             <a href="?modul=upl_siswa" class="btn btn-success btn-small" style="margin-left:8px;">
                                 <i class="fa fa-upload"></i> Upload Siswa
                             </a>
+                            <a href="export_siswa_excel.php" class="btn btn-primary btn-small" style="margin-left:8px;">
+                                <i class="fa fa-file-excel-o"></i> Download Siswa Excel
+                            </a>
                             
                         </div>
                         <!-- /.panel-heading -->

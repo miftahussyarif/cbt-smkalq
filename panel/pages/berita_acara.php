@@ -94,9 +94,10 @@ $jamx = date("H:i:s");
 										<th width="5%">Ujian</th>                                        
                                         <th width="5%">Soal</th>
                                         <th width="20%">Mata Pelajaran</th>
-                                        <th width="5%">Kelas</th>	
-                                        <th width="5%">Token</th>	
-                                        <th width="12%">Waktu</th>
+	                                    <th width="5%">Kelas</th>	
+	                                    <th width="5%">Ruang</th>
+	                                    <th width="5%">Token</th>	
+	                                    <th width="12%">Waktu</th>
                                         <th width="3%">Durasi</th>  
                                         <th width="5%">Pengawas</th>
                                         <th width="10%">Status</th>                                        
@@ -105,15 +106,46 @@ $jamx = date("H:i:s");
                                 <tbody>
 <?php 
 $sql = mysql_query("select u.*,m.*,u.Urut as Urutan,u.XKodeKelas as kokel from cbt_ujian u left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel 
-left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal where u.XStatusUjian='9'");
-								while($s = mysql_fetch_array($sql)){ 
-					$sqlsoal  = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$s[XKodeSoal]'"));
-					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$s[XKodeSoal]' and XStatusUjian = '1'"));
-					$sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$s[XKodeSoal]'"));
-					if($sqlsoal<1){$kata="disabled";}  else {$kata="";}	
-					if($sqlsudah>0||$sqlpakai>0){$kata="disabled";}  else {$kata="";}			
-					if($sqlpakai>0){$katapakai="disabled";}  else {$katapakai="";}
-					
+left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal
+where u.XStatusUjian in ('0','1','9')
+or ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian) <= NOW()
+order by u.XTglUjian desc, u.XJamUjian desc");
+if (!$sql) {
+    if (function_exists('bee_log')) {
+        bee_log('ERROR', 'BERITA_ACARA_QUERY_FAILED', 'Gagal mengambil daftar berita acara', array(
+            'mysql_error' => mysql_error()
+        ));
+    }
+}
+if ($sql && mysql_num_rows($sql) > 0) {
+	while($s = mysql_fetch_array($sql)){ 
+	$tokenNow = mysql_real_escape_string($s['XTokenUjian']);
+	$kodesoalNow = mysql_real_escape_string($s['XKodeSoal']);
+	$sqlRuang = mysql_query("SELECT DISTINCT TRIM(sw.XRuang) AS XRuang
+		FROM cbt_siswa_ujian su
+		LEFT JOIN cbt_siswa sw ON TRIM(sw.XNomerUjian) = TRIM(su.XNomerUjian)
+		WHERE TRIM(su.XTokenUjian) = TRIM('$tokenNow')
+		AND TRIM(su.XKodeSoal) = TRIM('$kodesoalNow')
+		AND TRIM(sw.XRuang) <> ''
+		ORDER BY sw.XRuang");
+	$ruangList = array();
+	if ($sqlRuang) {
+		while ($rowR = mysql_fetch_array($sqlRuang)) {
+			$ru = trim($rowR['XRuang']);
+			if ($ru !== '') {
+				$ruangList[] = $ru;
+			}
+		}
+	}
+	if (count($ruangList) < 1) {
+		$ruangList[] = '';
+	}
+	foreach ($ruangList as $ruangItem) {
+		$ruangDisplay = ($ruangItem === '') ? 'Tanpa Ruang' : $ruangItem;
+		$rowKey = preg_replace('/[^A-Za-z0-9_]/', '_', $s['XTokenUjian'] . '_' . $ruangDisplay);
+		$tokenEncoded = urlencode($s['XTokenUjian']);
+		$ruangEncoded = urlencode($ruangItem);
+
 $time1 = "$s[XJamUjian]";
 $time2 = "$s[XLamaUjian]";
 
@@ -129,12 +161,11 @@ $tglujian = "$s[XTglUjian]";
                                 
 <script>    
 $(document).ready(function(){
-	$("#awas<?php echo $s['XTokenUjian']; ?>").click(function(){
-	alert();
-	//alert("<?php echo $s['Urutan']; ?>");
-	 var txt_tokenx = $("#txt_tokenx<?php echo "$s[XTokenUjian]"; ?>").val();
-	 var txt_pengawasx = $("#txt_pengawasx<?php echo "$s[XTokenUjian]"; ?>").val();
-	 var txt_nip_pengawasx = $("#txt_nip_pengawasx<?php echo "$s[XTokenUjian]"; ?>").val();
+	$("#awas<?php echo $rowKey; ?>").click(function(){
+		//alert("<?php echo $s['Urutan']; ?>");
+		 var txt_tokenx = $("#txt_tokenx<?php echo $rowKey; ?>").val();
+		 var txt_pengawasx = $("#txt_pengawasx<?php echo $rowKey; ?>").val();
+		 var txt_nip_pengawasx = $("#txt_nip_pengawasx<?php echo $rowKey; ?>").val();
 	
 	  
 	//alert(txt_ujianx);  
@@ -160,10 +191,11 @@ $(document).ready(function(){
                                         <input type="hidden" value="<?php echo $s['Urutan']; ?>" id="txt_ujian<?php echo $s['Urutan']; ?>">
                                         </td>
                                         <td><?php echo $s['XKodeUjian']; ?></td>
-                                        <td><?php echo $s['XKodeSoal']; ?></td>
-                                        <td><?php echo $s['XNamaMapel']; ?></td>
-                                        <td><?php echo $s['kokel']." | ".$s['XKodeJurusan']."."; ?></td> 
-                                        <td><?php echo $s['XTokenUjian']; ?></td>
+	                                        <td><?php echo $s['XKodeSoal']; ?></td>
+	                                        <td><?php echo $s['XNamaMapel']; ?></td>
+	                                        <td><?php echo $s['kokel']." | ".$s['XKodeJurusan']."."; ?></td> 
+	                                        <td><?php echo $ruangDisplay; ?></td>
+	                                        <td><?php echo $s['XTokenUjian']; ?></td>
                                         <td align="center">
                                         <?php echo $s['XTglUjian']." ".$s['XJamUjian'] ; ?>
                                         </td>                                        
@@ -172,32 +204,32 @@ $(document).ready(function(){
                                         </td>
                                        <td align="center">
                                         <?php 
-										echo $s['XPengawas']; 
-										?>
-                                        </td>
-                                        <td>													
-                                        <a href="?modul=cetak_berita&token=<?php echo $s['XTokenUjian']; ?>">
-                                        <button type="button" class="btn btn-info"><i class="fa fa-print"></i></button></a>
-                                        <button type="button" class="btn btn-warning btn-small"  data-toggle="modal" 
-                                        data-target="#myPengawas<?php echo $s['XTokenUjian']; ?>"><i class="fa fa-edit"></i></button>
-                                        </td>     
+											echo $s['XPengawas']; 
+											?>
+	                                        </td>
+	                                        <td>													
+	                                        <a href="?modul=cetak_berita&token=<?php echo $tokenEncoded; ?>&ruang=<?php echo $ruangEncoded; ?>">
+	                                        <button type="button" class="btn btn-info"><i class="fa fa-print"></i></button></a>
+	                                        <button type="button" class="btn btn-warning btn-small"  data-toggle="modal" 
+	                                        data-target="#myPengawas<?php echo $rowKey; ?>"><i class="fa fa-edit"></i></button>
+	                                        </td>     
                                                                                                               
                                     </tr>
   <!-- Button trigger modal -->
   <!-- Modal -->
-                            <div class="modal fade" id="myPengawas<?php echo $s['XTokenUjian']; ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                            <div class="modal fade" id="myPengawas<?php echo $rowKey; ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                            <h4 class="modal-title" id="myModalLabel"><?php echo "Pengawas Ujian Mapel : $s[XNamaMapel]"; ?></h4>
+                                        <h4 class="modal-title" id="myModalLabel"><?php echo "Pengawas Ujian Mapel : $s[XNamaMapel] (Ruang: $ruangDisplay)"; ?></h4>
                                         </div>
                                         <div class="modal-body" >
                                         
-                                        <input type="hidden" value="<?php echo $s['XTokenUjian']; ?>" id="txt_tokenx<?php echo $s['XTokenUjian']; ?>"><br>
-                                        <span>Nama Pengawas : </span><br><span><input type="text" id="txt_pengawasx<?php echo $s['XTokenUjian']; ?>" width="90%">
+                                        <input type="hidden" value="<?php echo $s['XTokenUjian']; ?>" id="txt_tokenx<?php echo $rowKey; ?>"><br>
+                                        <span>Nama Pengawas : </span><br><span><input type="text" id="txt_pengawasx<?php echo $rowKey; ?>" width="90%">
                                         </span><br>
-                               			<span>NIP  Pengawas : </span><br><span><input type="text" id="txt_nip_pengawasx<?php echo $s['XTokenUjian']; ?>"
+                               			<span>NIP  Pengawas : </span><br><span><input type="text" id="txt_nip_pengawasx<?php echo $rowKey; ?>"
                                          width="90%"></span>				
                                         <br><br>
                                         
@@ -205,7 +237,7 @@ $(document).ready(function(){
 
                                         <div class="modal-footer">
                                         <input type="submit"  class="btn btn-info btn-lg btn-small" 
-                                        id="awas<?php echo $s['XTokenUjian']; ?>" value="Simpan" name="awas<?php echo $s['XTokenUjian']; ?>">    
+                                        id="awas<?php echo $rowKey; ?>" value="Simpan" name="awas<?php echo $rowKey; ?>">    
                                         </div>                                        
                                         
                                     </div>
@@ -216,6 +248,12 @@ $(document).ready(function(){
                             <!-- /.modal --> 
                                            
 
+                              <?php } ?>
+                              <?php } ?>
+                              <?php } else { ?>
+                                    <tr>
+                                        <td colspan="11" align="center">Belum ada data ujian selesai untuk berita acara.</td>
+                                    </tr>
                               <?php } ?>
                                    
                                 </tbody>

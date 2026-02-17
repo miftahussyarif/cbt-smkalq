@@ -236,7 +236,8 @@ if (!isset($_COOKIE['beeuser'])) {
             $basename = basename($file);
             $waktu = date('Y-m-d H:i', filemtime($file));
             $out .= "<div style='margin-bottom:6px;'>$basename<br><small>$waktu</small> ";
-            $out .= "<a class='btn btn-info btn-xs' style='margin-left:6px;' href='pages/download_backup.php?file=$basename'>Download</a></div>";
+            $safeFile = rawurlencode($basename);
+            $out .= "<a class='btn btn-info btn-xs' style='margin-left:6px;' href='download_backup.php?file=$safeFile'>Download</a></div>";
         }
         return $out;
     }

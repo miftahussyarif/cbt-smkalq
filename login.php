@@ -320,6 +320,29 @@ $has_server_error = !empty($error_messages);
             box-shadow: 0 10px 24px rgba(4, 46, 122, 0.15);
             transform: translateY(-1px);
         }
+        .password-wrap {
+            position: relative;
+        }
+        .password-wrap input {
+            padding-right: 44px;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            color: #6b7a99;
+            font-size: 18px;
+            line-height: 1;
+            padding: 4px;
+            cursor: pointer;
+        }
+        .toggle-password:focus {
+            outline: none;
+            color: #0a52c9;
+        }
 
         .form-actions {
             margin-top: 6px;
@@ -407,6 +430,8 @@ $has_server_error = !empty($error_messages);
         $(document).ready(function () {
             var $errorCard = $("#myerror");
             var hasServerError = parseInt($errorCard.attr("data-server-error"), 10) === 1;
+            var $passwordInput = $("#inputPassword");
+            var $togglePassword = $("#togglePassword");
 
             $("#form1").validate({
                 errorLabelContainer: "#myerror .alert-list",
@@ -440,6 +465,23 @@ $has_server_error = !empty($error_messages);
                         $errorCard.removeClass("is-visible");
                     }
                 }
+            });
+
+            $togglePassword.on("click", function () {
+                var inputEl = $passwordInput.get(0);
+                var isPassword = inputEl && inputEl.type === "password";
+                if (inputEl) {
+                    try {
+                        inputEl.type = isPassword ? "text" : "password";
+                    } catch (e) {
+                        $passwordInput.attr("type", isPassword ? "text" : "password");
+                    }
+                }
+                // Compatibility fallback for browsers that keep masking style.
+                $passwordInput.css("-webkit-text-security", isPassword ? "none" : "disc");
+                $(this).attr("aria-label", isPassword ? "Sembunyikan password" : "Tampilkan password");
+                $(this).attr("title", isPassword ? "Sembunyikan password" : "Tampilkan password");
+                $(this).text(isPassword ? "🙈" : "👁");
             });
         });
     </script>
@@ -492,7 +534,11 @@ $has_server_error = !empty($error_messages);
                     </div>
                     <div class="form-field">
                         <label for="inputPassword">Password</label>
-                        <input id="inputPassword" name="Password" placeholder="Password" type="password">
+                        <div class="password-wrap">
+                            <input id="inputPassword" name="Password" placeholder="Password" type="password">
+                            <button type="button" id="togglePassword" class="toggle-password"
+                                aria-label="Tampilkan password" title="Tampilkan password">👁</button>
+                        </div>
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn-login">Login</button>
