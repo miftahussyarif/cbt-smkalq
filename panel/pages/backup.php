@@ -85,7 +85,7 @@ if (!isset($_COOKIE['beeuser'])) {
     ?>
     <?php include "../../config/server.php"; ?>
     <?php
-    $backupDir = '/opt/lampp/backup';
+    $backupDir = dirname(__FILE__) . '/../../backup';
     $backupSiswa = array();
     $backupUjian = array();
     $backupSemua = array();
@@ -269,7 +269,7 @@ if (!isset($_COOKIE['beeuser'])) {
                         Tombol &nbsp; <button type='button' class='btn btn-danger'><i class='fa fa-times'></i></button>
                         &nbsp; : selain Backup, juga akan menghapus semua table yang berkaitan dengan Pilihan Jenis
                         Data<br>
-                        Lokasi file Backup, Silahkan Lihat folder /opt/lampp/backup/
+                        Lokasi file Backup, Silahkan lihat folder /cbt-smkalq/backup/
                     </div>
                     <?php
                     if ($fileBackupMessage !== '') {

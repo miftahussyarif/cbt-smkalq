@@ -6,9 +6,11 @@ set -euo pipefail
 # to match the currently used project pattern.
 
 BASE_DIR="$(cd "$(dirname "$0")" && pwd)"
-BACKUP_DIR="/opt/lampp/backup"
-LOG_DIR="/tmp/cbt-smkalq-log"
+BACKUP_DIR="$BASE_DIR/backup"
+LOG_DIR="$BASE_DIR/logs"
 SCHEMA_FILE="$BASE_DIR/database/schema.sql"
+LEGACY_BACKUP_DIR="/opt/lampp/backup"
+LEGACY_LOG_DIR="/tmp/cbt-smkalq-log"
 
 DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-3306}"
@@ -72,6 +74,23 @@ ensure_database_tables() {
     "$SCHEMA_FILE" | "${mysql_cmd[@]}" "$DB_NAME"
 }
 
+migrate_legacy_dir() {
+  local from_dir="$1"
+  local to_dir="$2"
+  local label="$3"
+
+  if [[ "$from_dir" == "$to_dir" ]]; then
+    return 0
+  fi
+
+  if [[ -d "$from_dir" ]]; then
+    echo "==> Migrating legacy $label from $from_dir to $to_dir"
+    run_cmd mkdir -p "$to_dir"
+    run_cmd find "$from_dir" -mindepth 1 -maxdepth 1 -exec mv -t "$to_dir" {} +
+    run_cmd rmdir "$from_dir" 2>/dev/null || true
+  fi
+}
+
 PROJECT_DIRS_755=(
   "config"
   "css"
@@ -84,6 +103,8 @@ PROJECT_DIRS_755=(
   "panel"
   "panel/pages"
   "file-excel"
+  "backup"
+  "logs"
 )
 
 PROJECT_DIRS_777=(
@@ -97,28 +118,17 @@ PROJECT_DIRS_757=(
   "output"
 )
 
-EXTERNAL_DIRS=(
-  "$BACKUP_DIR"
-  "$LOG_DIR"
-)
-
 echo "==> Creating required project directories"
 for rel in "${PROJECT_DIRS_755[@]}" "${PROJECT_DIRS_777[@]}" "${PROJECT_DIRS_757[@]}"; do
   run_cmd mkdir -p "$BASE_DIR/$rel"
 done
 
-echo "==> Creating external directories"
-for path in "${EXTERNAL_DIRS[@]}"; do
-  run_cmd mkdir -p "$path"
-done
-
 echo "==> Setting ownership to $OWNER_USER:$OWNER_GROUP"
 run_cmd chown -R "$OWNER_USER:$OWNER_GROUP" "$BASE_DIR"
 
-# External dirs can be shared with web process; keep daemon ownership if available.
-if id -u daemon >/dev/null 2>&1; then
-  run_cmd chown -R daemon:daemon "$BACKUP_DIR" "$LOG_DIR"
-fi
+echo "==> Migrating legacy external directories (if any)"
+migrate_legacy_dir "$LEGACY_BACKUP_DIR" "$BACKUP_DIR" "backup files"
+migrate_legacy_dir "$LEGACY_LOG_DIR" "$LOG_DIR" "log files"
 
 echo "==> Applying default directory/file modes in project"
 run_cmd find "$BASE_DIR" -type d -exec chmod 755 {} \;
@@ -133,8 +143,8 @@ for rel in "${PROJECT_DIRS_757[@]}"; do
   run_cmd chmod 757 "$BASE_DIR/$rel"
 done
 
-# Keep external dirs writable for service operations.
-run_cmd chmod 755 "$BACKUP_DIR" "$LOG_DIR"
+# Keep internal storage dirs writable for service operations.
+run_cmd chmod 777 "$BACKUP_DIR" "$LOG_DIR"
 
 echo "==> Initializing database tables"
 ensure_database_tables
@@ -147,7 +157,7 @@ echo "  Owner project : $OWNER_USER:$OWNER_GROUP"
 echo "  777 dirs      : ${PROJECT_DIRS_777[*]}"
 echo "  757 dirs      : ${PROJECT_DIRS_757[*]}"
 echo "  755 dirs      : ${PROJECT_DIRS_755[*]}"
-echo "  External dirs : $BACKUP_DIR, $LOG_DIR"
+echo "  Storage dirs  : $BACKUP_DIR, $LOG_DIR"
 echo "  Database      : $DB_NAME @ $DB_HOST:$DB_PORT"
 echo
 echo "Current permissions:"
@@ -159,5 +169,5 @@ ls -ld \
   "$BASE_DIR/output" \
   "$BASE_DIR/file-excel" \
   "$BASE_DIR/images" \
-  "$BACKUP_DIR" \
-  "$LOG_DIR"
+  "$BASE_DIR/backup" \
+  "$BASE_DIR/logs"

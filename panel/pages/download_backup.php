@@ -4,7 +4,7 @@ if (!isset($_COOKIE['beeuser'])) {
     exit;
 }
 
-$backupDir = '/opt/lampp/backup';
+$backupDir = dirname(__FILE__) . '/../../backup';
 $file = isset($_GET['file']) ? basename($_GET['file']) : '';
 
 if ($file == '' || strpos($file, '..') !== false) {

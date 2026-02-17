@@ -73,14 +73,15 @@ function &backup_tables($host, $user, $pass, $name, $tables = '*')
 // create backup
 //////////////////////////////////////
 
-if (!file_exists('/opt/lampp/backup')) {
-  mkdir('/opt/lampp/backup', 0777, true);
+$backup_dir = dirname(__FILE__) . '/../backup';
+if (!file_exists($backup_dir)) {
+  mkdir($backup_dir, 0777, true);
 }
 
 $tabel = "cbt_kelas,cbt_mapel,cbt_siswa";
 
 //$backup_file = 'data/'.time().'-'.$tabel.'.sql';
-$backup_file = '/opt/lampp/backup/dbee-siswa_' . time() . '.sql';
+$backup_file = $backup_dir . '/dbee-siswa_' . time() . '.sql';
 // get backup
 //$mybackup = backup_tables("localhost:3306","root","","beesmartv3","*");
 $mybackup = backup_tables("localhost:3306", "root", "", "beesmartv3", $tabel);
@@ -97,5 +98,5 @@ fclose($handle);
 <div class="alert alert-success alert-dismissable">
   <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
   Tabel <?php echo $tabel; ?> telah di Backup<br />
-  Lokasi file Backup, Silahkan Lihat folder /opt/lampp/backup/
+  Lokasi file Backup, Silahkan lihat folder /cbt-smkalq/backup/
 </div>

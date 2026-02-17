@@ -149,7 +149,7 @@ mysql, gd, mbstring, zip, xml
 ### Folder dengan Write Permission
 ```
 /fotosiswa, /images, /pictures, /audio, /video, /output, /file-excel
-/opt/lampp/backup (untuk file backup database)
+`<project>/backup` (untuk file backup database)
 ```
 
 ---
@@ -217,7 +217,7 @@ sudo chown -R daemon:daemon /opt/lampp/htdocs/cbt-smkalq/audio
 sudo chown -R daemon:daemon /opt/lampp/htdocs/cbt-smkalq/video
 sudo chown -R daemon:daemon /opt/lampp/htdocs/cbt-smkalq/output
 sudo chown -R daemon:daemon /opt/lampp/htdocs/cbt-smkalq/file-excel
-sudo mkdir -p /opt/lampp/backup && sudo chown daemon:daemon /opt/lampp/backup
+sudo mkdir -p /opt/lampp/htdocs/cbt-smkalq/backup && sudo chown daemon:daemon /opt/lampp/htdocs/cbt-smkalq/backup
 
 # 6. Start LAMPP
 sudo /opt/lampp/lampp start
@@ -305,11 +305,10 @@ sudo chmod 755 /var/www/html/cbt-smkalq/output
 sudo chmod 755 /var/www/html/cbt-smkalq/file-excel
 
 # Buat folder backup
-sudo mkdir -p /var/www/backup
-sudo chown www-data:www-data /var/www/backup
+sudo mkdir -p /var/www/html/cbt-smkalq/backup
+sudo chown www-data:www-data /var/www/html/cbt-smkalq/backup
 
-# Update path backup di config (edit file database/*.php)
-# Ubah /opt/lampp/backup menjadi /var/www/backup
+# Path backup sudah otomatis di dalam project: /var/www/html/cbt-smkalq/backup
 ```
 
 #### Langkah 5: Konfigurasi Virtual Host (Opsional)
@@ -378,8 +377,8 @@ $mode = "lokal";
 ?>
 ```
 
-2. Perbarui path backup di `database/*.php`:
-   - Ubah `/opt/lampp/backup` → `/home/username/backup` (sesuaikan)
+2. Path backup sudah otomatis di dalam project:
+   - `/home/username/public_html/cbt-smkalq/backup`
 
 #### Langkah 5: Set Permission
 1. Di cPanel File Manager, klik kanan folder berikut → **Change Permissions** → `755`:
@@ -445,11 +444,11 @@ Database `beesmartv3` terdiri dari 16 tabel:
 
 | File | Path Lama | Path Baru |
 |------|-----------|-----------|
-| `database/cbt_semua.php` | `C:/CBT_BEESMART` | `/opt/lampp/backup` |
-| `database/cbt_ujian.php` | `C:/CBT_BEESMART` | `/opt/lampp/backup` |
-| `database/cbt_siswa.php` | `C:/CBT_BEESMART` | `/opt/lampp/backup` |
-| `database/cbt_jawaban.php` | `C:/CBT_BEESMART` | `/opt/lampp/backup` |
-| `database/restore.php` | `C:/CBT_BEESMART` | `/opt/lampp/backup` |
+| `database/cbt_semua.php` | `C:/CBT_BEESMART` | `<project>/backup` |
+| `database/cbt_ujian.php` | `C:/CBT_BEESMART` | `<project>/backup` |
+| `database/cbt_siswa.php` | `C:/CBT_BEESMART` | `<project>/backup` |
+| `database/cbt_jawaban.php` | `C:/CBT_BEESMART` | `<project>/backup` |
+| `database/restore.php` | `C:/CBT_BEESMART` | `<project>/backup` |
 
 ### Konfigurasi Permission Folder
 Folder dengan owner `daemon:daemon`, mode `755`:
@@ -460,7 +459,7 @@ Folder dengan owner `daemon:daemon`, mode `755`:
 - `/opt/lampp/htdocs/cbt-smkalq/output`
 - `/opt/lampp/htdocs/cbt-smkalq/pictures`
 - `/opt/lampp/htdocs/cbt-smkalq/video`
-- `/opt/lampp/backup`
+- `/opt/lampp/htdocs/cbt-smkalq/backup`
 
 Gunakan script `install.sh` untuk mengatur ulang permission.
 

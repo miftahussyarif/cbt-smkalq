@@ -73,14 +73,15 @@ function &backup_tables($host, $user, $pass, $name, $tables = '*')
 // create backup
 //////////////////////////////////////
 
-if (!file_exists('/opt/lampp/backup')) {
-  mkdir('/opt/lampp/backup', 0777, true);
+$backup_dir = dirname(__FILE__) . '/../backup';
+if (!file_exists($backup_dir)) {
+  mkdir($backup_dir, 0777, true);
 }
 
 $tabel = "cbt_soal,cbt_jawaban,cbt_siswa_ujian,cbt_paketsoal,cbt_ujian,cbt_nilai";
 
 //$backup_file = 'data/'.time().'-'.$tabel.'.sql';
-$backup_file = '/opt/lampp/backup/dbee-ujian_' . time() . '.sql';
+$backup_file = $backup_dir . '/dbee-ujian_' . time() . '.sql';
 // get backup
 //$mybackup = backup_tables("localhost:3306","root","","beesmartv3","*");
 $mybackup = backup_tables("localhost:3306", "root", "", "beesmartv3", $tabel);

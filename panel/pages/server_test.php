@@ -206,7 +206,11 @@ $ioStart = microtime(true);
 $ioOk = false;
 $ioWarn = false;
 $ioDetail = '';
-$tmpFile = sys_get_temp_dir() . '/cbt_server_test_' . uniqid() . '.tmp';
+$tmpDir = dirname(__FILE__) . '/../../logs';
+if (!is_dir($tmpDir)) {
+    @mkdir($tmpDir, 0777, true);
+}
+$tmpFile = $tmpDir . '/cbt_server_test_' . uniqid() . '.tmp';
 $payload = str_repeat('CBTTEST', 1024); // ~7KB
 $writeOk = @file_put_contents($tmpFile, $payload);
 if ($writeOk !== false) {

@@ -7,7 +7,7 @@ mysql_select_db("beesmartv3", $sqlconn);
 $mode = "lokal"; // pilih 'lokal' atau 'pusat'
 
 if (!defined('BEE_LOG_DIR')) {
-    define('BEE_LOG_DIR', sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'cbt-smkalq-log');
+    define('BEE_LOG_DIR', dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'logs');
 }
 if (!defined('BEE_LOG_FILE')) {
     define('BEE_LOG_FILE', BEE_LOG_DIR . DIRECTORY_SEPARATOR . 'admin.log');

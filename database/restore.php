@@ -12,7 +12,7 @@ include "../../config/server.php";
  */
 
 // Name of the file
-$backupDir = '/opt/lampp/backup';
+$backupDir = dirname(__FILE__) . '/../backup';
 $filename = '';
 $displayName = '';
 $errorMessage = '';
