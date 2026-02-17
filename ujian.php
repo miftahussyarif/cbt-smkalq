@@ -1149,6 +1149,18 @@ img {
 include "config/server.php";
 $sql = mysql_query("select * from cbt_admin");
 $r = mysql_fetch_array($sql);
+$fotoSiswaFile = 'nouser.png';
+if (isset($s['XFoto'])) {
+    $candidateFoto = trim($s['XFoto']);
+    if ($candidateFoto !== '') {
+        $candidateFoto = basename($candidateFoto);
+        $candidatePath = __DIR__ . '/fotosiswa/' . $candidateFoto;
+        if (is_file($candidatePath)) {
+            $fotoSiswaFile = $candidateFoto;
+        }
+    }
+}
+$fotoSiswaUrl = 'fotosiswa/' . rawurlencode($fotoSiswaFile);
 ?>
 
 <body class="font-medium" style="background-color:#c9c9c9">
@@ -1160,7 +1172,7 @@ $r = mysql_fetch_array($sql);
             <div class="right1">
                 <table width="100%" border="0" cellspacing="5px;" style="margin-top:10px">
                     <tr>
-                        <td rowspan="3" width="100px" align="center"><img src="images/avatar.gif"
+                        <td rowspan="3" width="100px" align="center"><img src="<?php echo $fotoSiswaUrl; ?>"
                                 style=" margin-left:0px; margin-top:5px" class="foto"></td>
                         <td><span style=" margin-left:0px; margin-top:5px">Selamat Datang</span></td>
                     </tr>

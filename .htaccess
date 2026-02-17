@@ -8,3 +8,13 @@
         Header set Cache-Control "public, max-age=2592000, immutable"
     </FilesMatch>
 </IfModule>
+
+<IfModule mod_php5.c>
+    php_value max_file_uploads 50
+</IfModule>
+<IfModule mod_php7.c>
+    php_value max_file_uploads 50
+</IfModule>
+<IfModule mod_php8.c>
+    php_value max_file_uploads 50
+</IfModule>

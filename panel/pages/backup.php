@@ -123,8 +123,10 @@ if (!isset($_COOKIE['beeuser'])) {
                 $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Gagal membuat file backup.</div>";
             } else {
                 $added = 0;
+                $perDirAdded = array();
                 foreach ($fileBackupDirs as $dirName) {
                     $dirPath = $baseDir . '/' . $dirName;
+                    $perDirAdded[$dirName] = 0;
                     if (!is_dir($dirPath)) {
                         continue;
                     }
@@ -140,12 +142,14 @@ if (!isset($_COOKIE['beeuser'])) {
                         $relativePath = $dirName . '/' . substr($filePath, strlen($dirPath) + 1);
                         if ($zip->addFile($filePath, $relativePath)) {
                             $added++;
+                            $perDirAdded[$dirName]++;
                         }
                     }
                 }
                 $zip->close();
                 $safeZip = htmlspecialchars($zipName, ENT_QUOTES, 'UTF-8');
-                $fileBackupMessage = "<div class=\"alert alert-success alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Backup file berhasil dibuat: <strong>$safeZip</strong> ($added file).</div>";
+                $fotosiswaCount = isset($perDirAdded['fotosiswa']) ? (int) $perDirAdded['fotosiswa'] : 0;
+                $fileBackupMessage = "<div class=\"alert alert-success alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Backup file berhasil dibuat: <strong>$safeZip</strong> ($added file). Foto siswa dibackup: <strong>$fotosiswaCount</strong> file.</div>";
             }
         } elseif ($action === 'restore_files') {
             $backupFile = isset($_POST['backup_file']) ? basename($_POST['backup_file']) : '';

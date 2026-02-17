@@ -23,9 +23,19 @@ if(isset($_POST) and $_SERVER['REQUEST_METHOD'] == "POST")
 	
     foreach ($_FILES['photos']['name'] as $name => $value)
     {
-	
-        $filename = stripslashes($_FILES['photos']['name'][$name]);
-        $size=filesize($_FILES['photos']['tmp_name'][$name]);
+        if (!isset($_FILES['photos']['tmp_name'][$name]) || $_FILES['photos']['tmp_name'][$name] === '') {
+            continue;
+        }
+        if (!is_uploaded_file($_FILES['photos']['tmp_name'][$name])) {
+            continue;
+        }
+
+        $filename = basename(stripslashes($_FILES['photos']['name'][$name]));
+        $size = @filesize($_FILES['photos']['tmp_name'][$name]);
+        if ($size === false) {
+            echo '<span class="imgList">File tidak valid.</span>';
+            continue;
+        }
         //get the extension of the file in a lower case format
           $ext = getExtension($filename);
           $ext = strtolower($ext);
@@ -46,6 +56,9 @@ if(isset($_POST) and $_SERVER['REQUEST_METHOD'] == "POST")
 		   //echo "<img src='".$uploaddir.$image_name."' class='imgList'>";
 		   $newname=$uploaddir.$image_name;
            
+           if (file_exists($newname)) {
+               @unlink($newname);
+           }
            if (move_uploaded_file($_FILES['photos']['tmp_name'][$name], $newname)) 
            {
 	       $time=time();

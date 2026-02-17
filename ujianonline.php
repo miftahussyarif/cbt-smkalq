@@ -269,8 +269,8 @@ $secs3 =  $diffSeconds3 - ($hrs3 *3600 + $mins3 * 60);
     });
 </script>   
 
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>CBT SMK AL QODIRIYAH | UJIAN ONLINE</title>
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	        <title>CBT SMK AL QODIRIYAH | UJIAN ONLINE</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -902,6 +902,20 @@ img {
 	.flex-item{ margin-left:20px;}
 }
 </style>
+<?php
+$fotoSiswaFile = 'nouser.png';
+if (isset($s['XFoto'])) {
+    $candidateFoto = trim($s['XFoto']);
+    if ($candidateFoto !== '') {
+        $candidateFoto = basename($candidateFoto);
+        $candidatePath = __DIR__ . '/fotosiswa/' . $candidateFoto;
+        if (is_file($candidatePath)) {
+            $fotoSiswaFile = $candidateFoto;
+        }
+    }
+}
+$fotoSiswaUrl = 'fotosiswa/' . rawurlencode($fotoSiswaFile);
+?>
    
 <body>
 <header>
@@ -909,8 +923,8 @@ img {
     <div class="left1"><a href=" "><img src="images/logo.png" style=" margin-left:0px;"></a>
     </div>
     	<div class="right1"><table width="100%" border="0" cellspacing="5px;" style="margin-top:10px">   
-     					<tr><td rowspan="3" width="100px" align="center"><img src="images/avatar.gif" style=" margin-left:0px; margin-top:5px" class="foto"></td>
-						<td><span  style=" margin-left:0px; margin-top:5px">Selamat Datang</span></td></tr>
+     					<tr><td rowspan="3" width="100px" align="center"><img src="<?php echo $fotoSiswaUrl; ?>" style=" margin-left:0px; margin-top:5px" class="foto"></td>
+							<td><span  style=" margin-left:0px; margin-top:5px">Selamat Datang</span></td></tr>
                         <tr><td><span class="user"><?php echo "$val_siswa ($xkodekelasx)"; ?></span></td></tr>
                         <tr><td><span class="log"><a href="logout.php">Logout</a><span></td></tr>
 						</table>
