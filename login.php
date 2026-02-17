@@ -467,50 +467,48 @@ $has_server_error = !empty($error_messages);
                 }
             });
 
-            function replaceInputWithType($el, newType) {
-                var el = $el.get(0);
-                var $new = $("<input>");
-                // copy attributes
-                $.each(el.attributes, function () {
-                    if (this.specified && this.name !== 'type') {
-                        $new.attr(this.name, this.value);
-                    }
-                });
-                $new.attr('type', newType);
-                $new.val($el.val());
-                $new.addClass($el.attr('class'));
-                $new.css($el.css(['width','padding','margin','display']));
-                $el.replaceWith($new);
-                return $new;
-            }
+            // Fallback-safe toggle implementation using two inputs (password + text)
+            var $passwordText = $("#inputPasswordText");
+
+            // keep values in sync while typing
+            $passwordInput.on('input', function () {
+                $passwordText.val(this.value);
+            });
+            $passwordText.on('input', function () {
+                $passwordInput.val(this.value);
+            });
 
             $togglePassword.on("click", function () {
-                var inputEl = $passwordInput.get(0);
-                var isPassword = inputEl && inputEl.type === "password";
-                var desiredType = isPassword ? "text" : "password";
-
-                var switched = false;
-                if (inputEl) {
-                    try {
-                        inputEl.type = desiredType;
-                        switched = (inputEl.type === desiredType);
-                    } catch (e) {
-                        switched = false;
-                    }
+                var showingPassword = $passwordInput.is(':visible');
+                if (showingPassword) {
+                    // show plain text input
+                    $passwordText.val($passwordInput.val());
+                    $passwordInput.hide();
+                    $passwordText.show().focus();
+                    $(this).attr("aria-label", "Sembunyikan password");
+                    $(this).attr("title", "Sembunyikan password");
+                    $(this).text("🙈");
+                } else {
+                    // show password input
+                    $passwordInput.val($passwordText.val());
+                    $passwordText.hide();
+                    $passwordInput.show().focus();
+                    $(this).attr("aria-label", "Tampilkan password");
+                    $(this).attr("title", "Tampilkan password");
+                    $(this).text("👁");
                 }
+                // ensure masks are set correctly
+                $passwordInput.css("-webkit-text-security", "disc");
+                $passwordText.css("-webkit-text-security", "none");
+            });
 
-                // If browser doesn't allow changing input.type, replace the element
-                if (!switched) {
-                    var $newEl = replaceInputWithType($passwordInput, desiredType);
-                    $passwordInput = $newEl;
+            // Ensure on submit the password field contains the user's value
+            $("#form1").on('submit', function () {
+                if ($passwordText.is(':visible')) {
+                    $passwordInput.val($passwordText.val());
+                    $passwordText.hide();
+                    $passwordInput.show();
                 }
-
-                // Ensure legacy masking on WebKit is cleared when showing text
-                $passwordInput.css("-webkit-text-security", desiredType === "text" ? "none" : "disc");
-
-                $(this).attr("aria-label", desiredType === "password" ? "Tampilkan password" : "Sembunyikan password");
-                $(this).attr("title", desiredType === "password" ? "Tampilkan password" : "Sembunyikan password");
-                $(this).text(desiredType === "password" ? "👁" : "🙈");
             });
         });
     </script>
@@ -565,6 +563,7 @@ $has_server_error = !empty($error_messages);
                         <label for="inputPassword">Password</label>
                         <div class="password-wrap">
                             <input id="inputPassword" name="Password" placeholder="Password" type="password">
+                            <input id="inputPasswordText" placeholder="Password" type="text" style="display:none;">
                             <button type="button" id="togglePassword" class="toggle-password"
                                 aria-label="Tampilkan password" title="Tampilkan password">👁</button>
                         </div>
