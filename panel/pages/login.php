@@ -287,6 +287,38 @@
         transform: translateY(-1px);
     }
 
+    .password-wrap {
+        position: relative;
+    }
+
+    .password-wrap input {
+        width: 100%;
+        padding-right: 44px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: #6b7a99;
+        font-size: 18px;
+        line-height: 1;
+        padding: 4px;
+        cursor: pointer;
+        z-index: 2;
+        pointer-events: auto;
+    }
+
+    .toggle-password:focus {
+        outline: none;
+        color: #0a52c9;
+    }
+
     .switch-field {
         display: flex;
         gap: 6px;
@@ -402,6 +434,7 @@
             justify-content: space-between;
         }
 
+
         .switch-field label {
             flex: 1;
         }
@@ -429,14 +462,39 @@
 
     }
 
+    // Password toggle functionality
+    document.addEventListener('DOMContentLoaded', function () {
+        var passwordInput = document.getElementById('passz');
+        var toggleButton = document.getElementById('togglePassword');
+
+        if (toggleButton && passwordInput) {
+            toggleButton.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleButton.textContent = '🙈';
+                    toggleButton.setAttribute('aria-label', 'Sembunyikan password');
+                    toggleButton.setAttribute('title', 'Sembunyikan password');
+                } else {
+                    passwordInput.type = 'password';
+                    toggleButton.textContent = '👁';
+                    toggleButton.setAttribute('aria-label', 'Tampilkan password');
+                    toggleButton.setAttribute('title', 'Tampilkan password');
+                }
+            });
+        }
+    });
+
 </script>
 <?php
 // Connect to MySQL
 include "../../config/server.php";
 
 if (isset($sqlconn)) {
-    //echo "Database $sqlconn";
-} else {
+//echo "Database $sqlconn";
+}
+else {
     $pesan1 = "Tidak dapat Koneksi Database.";
 }
 if (!$sqlconn) {
@@ -451,11 +509,12 @@ if (!$db_selected) {
     $sql = 'CREATE DATABASE beesmartv3';
 
     if (mysql_query($sql, $sqlconn)) {
-        //    echo "Database my_db created successfully\n";
+    //    echo "Database my_db created successfully\n";
 
 
-    } else {
-        //    echo 'Error creating database: ' . mysql_error() . "\n";
+    }
+    else {
+    //    echo 'Error creating database: ' . mysql_error() . "\n";
     }
 }
 $val = mysql_query('select 1 from `cbt_admin` LIMIT 1');
@@ -464,7 +523,8 @@ if (isset($_GET['err'])) {
     $err = trim($_GET['err']);
     if ($err === 'invalid') {
         $loginErrMsg = 'Username, password, atau role login salah';
-    } elseif ($err === 'required') {
+    }
+    elseif ($err === 'required') {
         $loginErrMsg = 'Username dan password harus diisi';
     }
 }
@@ -502,35 +562,35 @@ if (isset($_GET['err'])) {
                 <div class="alert-body">
                     <span id="isine">
                         <?php
-                        if ($val == FALSE) { ?>
-                            <script>
-                                $(document).ready(function () {
-                                    var peluru = '\u2022';
-                                    document.getElementById("ingat").style.display = "block";
-                                    document.getElementById("isine").textContent = peluru + " <?php echo "Database belum Terbentuk, Klik disini untuk Proses Buat Database"; ?>";
-                                    return false;
-                                });
-                            </script>
-                            <?php
-                        }
-                        ?>
+if ($val == FALSE) { ?>
+                        <script>
+      ).ready(function () {
+          var peluru = '\u2022';
+          document.getElementById("ingat").style.display = "block";
+          document.getElementById("isine").textContent = peluru + " <?php echo "Database belum Terbentuk, Klik disini untuk Proses Buat Database"; ?>";
+          return false;
+      });
+                        </script>
+                        <?php
+}
+?>
                     </span>
                     <?php
-                    if ($val == FALSE) { ?><a href="buat_database.php" class="btn-alert">Buat Database</a>
-                        <?php
-                    }
-                    ?>
+if ($val == FALSE) { ?><a href="buat_database.php" class="btn-alert">Buat Database</a>
+                    <?php
+}
+?>
                 </div>
             </div>
             <?php if ($loginErrMsg !== '') { ?>
-                <script>
-                    $(document).ready(function () {
-                        var peluru = '\u2022';
-                        document.getElementById("ingat").style.display = "block";
-                        document.getElementById("isine").textContent = peluru + " <?php echo addslashes($loginErrMsg); ?>";
-                    });
-                </script>
-            <?php } ?>
+            <script>
+cument).ready(func          var peluru = '\u2022';
+                document.getElementById("ingat").style.display = "block";
+                document.getElementById("isine").textContent = peluru + " <?php echo addslashes($loginErrMsg); ?>";
+                });
+            </script>
+            <?php
+}?>
             <form id="loginform" name="loginform" onSubmit="return validateForm();" action="../pages/ceklogin.php"
                 method="post">
                 <div class="form-field">
@@ -539,7 +599,11 @@ if (isset($_GET['err'])) {
                 </div>
                 <div class="form-field">
                     <label for="passz">Password</label>
-                    <input type="password" id="passz" name="passz" placeholder="Password">
+                    <div class="password-wrap">
+                        <input type="password" id="passz" name="passz" placeholder="Password">
+                        <button type="button" id="togglePassword" class="toggle-password"
+                            aria-label="Tampilkan password" title="Tampilkan password">👁</button>
+                    </div>
                 </div>
                 <div class="switch-field">
                     <input type="radio" id="switch_left" name="login" value="admin" checked />
@@ -550,13 +614,13 @@ if (isset($_GET['err'])) {
                     <label for="switch_pengawas">Pengawas</label>
                 </div>
                 <?php
-                if (!$val == FALSE) { ?>
-                    <div class="form-actions">
-                        <input type="submit" class="btn-login" value="Login">
-                    </div>
-                    <?php
-                }
-                ?>
+if (!$val == FALSE) { ?>
+                <div class="form-actions">
+                    <input type="submit" class="btn-login" value="Login">
+                </div>
+                <?php
+}
+?>
             </form>
         </div>
     </div>

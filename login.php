@@ -28,9 +28,11 @@ $error_messages = array();
 if (isset($_REQUEST['salah'])) {
     if ($_REQUEST['salah'] == 2) {
         $error_messages[] = "Database belum tersedia, hubungi Administrator Ujian.";
-    } elseif ($_REQUEST['salah'] == 1) {
+    }
+    elseif ($_REQUEST['salah'] == 1) {
         $error_messages[] = "Username atau Password anda salah.";
-    } elseif ($_REQUEST['salah'] == 3) {
+    }
+    elseif ($_REQUEST['salah'] == 3) {
         $error_messages[] = "Anda sudah login di tempat lain.";
     }
 }
@@ -42,7 +44,9 @@ $has_server_error = !empty($error_messages);
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title><?php echo htmlspecialchars($brand_name, ENT_QUOTES); ?> | Login Ujian</title>
+    <title>
+        <?php echo htmlspecialchars($brand_name, ENT_QUOTES); ?> | Login Ujian
+    </title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script>
@@ -320,12 +324,35 @@ $has_server_error = !empty($error_messages);
             box-shadow: 0 10px 24px rgba(4, 46, 122, 0.15);
             transform: translateY(-1px);
         }
+
         .password-wrap {
             position: relative;
         }
+
         .password-wrap input {
             padding-right: 44px;
         }
+
+        .password-wrap #inputPassword,
+        .password-wrap #inputPasswordText {
+            width: 100%;
+            border: 1px solid #d8e1f2;
+            background: #fff;
+            border-radius: 12px;
+            padding: 12px 14px;
+            padding-right: 44px;
+            font-size: 14px;
+            color: var(--ink);
+            box-shadow: 0 6px 16px rgba(6, 22, 56, 0.08);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .password-wrap #inputPasswordText {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
         .toggle-password {
             position: absolute;
             right: 10px;
@@ -339,6 +366,7 @@ $has_server_error = !empty($error_messages);
             padding: 4px;
             cursor: pointer;
         }
+
         .toggle-password:focus {
             outline: none;
             color: #0a52c9;
@@ -467,49 +495,29 @@ $has_server_error = !empty($error_messages);
                 }
             });
 
-            // Fallback-safe toggle implementation using two inputs (password + text)
-            var $passwordText = $("#inputPasswordText");
+            // Simple vanilla JS toggle - change input type directly
+            var passwordInput = document.getElementById('inputPassword');
+            var toggleButton = document.getElementById('togglePassword');
 
-            // keep values in sync while typing
-            $passwordInput.on('input', function () {
-                $passwordText.val(this.value);
-            });
-            $passwordText.on('input', function () {
-                $passwordInput.val(this.value);
-            });
+            if (toggleButton && passwordInput) {
+                toggleButton.addEventListener('click', function (e) {
+                    e.preventDefault();
 
-            $togglePassword.on("click", function () {
-                var showingPassword = $passwordInput.is(':visible');
-                if (showingPassword) {
-                    // show plain text input
-                    $passwordText.val($passwordInput.val());
-                    $passwordInput.hide();
-                    $passwordText.show().focus();
-                    $(this).attr("aria-label", "Sembunyikan password");
-                    $(this).attr("title", "Sembunyikan password");
-                    $(this).text("🙈");
-                } else {
-                    // show password input
-                    $passwordInput.val($passwordText.val());
-                    $passwordText.hide();
-                    $passwordInput.show().focus();
-                    $(this).attr("aria-label", "Tampilkan password");
-                    $(this).attr("title", "Tampilkan password");
-                    $(this).text("👁");
-                }
-                // ensure masks are set correctly
-                $passwordInput.css("-webkit-text-security", "disc");
-                $passwordText.css("-webkit-text-security", "none");
-            });
-
-            // Ensure on submit the password field contains the user's value
-            $("#form1").on('submit', function () {
-                if ($passwordText.is(':visible')) {
-                    $passwordInput.val($passwordText.val());
-                    $passwordText.hide();
-                    $passwordInput.show();
-                }
-            });
+                    if (passwordInput.type === 'password') {
+                        // Show password
+                        passwordInput.type = 'text';
+                        toggleButton.textContent = '🙈';
+                        toggleButton.setAttribute('aria-label', 'Sembunyikan password');
+                        toggleButton.setAttribute('title', 'Sembunyikan password');
+                    } else {
+                        // Hide password
+                        passwordInput.type = 'password';
+                        toggleButton.textContent = '👁';
+                        toggleButton.setAttribute('aria-label', 'Tampilkan password');
+                        toggleButton.setAttribute('title', 'Tampilkan password');
+                    }
+                });
+            }
         });
     </script>
 </head>
@@ -520,7 +528,9 @@ $has_server_error = !empty($error_messages);
             <div class="login-aside">
                 <div class="brand">
                     <span class="brand-dot"></span>
-                    <span><?php echo htmlspecialchars($brand_name, ENT_QUOTES); ?></span>
+                    <span>
+                        <?php echo htmlspecialchars($brand_name, ENT_QUOTES); ?>
+                    </span>
                 </div>
                 <div class="welcome">
                     <div class="logo-mark">
@@ -531,13 +541,17 @@ $has_server_error = !empty($error_messages);
                     <p>Masuk sebagai peserta ujian menggunakan username dan password yang diberikan.</p>
                 </div>
                 <div class="aside-footer">
-                    <div class="aside-note"><?php echo htmlspecialchars($brand_name, ENT_QUOTES); ?> 2026 | Developed by
-                        Miftahussyarif</div>
+                    <div class="aside-note">
+                        <?php echo htmlspecialchars($brand_name, ENT_QUOTES); ?> 2026 | Developed by
+                        Miftahussyarif
+                    </div>
                 </div>
             </div>
             <div class="login-panel">
                 <div class="panel-head">
-                    <div class="panel-kicker"><?php echo htmlspecialchars($brand_name, ENT_QUOTES); ?></div>
+                    <div class="panel-kicker">
+                        <?php echo htmlspecialchars($brand_name, ENT_QUOTES); ?>
+                    </div>
                     <h2>Login Siswa</h2>
                     <p>Silakan masukkan username dan password untuk mulai ujian.</p>
                 </div>
@@ -547,10 +561,10 @@ $has_server_error = !empty($error_messages);
                     <div class="alert-body">
                         <ul class="alert-list">
                             <?php
-                            foreach ($error_messages as $message) {
-                                echo "<li>" . $message . "</li>";
-                            }
-                            ?>
+foreach ($error_messages as $message) {
+    echo "<li>" . $message . "</li>";
+}
+?>
                         </ul>
                     </div>
                 </div>
@@ -563,7 +577,6 @@ $has_server_error = !empty($error_messages);
                         <label for="inputPassword">Password</label>
                         <div class="password-wrap">
                             <input id="inputPassword" name="Password" placeholder="Password" type="password">
-                            <input id="inputPasswordText" placeholder="Password" type="text" style="display:none;">
                             <button type="button" id="togglePassword" class="toggle-password"
                                 aria-label="Tampilkan password" title="Tampilkan password">👁</button>
                         </div>

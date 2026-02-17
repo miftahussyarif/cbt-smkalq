@@ -151,7 +151,7 @@ $kodesekolah = $sk['XKodeSekolah'];
 								<div class="well" style="">
 									<h4>Server ID : 
 									<span class="label" style="background-color:<?php echo $bg; ?>; padding-left:40px; padding-right:40px;  padding-top:6px; padding-bottom:6px; 
-					                                font-size:23px">
+					                                font-size:20px">
 									<?php echo $serverIdDisplay; ?>
 									</span></h4>
 								</div>
