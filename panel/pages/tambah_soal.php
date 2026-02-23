@@ -1,13 +1,14 @@
 <?php
-	if(!isset($_COOKIE['beeuser'])){
-	header("Location: login.php");}
+if (!isset($_COOKIE['beeuser'])) {
+    header("Location: login.php");
+}
 ?>
 
 <?php
-if(isset($_REQUEST['aksi'])&&$_REQUEST['aksi']=="simpan"){
-$sss= str_replace("'","\'",$_REQUEST['tanyasoal']);
-	$sql0 = mysql_query("update cbt_soal set XTanya = '$sss' where XKodeSoal = '$_REQUEST[soal]' and Urut = '$_REQUEST[nom]'");
-	//echo "update cbt_soal set XTanya = '$sss' where XKodeSoal = '$_REQUEST[txt_soal]' and Urut = '$_REQUEST[txt_nom]'";
+if (isset($_REQUEST['aksi']) && $_REQUEST['aksi'] == "simpan") {
+    $sss = str_replace("'", "\'", $_REQUEST['tanyasoal']);
+    $sql0 = mysql_query("update cbt_soal set XTanya = '$sss' where XKodeSoal = '$_REQUEST[soal]' and Urut = '$_REQUEST[nom]'");
+//echo "update cbt_soal set XTanya = '$sss' where XKodeSoal = '$_REQUEST[txt_soal]' and Urut = '$_REQUEST[txt_nom]'";
 }
 ?>	
 
@@ -218,7 +219,7 @@ tinyMCE.init({
 <script type="text/javascript" src="jquery-1.4.js"></script>
 
 <?php
-if(isset($_REQUEST['jum'])&&$_REQUEST['jum']==5){
+if (isset($_REQUEST['jum']) && $_REQUEST['jum'] == 5) {
 ?>
 <script>    
 $(document).ready(function(){
@@ -275,7 +276,9 @@ $.ajax({
 
 });
 </script> 
-<?php } else { ?>
+<?php
+}
+else { ?>
 <script>    
 $(document).ready(function(){
  $("#kirim").click(function(e){
@@ -323,7 +326,8 @@ $.ajax({
 });
 </script> 
 
-<?php } ?>
+<?php
+}?>
 <script src="../vendor/jquery/jquery.min.js"></script>
 <script src="js/lc_switch.js" type="text/javascript"></script>
 <link rel="stylesheet" href="js/lc_switch.css">
@@ -356,9 +360,9 @@ $jnoc(document).ready(function(e) {
 </script>
 
 <body><form action="#" method="post">
-<?php	
+<?php
 $sqltanya = mysql_query("select * from cbt_paketsoal where XKodeSoal= '$_REQUEST[soal]' and XGuru = '$_COOKIE[beeuser]'");
-	$so=mysql_fetch_array($sqltanya); ?>
+$so = mysql_fetch_array($sqltanya); ?>
 
 <div class="panel panel-info">
 	<div class="panel-heading">
@@ -369,9 +373,9 @@ $sqltanya = mysql_query("select * from cbt_paketsoal where XKodeSoal= '$_REQUEST
     </div>
 	
     <div class="panel-body">
-<?php    $sqlsoal = mysql_query("SELECT MAX(XNomerSoal) as maksi FROM `cbt_soal` WHERE XKodeSoal = '$_REQUEST[soal]'");
+<?php $sqlsoal = mysql_query("SELECT MAX(XNomerSoal) as maksi FROM `cbt_soal` WHERE XKodeSoal = '$_REQUEST[soal]'");
 $sm = mysql_fetch_array($sqlsoal);
-$maks = $sm['maksi']+1; ?>
+$maks = $sm['maksi'] + 1; ?>
 
 <table width="100%" border="0" align="center" cellpadding="0" cellspacing="0">
 <tr><td colspan="2"  style="font-size:18px">&nbsp;  </td>
@@ -380,7 +384,7 @@ $maks = $sm['maksi']+1; ?>
 <button type="submit" class="btn btn-success btn-small" id="kirim"><i class='fa fa-save'></i> Simpan Soal</button>     
     <input type="hidden" id="soal" name="soal" value="<?php echo $_REQUEST['soal']; ?>" />
     <input type="hidden" id="map" name="map" value="<?php echo $so['XKodeMapel']; ?>" />
-<input type="hidden" id="nomax" name="nomax" value="<?php echo $maks ; ?>" />
+<input type="hidden" id="nomax" name="nomax" value="<?php echo $maks; ?>" />
     </strong></td>
   </tr>
 <tr><td colspan="3">
@@ -658,7 +662,7 @@ function confirmDialog(message, onConfirm){
         <h4 class="modal-title" id="myModalLabel">Buat Bank Soal Baru</h4>
       </div>
       <div class="modal-body">
-        <?php include "buat_banksoalbaru.php";?>
+        <?php include "buat_banksoalbaru.php"; ?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
