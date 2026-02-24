@@ -67,15 +67,41 @@ $(document).ready(function() {
 </button>
 !-->
 <body style="width:90%; margin:0 auto;margin-top:50px; ">
-<a href=?modul=analisajawaban&soal=<?php echo $_REQUEST['soal']; ?>>
+<?php
+$req_soal = isset($_REQUEST['soal']) ? trim($_REQUEST['soal']) : '';
+$req_siswa = isset($_REQUEST['siswa']) ? trim($_REQUEST['siswa']) : '';
+$req_token = isset($_REQUEST['token']) ? trim($_REQUEST['token']) : '';
+?>
+<a href=?modul=analisajawaban&soal=<?php echo $req_soal; ?>>
                                         <button type="button" class="btn btn-success btn-small" style="margin-top:5px; margin-bottom:5px"><i class="fa fa-list"></i> Kembali ke Daftar</button></a>
 <br />
 <?php
 include "../../config/server.php";
 
-$var_soal = "$_REQUEST[soal]";
-$var_siswa = "$_REQUEST[siswa]";
-$var_token = "$_REQUEST[token]";
+if ($req_soal === '' || $req_siswa === '') {
+	echo "<div class='alert alert-warning'>Parameter tidak lengkap (soal/siswa).</div>";
+	exit;
+}
+
+$var_soal = $req_soal;
+$var_siswa = $req_siswa;
+$var_token = $req_token;
+
+if ($var_token === '') {
+	$soalSafe = mysql_real_escape_string($var_soal);
+	$siswaSafe = mysql_real_escape_string($var_siswa);
+	$sqlToken = mysql_query("SELECT XTokenUjian FROM cbt_siswa_ujian WHERE XKodeSoal = '$soalSafe' AND XNomerUjian = '$siswaSafe' ORDER BY Urut DESC LIMIT 1");
+	if ($sqlToken && mysql_num_rows($sqlToken) > 0) {
+		$rowToken = mysql_fetch_array($sqlToken);
+		$var_token = isset($rowToken['XTokenUjian']) ? $rowToken['XTokenUjian'] : '';
+	} else {
+		$sqlToken = mysql_query("SELECT XTokenUjian FROM cbt_jawaban WHERE XKodeSoal = '$soalSafe' AND XUserJawab = '$siswaSafe' ORDER BY Urut DESC LIMIT 1");
+		if ($sqlToken && mysql_num_rows($sqlToken) > 0) {
+			$rowToken = mysql_fetch_array($sqlToken);
+			$var_token = isset($rowToken['XTokenUjian']) ? $rowToken['XTokenUjian'] : '';
+		}
+	}
+}
 
 //Soal Pilihan Ganda
 $sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$var_soal' and XJenisSoal = '1'")); 
@@ -116,13 +142,13 @@ $fotsis = $s['XFoto'];
 if(str_replace(" ","",$fotsis)==""){
 $foto = "nouser.png";} else { $foto = "$fotsis";}
 
-$sqljumlahx = mysql_query("select sum(XNilaiEsai) as hasil from cbt_jawaban where XKodeSoal = '$_REQUEST[soal]' and XUserJawab = '$_REQUEST[siswa]' and XTokenUjian = '$var_token'");
+$sqljumlahx = mysql_query("select sum(XNilaiEsai) as hasil from cbt_jawaban where XKodeSoal = '$var_soal' and XUserJawab = '$var_siswa' and XTokenUjian = '$var_token'");
 $o = mysql_fetch_array($sqljumlahx);
 $nilaiawal = round($o['hasil'],2);
 
 ?>
-<input type="hidden" id="soale" name="soale" value="<?php echo "$_REQUEST[soal]"; ?>" />
-<input type="hidden" id="siswae" name="siswae" value="<?php echo "$_REQUEST[siswa]"; ?>" />
+<input type="hidden" id="soale" name="soale" value="<?php echo $var_soal; ?>" />
+<input type="hidden" id="siswae" name="siswae" value="<?php echo $var_siswa; ?>" />
 <input type="hidden" id="tokene" name="tokene" value="<?php echo "$var_token"; ?>" />
 
 <div class="group">

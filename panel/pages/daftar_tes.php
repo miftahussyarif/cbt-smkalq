@@ -180,10 +180,19 @@ $('#datetimepicker_dark').datetimepicker({theme:'dark'})
 $sql = mysql_query("select u.*,m.*,u.Urut as Urutan,u.XKodeKelas as kokel from cbt_ujian u left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel 
 left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal
 where u.XStatusUjian='1'
-and ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian) > NOW()");
+and (
+ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian) > NOW()
+or EXISTS (
+    select 1
+    from cbt_siswa_ujian su
+    where su.XStatusUjian = '1'
+    and su.XKodeSoal = u.XKodeSoal
+    and su.XTokenUjian = u.XTokenUjian
+)
+)");
 								while($s = mysql_fetch_array($sql)){ 
 					$sqlsoal  = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$s[XKodeSoal]'"));
-					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$s[XKodeSoal]' and XStatusUjian = '1'"));
+					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$s[XKodeSoal]' and XTokenUjian = '$s[XTokenUjian]' and XStatusUjian = '1'"));
 					$sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$s[XKodeSoal]'"));
 					if($sqlsoal<1){$kata="disabled";}  else {$kata="";}	
 					if($sqlsudah>0||$sqlpakai>0){$kata="disabled";}  else {$kata="";}			
@@ -455,7 +464,17 @@ function confirmDialog(message, onConfirm){
 $sql = mysql_query("select u.*,m.*,u.Urut as Urutan,u.XKodeKelas as kokel from cbt_ujian u left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel 
 left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal
 where u.XStatusUjian in ('0','9')
-or ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian) <= NOW()
+or (
+u.XStatusUjian='1'
+and ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian) <= NOW()
+and NOT EXISTS (
+    select 1
+    from cbt_siswa_ujian su
+    where su.XStatusUjian = '1'
+    and su.XKodeSoal = u.XKodeSoal
+    and su.XTokenUjian = u.XTokenUjian
+)
+)
 order by u.XTglUjian desc, u.XJamUjian desc");
 $no = 1;
 while($s = mysql_fetch_array($sql)){ 
@@ -604,8 +623,19 @@ while($s = mysql_fetch_array($sql)){
                     type: "POST",
                     url: "selesaites.php",
                     data: "aksi=selesai&txt_ujian=" + txt_ujian,
-                    success: function () {
-                        location.reload();
+                    success: function (data) {
+                        if (data.trim() == "OK") {
+                            location.reload();
+                        } else if (data.trim() == "BUSY") {
+                            alert("Tes belum bisa diselesaikan karena masih ada peserta yang sedang mengerjakan.");
+                            location.reload();
+                        } else if (data.trim() == "NOTFOUND") {
+                            alert("Data jadwal tes tidak ditemukan.");
+                        } else if (data.trim() == "INVALID") {
+                            alert("Permintaan tidak valid.");
+                        } else {
+                            alert("Gagal mengubah status tes: " + data);
+                        }
                     }
                 });
             });

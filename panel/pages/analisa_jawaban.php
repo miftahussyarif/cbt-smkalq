@@ -201,11 +201,11 @@ while ($s = mysql_fetch_array($sql)) {
                                         <div class="modal-body" style="text-align:center">
 
                                             <?php
-    if (file_exists("../../fotosiswa/$s[XFoto]") && !$gbr == '') { ?>
-                                            <img src="../../fotosiswa/<?php echo $s['XFoto']; ?>" width="400px">
+    $foto = isset($s['XFoto']) ? trim($s['XFoto']) : '';
+    if ($foto !== '' && file_exists("../../fotosiswa/$foto")) { ?>
+                                            <img src="../../fotosiswa/<?php echo $foto; ?>" width="400px">
                                             <?php
-    }
-    else {
+    } else {
         echo "<img src=../../fotosiswa/nouser.png>";
     }
 ?>

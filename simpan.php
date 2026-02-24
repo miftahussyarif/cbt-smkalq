@@ -44,13 +44,15 @@ if ($user === '') {
     $xtokenujian = $s['XTokenUjian'];
 
 $savedIp = '';
-if (!cbt_validate_single_ip_session($user, $xtokenujian, $xkodesoal, $user_ip, $savedIp)) {
+if (!cbt_validate_single_ip_session($user, $xtokenujian, $xkodesoal, $cbt_session_lock_value, $savedIp)) {
     if (function_exists('bee_log')) {
         bee_log('WARN', 'MULTI_IP_BLOCK', 'Akses simpan jawaban ditolak karena IP berbeda', array(
             'user' => $user,
             'token' => $xtokenujian,
             'kodesoal' => $xkodesoal,
             'current_ip' => $user_ip,
+            'lock_mode' => isset($cbt_session_lock_mode) ? $cbt_session_lock_mode : '',
+            'lock_value' => isset($cbt_session_lock_value) ? $cbt_session_lock_value : '',
             'saved_ip' => $savedIp
         ));
     }
@@ -154,12 +156,17 @@ if($jenis==2){
 }
 
 if(isset($jam)){
+$lockClause = '';
+if (cbt_is_ip_lock_enabled() && $cbt_session_lock_value !== '') {
+    $lockEsc = mysql_real_escape_string($cbt_session_lock_value);
+    $lockClause = " and XGetIP = '$lockEsc'";
+}
 $sql2 = mysql_query("Update cbt_siswa_ujian set XLastUpdate = '$jam'
 where XNomerUjian = '$user'
 and XStatusUjian = '1'
 and XTokenUjian = '$xtokenujian'
 and XKodeSoal = '$xkodesoal'
-and XGetIP = '$user_ip'");
+$lockClause");
 }
 
  

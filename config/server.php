@@ -6,6 +6,11 @@ date_default_timezone_set("Asia/Jakarta");
 mysql_select_db("beesmartv3", $sqlconn);
 $mode = "lokal"; // pilih 'lokal' atau 'pusat'
 
+// Opsi lock sesi ujian: 'station' (disarankan saat tunnel/proxy), 'ip', atau 'off'
+if (!defined('CBT_SESSION_LOCK_MODE')) {
+    define('CBT_SESSION_LOCK_MODE', 'station');
+}
+
 if (!defined('BEE_LOG_DIR')) {
     define('BEE_LOG_DIR', dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'logs');
 }

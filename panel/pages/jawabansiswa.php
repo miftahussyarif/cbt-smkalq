@@ -1,6 +1,9 @@
 <?php
 	if(!isset($_COOKIE['beeuser'])){
 	header("Location: login.php");}
+$req_soal = isset($_REQUEST['soal']) ? trim($_REQUEST['soal']) : '';
+$req_siswa = isset($_REQUEST['siswa']) ? trim($_REQUEST['siswa']) : '';
+$req_token = isset($_REQUEST['token']) ? trim($_REQUEST['token']) : '';
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -60,8 +63,8 @@ $(document).ready(function() {
   MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
 </script>
 <!-- script untuk refresh/reload mathjax setiap content baru !-->
-<iframe src="<?php echo "print_jawaban.php?soal=$_REQUEST[soal]&siswa=$_REQUEST[siswa]"; ?>" style="display:none;" name="frame"></iframe>
-<a href=?modul=analisajawaban&soal=<?php echo $_REQUEST['soal']; ?>>
+<iframe src="<?php echo "print_jawaban.php?soal=$req_soal&siswa=$req_siswa"; ?>" style="display:none;" name="frame"></iframe>
+<a href=?modul=analisajawaban&soal=<?php echo $req_soal; ?>>
                                         <button type="button" class="btn btn-success btn-small" style="margin-top:5px; margin-bottom:5px"><i class="glyphicon glyphicon-th-list"></i> Kembali ke Daftar</i></button></a>
 <button type="button" class="btn btn-default btn-small" onClick="frames['frame'].print()" style="margin-top:5px; margin-bottom:5px"><i class="glyphicon glyphicon-print"></i> Cetak Hasil Ujian
 </button>
@@ -73,15 +76,49 @@ $(document).ready(function() {
 include "../../config/server.php";
 ?>
 <?php
+if ($req_soal === '' || $req_siswa === '') {
+	echo "<div class='alert alert-warning'>Parameter tidak lengkap. Gunakan link dari menu Analisa Jawaban (soal dan siswa wajib ada).</div>";
+	exit;
+}
+
+$soalSafe = mysql_real_escape_string($req_soal);
+$siswaSafe = mysql_real_escape_string($req_siswa);
+$tokenSafe = mysql_real_escape_string($req_token);
+
+if ($req_token === '') {
+	$sqlToken = mysql_query("SELECT XTokenUjian FROM cbt_siswa_ujian WHERE XKodeSoal = '$soalSafe' AND XNomerUjian = '$siswaSafe' ORDER BY Urut DESC LIMIT 1");
+	if ($sqlToken && mysql_num_rows($sqlToken) > 0) {
+		$tok = mysql_fetch_array($sqlToken);
+		$req_token = $tok['XTokenUjian'];
+		$tokenSafe = mysql_real_escape_string($req_token);
+	} else {
+		$sqlToken = mysql_query("SELECT XTokenUjian FROM cbt_jawaban WHERE XKodeSoal = '$soalSafe' AND XUserJawab = '$siswaSafe' ORDER BY Urut DESC LIMIT 1");
+		if ($sqlToken && mysql_num_rows($sqlToken) > 0) {
+			$tok = mysql_fetch_array($sqlToken);
+			$req_token = $tok['XTokenUjian'];
+			$tokenSafe = mysql_real_escape_string($req_token);
+		}
+	}
+}
+
 $hasil = mysql_query("SELECT *,u.XStatusUjian as ujsta FROM cbt_siswa s
 LEFT JOIN `cbt_siswa_ujian` u ON u.XNomerUjian = s.XNomerUjian
 LEFT JOIN cbt_ujian c ON (u.XKodeSoal = c.XKodeSoal and u.XTokenUjian = c.XTokenUjian)
 LEFT JOIN cbt_paketsoal p ON (u.XKodeSoal = c.XKodeSoal and u.XTokenUjian = c.XTokenUjian)
-WHERE c.XKodeSoal = '$_REQUEST[soal]' and p.XKodeSoal = '$_REQUEST[soal]' and u.XNomerUjian = '$_REQUEST[siswa]'
-and c.XTokenUjian = '$_REQUEST[token]'");
+WHERE c.XKodeSoal = '$soalSafe' and p.XKodeSoal = '$soalSafe' and u.XNomerUjian = '$siswaSafe'
+and c.XTokenUjian = '$tokenSafe'");
 
 $baris = 4;
 $no = 0;	
+$var_token = $req_token;
+$var_soal = $req_soal;
+$var_mapel = '';
+$var_jumsoal = 0;
+$var_pil = 0;
+$var_esai = 0;
+$per_pil = 0;
+$per_esai = 0;
+$tglujian = '-';
 while($p = mysql_fetch_array($hasil)){
     
 	$var_token = "$p[XTokenUjian]";
@@ -95,11 +132,11 @@ while($p = mysql_fetch_array($hasil)){
 	$tglujian = "$p[XTglUjian]";		
 }	
 
-$var_siswa = "$_REQUEST[siswa]";
+$var_siswa = $req_siswa;
 
 //echo "$var_siswa ... $var_token";	
 	$sqlujian = mysql_query("SELECT * FROM `cbt_jawaban` j left join cbt_soal s on s.XNomerSoal = j.XNomerSoal WHERE j.XKodeSoal = '$var_soal' and j.XUserJawab = '$var_siswa'
-	and XTokenUjian = '$_REQUEST[token]'");
+	and XTokenUjian = '$var_token'");
 	
 	$sqlmapel = mysql_query("select * from cbt_ujian c left join cbt_mapel m on m.XKodeMapel = c.XKodeMapel where c.XKodeSoal = '$var_soal'"); 
 	$u = mysql_fetch_array($sqlmapel);
@@ -123,16 +160,16 @@ $o = mysql_fetch_array($sqljumlah);
 
 $nilai_esai = round($o['hasil'],2);
 	
-$sqljawaban = mysql_query("SELECT count( XNilai ) AS HasilUjian FROM `cbt_jawaban` WHERE XKodeSoal = '$var_soal' and XUserJawab = '$_REQUEST[siswa]' and XNilai = '1' and XTokenUjian = '$var_token'");
+$sqljawaban = mysql_query("SELECT count( XNilai ) AS HasilUjian FROM `cbt_jawaban` WHERE XKodeSoal = '$var_soal' and XUserJawab = '$var_siswa' and XNilai = '1' and XTokenUjian = '$var_token'");
 	$sqj = mysql_fetch_array($sqljawaban);
 	$jumbenar = $sqj['HasilUjian'];
 	$hasil_pil = $jumbenar;	
-	$nilai_pil = round((($jumbenar/$var_pil)*$per_pil),2);	
+		$nilai_pil = ($var_pil > 0) ? round((($jumbenar/$var_pil)*$per_pil),2) : 0;	
 	//$total_pil = round(($nilai_pil/$per_pil)*100,2);	
 	$total_pil = $nilai_pil;	
 	$tot_pil = number_format($total_pil,2,',','.');	
 
-$sqljawaban = mysql_query("SELECT sum( XNilaiEsai ) AS HasilEsai FROM `cbt_jawaban` WHERE XKodeSoal = '$var_soal' and XUserJawab = '$_REQUEST[siswa]' and XJenisSoal = '2' and XTokenUjian = '$var_token'");
+$sqljawaban = mysql_query("SELECT sum( XNilaiEsai ) AS HasilEsai FROM `cbt_jawaban` WHERE XKodeSoal = '$var_soal' and XUserJawab = '$var_siswa' and XJenisSoal = '2' and XTokenUjian = '$var_token'");
 	$sqj = mysql_fetch_array($sqljawaban);
 	if($var_esai<1){$total_esai = 0; $hasil_esai = 0; $nilai_esai = 0;} else {
 	$hasil_esai = $sqj['HasilEsai'];
@@ -161,34 +198,34 @@ $sqljawaban = mysql_query("SELECT sum( XNilaiEsai ) AS HasilEsai FROM `cbt_jawab
 ?>
 
 <?php
-$var_soal = "$_REQUEST[soal]";
-$var_siswa = "$_REQUEST[siswa]";
+$var_soal = $req_soal;
+$var_siswa = $req_siswa;
 
 //Soal Pilihan Ganda
 $sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$var_soal' and XJenisSoal = '1'")); 
 $sqltampil = mysql_query("select * from cbt_ujian where XKodeSoal = '$var_soal'"); 
 $t1 = mysql_fetch_array($sqltampil);
 //$t = $t1['XJumSoal'];
-$t = $t1['XPilGanda'];
+$t = isset($t1['XPilGanda']) ? (int)$t1['XPilGanda'] : 0;
 
 $sqlbenar = mysql_query("select * from cbt_nilai where XKodeSoal = '$var_soal' and XNomerUjian = '$var_siswa'"); 
 $b1 = mysql_fetch_array($sqlbenar);
-$b = $b1['XBenar'];
+$b = isset($b1['XBenar']) ? (int)$b1['XBenar'] : 0;
 
 /*
 if($t > $sqlsoal){$jumsoal = $sqlsoal;} else {$jumsoal = $t;}
-$nilai = ($b/$jumsoal)*100;
+$nilai = ($jumsoal > 0) ? (($b/$jumsoal)*100) : 0;
 $nilaine = number_format($nilai, 2, ',', '.');
 */
 if($t > $sqlsoal){$jumsoal = $sqlsoal;} else {$jumsoal = $t;}
-$nilai = ($b/$jumsoal)*100;
+$nilai = ($jumsoal > 0) ? (($b/$jumsoal)*100) : 0;
 $nilaine = number_format($nilai, 2, ',', '.');
 
 $xtokenujian = $var_token;
 $sqlujian = mysql_query("select * from cbt_ujian c left join cbt_mapel m on m.XKodeMapel = c.XKodeMapel where c.XKodeSoal = '$var_soal' and c.XTokenUjian = '$var_token'"); 
 $u = mysql_fetch_array($sqlujian);
-$namamapel = $u['XNamaMapel'];
-$kodeujian = $u['XKodeUjian'];
+$namamapel = isset($u['XNamaMapel']) ? $u['XNamaMapel'] : '';
+$kodeujian = isset($u['XKodeUjian']) ? $u['XKodeUjian'] : '';
 
 if($kodeujian == "UH"){ $kodeujian = "Harian";} 
 elseif($kodeujian == "UTS"){ $kodeujian = "UTS";} 
@@ -201,12 +238,12 @@ $betul = 0;
 
 $sqlsiswa = mysql_query("SELECT * FROM `cbt_siswa` s left join cbt_kelas k on k.XKodeKelas = s.XKodeKelas WHERE XNomerUjian= '$var_siswa'");
 $s = mysql_fetch_array($sqlsiswa);
-$namsis = $s['XNamaSiswa'];
-$namkel = $s['XNamaKelas'];
-$nomsis = $s['XNIK'];
-$namjur = $s['XKodeJurusan'];
-$fotsis = $s['XFoto'];
-$var_sesi = $s['XSesi'];
+$namsis = isset($s['XNamaSiswa']) ? $s['XNamaSiswa'] : '';
+$namkel = isset($s['XNamaKelas']) ? $s['XNamaKelas'] : '';
+$nomsis = isset($s['XNIK']) ? $s['XNIK'] : '';
+$namjur = isset($s['XKodeJurusan']) ? $s['XKodeJurusan'] : '';
+$fotsis = isset($s['XFoto']) ? $s['XFoto'] : '';
+$var_sesi = isset($s['XSesi']) ? $s['XSesi'] : '';
 	
 if(str_replace(" ","",$fotsis)==""){
 $foto = "nouser.png";} else { $foto = "$fotsis";}
@@ -394,12 +431,12 @@ $nomer++;
 
 
 <?php
-$var_soal = "$_REQUEST[soal]";
-$var_siswa = "$_REQUEST[siswa]";
+$var_soal = $req_soal;
+$var_siswa = $req_siswa;
 
 ?>
-<input type="hidden" id="soale" name="soale" value="<?php echo "$_REQUEST[soal]"; ?>" />
-<input type="hidden" id="siswae" name="siswae" value="<?php echo "$_REQUEST[siswa]"; ?>" />
+<input type="hidden" id="soale" name="soale" value="<?php echo $req_soal; ?>" />
+<input type="hidden" id="siswae" name="siswae" value="<?php echo $req_siswa; ?>" />
 <input type="hidden" id="tokene" name="tokene" value="<?php echo "$xtokenujian"; ?>" />
 
  <div class="panel panel-default">

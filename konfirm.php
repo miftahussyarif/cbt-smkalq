@@ -114,19 +114,16 @@ $xsedang_berlangsung = ($xmulai_ts > 0 && $xbatasmasuk_efektif_ts > 0 && $xnow_t
 
 $sqlada0 = mysql_query("SELECT * FROM  `cbt_siswa_ujian` WHERE XNomerUjian = '$txtuser' and XTokenUjian = '$xtokenujian'");
 $ad0 = mysql_fetch_array($sqlada0);
-$user_ip2 = str_replace(" ", "", $ad0['XGetIP']);
-$user_ip1 = $user_ip;
-if ($user_ip2 !== "" && $user_ip1 !== $user_ip2) {
-    header('Location:login.php?salah=3');
-}
 $savedIp = '';
-if ($xkodesoal !== '' && $xtokenujian !== '' && !cbt_validate_single_ip_session($txtuser, $xtokenujian, $xkodesoal, $user_ip, $savedIp)) {
+if ($xkodesoal !== '' && $xtokenujian !== '' && !cbt_validate_single_ip_session($txtuser, $xtokenujian, $xkodesoal, $cbt_session_lock_value, $savedIp)) {
     if (function_exists('bee_log')) {
         bee_log('WARN', 'MULTI_IP_BLOCK', 'Konfirmasi ujian ditolak karena IP berbeda', array(
             'user' => $txtuser,
             'token' => $xtokenujian,
             'kodesoal' => $xkodesoal,
             'current_ip' => $user_ip,
+            'lock_mode' => isset($cbt_session_lock_mode) ? $cbt_session_lock_mode : '',
+            'lock_value' => isset($cbt_session_lock_value) ? $cbt_session_lock_value : '',
             'saved_ip' => $savedIp
         ));
     }

@@ -112,7 +112,9 @@ if ($xmulai_ts > 0 && $xlamaujian !== '') {
 $sqlIP = mysql_query("SELECT * FROM  `cbt_siswa_ujian` WHERE XNomerUjian = '$user' and XTokenUjian = '$xtokenujian'");
 $ad0 = mysql_fetch_array($sqlIP);
 $user_ip2 = str_replace(" ", "", $ad0['XGetIP']);
-$sqlIP1 = mysql_query("update `cbt_siswa_ujian` set XGetIP = '$user_ip' WHERE XNomerUjian = '$user' and XTokenUjian = '$xtokenujian'");
+if (cbt_is_ip_lock_enabled() && $cbt_session_lock_value !== '') {
+    $sqlIP1 = mysql_query("update `cbt_siswa_ujian` set XGetIP = '$cbt_session_lock_value' WHERE XNomerUjian = '$user' and XTokenUjian = '$xtokenujian' and (XGetIP = '' or XGetIP is null)");
+}
 
 
 
@@ -229,10 +231,10 @@ if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login
     $xselesaiujian = "00:00:00";
 
 
-    $sqlinputsiswa = mysql_query("insert into cbt_siswa_ujian 
-		(XNomerUjian, XNISN, XKodeKelas, XKodeMapel, XKodeSoal, XPilGanda, XEsai, XJumSoal, XTglUjian, XJamUjian, XMulaiUjian, XLastUpdate, XSisaWaktu, XLamaUjian, XTargetUjian, XTokenUjian, XSelesaiUjian, XSetId, XKodeUjian, XSesi, XStatusUjian, XKodeSekolah, XGetIP) values 
-		('$user','$xniksiswa','$xkodekelasx','$xkodemapel','$xkodesoal','$xjumpilg','$xjumesai','$xjumlahsoal','$xtglujiandb','$xjamujian','$xjam1',
-		'$xjam1','$xsisawaktu','$xlamaujian','$xtargetujian','$xtokenujian','$xselesaiujian','$xsetidx','$xkodeujianx','$xsesi','1','$xkodesekolah','$user_ip')");
+	    $sqlinputsiswa = mysql_query("insert into cbt_siswa_ujian 
+			(XNomerUjian, XNISN, XKodeKelas, XKodeMapel, XKodeSoal, XPilGanda, XEsai, XJumSoal, XTglUjian, XJamUjian, XMulaiUjian, XLastUpdate, XSisaWaktu, XLamaUjian, XTargetUjian, XTokenUjian, XSelesaiUjian, XSetId, XKodeUjian, XSesi, XStatusUjian, XKodeSekolah, XGetIP) values 
+			('$user','$xniksiswa','$xkodekelasx','$xkodemapel','$xkodesoal','$xjumpilg','$xjumesai','$xjumlahsoal','$xtglujiandb','$xjamujian','$xjam1',
+			'$xjam1','$xsisawaktu','$xlamaujian','$xtargetujian','$xtokenujian','$xselesaiujian','$xsetidx','$xkodeujianx','$xsesi','1','$xkodesekolah','$cbt_session_lock_value')");
     if (!$sqlinputsiswa && function_exists('bee_log')) {
         bee_log('ERROR', 'INSERT_SISWA_UJIAN_FAILED', 'Gagal insert data ke cbt_siswa_ujian', array(
             'user' => $user,
