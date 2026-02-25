@@ -161,16 +161,27 @@ for rel in "${PROJECT_DIRS_755[@]}" "${PROJECT_DIRS_WRITABLE[@]}"; do
 done
 
 echo "==> Setting ownership to $OWNER_USER:$OWNER_GROUP"
-run_cmd chown -R "$OWNER_USER:$OWNER_GROUP" "$BASE_DIR"
+if [[ -d "$BASE_DIR/.git" ]]; then
+  # Keep .git owned by repository user to avoid git permission issues.
+  run_cmd find "$BASE_DIR" -mindepth 1 -maxdepth 1 ! -name ".git" -exec chown -R "$OWNER_USER:$OWNER_GROUP" {} +
+else
+  run_cmd chown -R "$OWNER_USER:$OWNER_GROUP" "$BASE_DIR"
+fi
 
 echo "==> Migrating legacy external directories (if any)"
 migrate_legacy_dir "$LEGACY_BACKUP_DIR" "$BACKUP_DIR" "backup files"
 migrate_legacy_dir "$LEGACY_LOG_DIR" "$LOG_DIR" "log files"
 
 echo "==> Applying default directory/file modes in project"
-run_cmd find "$BASE_DIR" -type d -exec chmod 755 {} \;
-run_cmd find "$BASE_DIR" -type f -exec chmod 644 {} \;
-run_cmd find "$BASE_DIR" -type f -name '*.sh' -exec chmod 755 {} \;
+if [[ -d "$BASE_DIR/.git" ]]; then
+  run_cmd find "$BASE_DIR" -path "$BASE_DIR/.git" -prune -o -type d -exec chmod 755 {} \;
+  run_cmd find "$BASE_DIR" -path "$BASE_DIR/.git" -prune -o -type f -exec chmod 644 {} \;
+  run_cmd find "$BASE_DIR" -path "$BASE_DIR/.git" -prune -o -type f -name '*.sh' -exec chmod 755 {} \;
+else
+  run_cmd find "$BASE_DIR" -type d -exec chmod 755 {} \;
+  run_cmd find "$BASE_DIR" -type f -exec chmod 644 {} \;
+  run_cmd find "$BASE_DIR" -type f -name '*.sh' -exec chmod 755 {} \;
+fi
 
 echo "==> Applying writable directory modes (web-user friendly)"
 for rel in "${PROJECT_DIRS_WRITABLE[@]}"; do
