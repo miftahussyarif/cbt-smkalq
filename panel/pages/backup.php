@@ -106,6 +106,19 @@ if (!isset($_COOKIE['beeuser'])) {
         return array_slice($files, 0, $limit);
     }
 
+    function ensure_dir_writable($dir, $mode = 0777)
+    {
+        if (!is_dir($dir)) {
+            if (!@mkdir($dir, $mode, true)) {
+                return false;
+            }
+        }
+        if (!is_writable($dir)) {
+            @chmod($dir, $mode);
+        }
+        return is_writable($dir);
+    }
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['file_action'])) {
         $action = $_POST['file_action'];
         if (!class_exists('ZipArchive')) {
@@ -113,43 +126,45 @@ if (!isset($_COOKIE['beeuser'])) {
         } elseif ($baseDir === false) {
             $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Base directory tidak ditemukan.</div>";
         } elseif ($action === 'backup_files') {
-            if (!is_dir($backupDir)) {
-                mkdir($backupDir, 0777, true);
-            }
-            $zipName = 'dbee-files_' . time() . '.zip';
-            $zipPath = $backupDir . '/' . $zipName;
-            $zip = new ZipArchive();
-            if ($zip->open($zipPath, ZipArchive::CREATE) !== true) {
-                $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Gagal membuat file backup.</div>";
+            if (!ensure_dir_writable($backupDir, 0777)) {
+                $safeDir = htmlspecialchars($backupDir, ENT_QUOTES, 'UTF-8');
+                $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Folder backup tidak bisa ditulis: <strong>$safeDir</strong>.</div>";
             } else {
-                $added = 0;
-                $perDirAdded = array();
-                foreach ($fileBackupDirs as $dirName) {
-                    $dirPath = $baseDir . '/' . $dirName;
-                    $perDirAdded[$dirName] = 0;
-                    if (!is_dir($dirPath)) {
-                        continue;
-                    }
-                    $zip->addEmptyDir($dirName);
-                    $iterator = new RecursiveIteratorIterator(
-                        new RecursiveDirectoryIterator($dirPath, RecursiveDirectoryIterator::SKIP_DOTS)
-                    );
-                    foreach ($iterator as $fileInfo) {
-                        if (!$fileInfo->isFile()) {
+                $zipName = 'dbee-files_' . time() . '.zip';
+                $zipPath = $backupDir . '/' . $zipName;
+                $zip = new ZipArchive();
+                if ($zip->open($zipPath, ZipArchive::CREATE) !== true) {
+                $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Gagal membuat file backup.</div>";
+                } else {
+                    $added = 0;
+                    $perDirAdded = array();
+                    foreach ($fileBackupDirs as $dirName) {
+                        $dirPath = $baseDir . '/' . $dirName;
+                        $perDirAdded[$dirName] = 0;
+                        if (!is_dir($dirPath)) {
                             continue;
                         }
-                        $filePath = $fileInfo->getPathname();
-                        $relativePath = $dirName . '/' . substr($filePath, strlen($dirPath) + 1);
-                        if ($zip->addFile($filePath, $relativePath)) {
-                            $added++;
-                            $perDirAdded[$dirName]++;
+                        $zip->addEmptyDir($dirName);
+                        $iterator = new RecursiveIteratorIterator(
+                            new RecursiveDirectoryIterator($dirPath, RecursiveDirectoryIterator::SKIP_DOTS)
+                        );
+                        foreach ($iterator as $fileInfo) {
+                            if (!$fileInfo->isFile()) {
+                                continue;
+                            }
+                            $filePath = $fileInfo->getPathname();
+                            $relativePath = $dirName . '/' . substr($filePath, strlen($dirPath) + 1);
+                            if ($zip->addFile($filePath, $relativePath)) {
+                                $added++;
+                                $perDirAdded[$dirName]++;
+                            }
                         }
                     }
+                    $zip->close();
+                    $safeZip = htmlspecialchars($zipName, ENT_QUOTES, 'UTF-8');
+                    $fotosiswaCount = isset($perDirAdded['fotosiswa']) ? (int) $perDirAdded['fotosiswa'] : 0;
+                    $fileBackupMessage = "<div class=\"alert alert-success alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Backup file berhasil dibuat: <strong>$safeZip</strong> ($added file). Foto siswa dibackup: <strong>$fotosiswaCount</strong> file.</div>";
                 }
-                $zip->close();
-                $safeZip = htmlspecialchars($zipName, ENT_QUOTES, 'UTF-8');
-                $fotosiswaCount = isset($perDirAdded['fotosiswa']) ? (int) $perDirAdded['fotosiswa'] : 0;
-                $fileBackupMessage = "<div class=\"alert alert-success alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Backup file berhasil dibuat: <strong>$safeZip</strong> ($added file). Foto siswa dibackup: <strong>$fotosiswaCount</strong> file.</div>";
             }
         } elseif ($action === 'restore_files') {
             $zipPath = '';
@@ -165,23 +180,12 @@ if (!isset($_COOKIE['beeuser'])) {
                     if ($ext !== 'zip') {
                         $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>File upload harus berformat .zip.</div>";
                     } else {
-                        if (!is_dir($backupDir)) {
-                            mkdir($backupDir, 0777, true);
-                        }
-                        $safeBase = preg_replace('/[^A-Za-z0-9._-]/', '_', $uploadName);
-                        if ($safeBase === '' || $safeBase === '.' || $safeBase === '..') {
-                            $safeBase = 'dbee-files_upload_' . time() . '.zip';
-                        }
-                        $targetPath = $backupDir . '/' . $safeBase;
-                        if (file_exists($targetPath)) {
-                            $safeBase = pathinfo($safeBase, PATHINFO_FILENAME) . '_' . time() . '.zip';
-                            $targetPath = $backupDir . '/' . $safeBase;
-                        }
-                        if (!move_uploaded_file($_FILES['backup_zip']['tmp_name'], $targetPath)) {
-                            $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Gagal menyimpan file upload ke folder backup.</div>";
+                        $tmpUploadPath = isset($_FILES['backup_zip']['tmp_name']) ? $_FILES['backup_zip']['tmp_name'] : '';
+                        if ($tmpUploadPath === '' || !is_uploaded_file($tmpUploadPath)) {
+                            $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>File upload tidak valid.</div>";
                         } else {
-                            $zipPath = $targetPath;
-                            $zipLabel = $safeBase;
+                            $zipPath = $tmpUploadPath;
+                            $zipLabel = $uploadName;
                         }
                     }
                 }
@@ -229,13 +233,17 @@ if (!isset($_COOKIE['beeuser'])) {
                         $destPath = $baseDir . '/' . $entryName;
                         if (substr($entryName, -1) === '/') {
                             if (!is_dir($destPath)) {
-                                mkdir($destPath, 0755, true);
+                                ensure_dir_writable($destPath, 0777);
                             }
                             continue;
                         }
                         $destDir = dirname($destPath);
-                        if (!is_dir($destDir)) {
-                            mkdir($destDir, 0755, true);
+                        if (!ensure_dir_writable($destDir, 0777)) {
+                            $skipped++;
+                            continue;
+                        }
+                        if (file_exists($destPath) && !is_writable($destPath)) {
+                            @unlink($destPath);
                         }
                         $in = $zip->getStream($entryName);
                         if ($in === false) {
