@@ -197,11 +197,13 @@ STORAGE_WRITE_DIRS=(
   "$BASE_DIR/pictures"
   "$BASE_DIR/audio"
   "$BASE_DIR/video"
+  "$BASE_DIR/output"
+  "$BASE_DIR/logs"
 )
 run_cmd chown -R "$OWNER_USER:$OWNER_GROUP" "${STORAGE_WRITE_DIRS[@]}"
 for storage_dir in "${STORAGE_WRITE_DIRS[@]}"; do
-  run_cmd find "$storage_dir" -type d -exec chmod 775 {} \;
-  run_cmd find "$storage_dir" -type f -exec chmod 664 {} \;
+  run_cmd find "$storage_dir" -type d -exec chmod 777 {} \;
+  run_cmd find "$storage_dir" -type f -exec chmod 666 {} \;
 done
 
 # Student-photo upload folder must stay fully writable on fresh servers.
