@@ -1,6 +1,7 @@
 <?php
-	if(!isset($_COOKIE['beeuser'])){
-	header("Location: login.php");}
+if (!isset($_COOKIE['beeuser'])) {
+  header("Location: login.php");
+}
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -79,8 +80,8 @@ $req_token = isset($_REQUEST['token']) ? trim($_REQUEST['token']) : '';
 include "../../config/server.php";
 
 if ($req_soal === '' || $req_siswa === '') {
-	echo "<div class='alert alert-warning'>Parameter tidak lengkap (soal/siswa).</div>";
-	exit;
+  echo "<div class='alert alert-warning'>Parameter tidak lengkap (soal/siswa).</div>";
+  exit;
 }
 
 $var_soal = $req_soal;
@@ -88,49 +89,55 @@ $var_siswa = $req_siswa;
 $var_token = $req_token;
 
 if ($var_token === '') {
-	$soalSafe = mysql_real_escape_string($var_soal);
-	$siswaSafe = mysql_real_escape_string($var_siswa);
-	$sqlToken = mysql_query("SELECT XTokenUjian FROM cbt_siswa_ujian WHERE XKodeSoal = '$soalSafe' AND XNomerUjian = '$siswaSafe' ORDER BY Urut DESC LIMIT 1");
-	if ($sqlToken && mysql_num_rows($sqlToken) > 0) {
-		$rowToken = mysql_fetch_array($sqlToken);
-		$var_token = isset($rowToken['XTokenUjian']) ? $rowToken['XTokenUjian'] : '';
-	} else {
-		$sqlToken = mysql_query("SELECT XTokenUjian FROM cbt_jawaban WHERE XKodeSoal = '$soalSafe' AND XUserJawab = '$siswaSafe' ORDER BY Urut DESC LIMIT 1");
-		if ($sqlToken && mysql_num_rows($sqlToken) > 0) {
-			$rowToken = mysql_fetch_array($sqlToken);
-			$var_token = isset($rowToken['XTokenUjian']) ? $rowToken['XTokenUjian'] : '';
-		}
-	}
+  $soalSafe = mysql_real_escape_string($var_soal);
+  $siswaSafe = mysql_real_escape_string($var_siswa);
+  $sqlToken = mysql_query("SELECT XTokenUjian FROM cbt_siswa_ujian WHERE XKodeSoal = '$soalSafe' AND XNomerUjian = '$siswaSafe' ORDER BY Urut DESC LIMIT 1");
+  if ($sqlToken && mysql_num_rows($sqlToken) > 0) {
+    $rowToken = mysql_fetch_array($sqlToken);
+    $var_token = isset($rowToken['XTokenUjian']) ? $rowToken['XTokenUjian'] : '';
+  }
+  else {
+    $sqlToken = mysql_query("SELECT XTokenUjian FROM cbt_jawaban WHERE XKodeSoal = '$soalSafe' AND XUserJawab = '$siswaSafe' ORDER BY Urut DESC LIMIT 1");
+    if ($sqlToken && mysql_num_rows($sqlToken) > 0) {
+      $rowToken = mysql_fetch_array($sqlToken);
+      $var_token = isset($rowToken['XTokenUjian']) ? $rowToken['XTokenUjian'] : '';
+    }
+  }
 }
 
 //Soal Pilihan Ganda
-$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$var_soal' and XJenisSoal = '1'")); 
-$sqltampil = mysql_query("select * from cbt_ujian where XKodeSoal = '$var_soal'"); 
+$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$var_soal' and XJenisSoal = '1'"));
+$sqltampil = mysql_query("select * from cbt_ujian where XKodeSoal = '$var_soal'");
 $t1 = mysql_fetch_array($sqltampil);
 //$t = $t1['XJumSoal'];
 $t = $t1['XPilGanda'];
 
-$sqlbenar = mysql_query("select * from cbt_nilai where XKodeSoal = '$var_soal' and XNomerUjian = '$var_siswa'  and XTokenUjian = '$var_token'"); 
+$sqlbenar = mysql_query("select * from cbt_nilai where XKodeSoal = '$var_soal' and XNomerUjian = '$var_siswa'  and XTokenUjian = '$var_token'");
 $b1 = mysql_fetch_array($sqlbenar);
 $b = $b1['XBenar'];
 
 /*
-if($t > $sqlsoal){$jumsoal = $sqlsoal;} else {$jumsoal = $t;}
-$nilai = ($b/$jumsoal)*100;
-$nilaine = number_format($nilai, 2, ',', '.');
-*/
-if($t > $sqlsoal){$jumsoal = $sqlsoal;} else {$jumsoal = $t;}
-$nilai = ($b/$jumsoal)*100;
+ if($t > $sqlsoal){$jumsoal = $sqlsoal;} else {$jumsoal = $t;}
+ $nilai = ($b/$jumsoal)*100;
+ $nilaine = number_format($nilai, 2, ',', '.');
+ */
+if ($t > $sqlsoal) {
+  $jumsoal = $sqlsoal;
+}
+else {
+  $jumsoal = $t;
+}
+$nilai = ($b / $jumsoal) * 100;
 $nilaine = number_format($nilai, 2, ',', '.');
 
 
-$sqlujian = mysql_query("select * from cbt_ujian c left join cbt_mapel m on m.XKodeMapel = c.XKodeMapel where c.XKodeSoal = '$var_soal'  and c.XTokenUjian = '$var_token'"); 
+$sqlujian = mysql_query("select * from cbt_ujian c left join cbt_mapel m on m.XKodeMapel = c.XKodeMapel where c.XKodeSoal = '$var_soal'  and c.XTokenUjian = '$var_token'");
 $u = mysql_fetch_array($sqlujian);
 $namamapel = $u['XNamaMapel'];
 $xtokenujian = $u['XTokenUjian'];
 
-$nom = 1;			
-$betul = 0;					
+$nom = 1;
+$betul = 0;
 
 $sqlsiswa = mysql_query("SELECT * FROM `cbt_siswa` s left join cbt_kelas k on k.XKodeKelas = s.XKodeKelas WHERE XNomerUjian= '$var_siswa' ");
 $s = mysql_fetch_array($sqlsiswa);
@@ -139,12 +146,16 @@ $namkel = $s['XNamaKelas'];
 $nomsis = $s['XNIK'];
 $namjur = $s['XKodeJurusan'];
 $fotsis = $s['XFoto'];
-if(str_replace(" ","",$fotsis)==""){
-$foto = "nouser.png";} else { $foto = "$fotsis";}
+if (str_replace(" ", "", $fotsis) == "") {
+  $foto = "nouser.png";
+}
+else {
+  $foto = "$fotsis";
+}
 
 $sqljumlahx = mysql_query("select sum(XNilaiEsai) as hasil from cbt_jawaban where XKodeSoal = '$var_soal' and XUserJawab = '$var_siswa' and XTokenUjian = '$var_token'");
 $o = mysql_fetch_array($sqljumlahx);
-$nilaiawal = round($o['hasil'],2);
+$nilaiawal = round($o['hasil'], 2);
 
 ?>
 <input type="hidden" id="soale" name="soale" value="<?php echo $var_soal; ?>" />
@@ -207,38 +218,54 @@ $nilaiawal = round($o['hasil'],2);
 <table>
 <?php
 $nomer = 1;
+// Query semua jawaban essay siswa ini tanpa JOIN ke cbt_soal (untuk hindari duplikasi)
 $sql = mysql_query("
-SELECT * FROM `cbt_jawaban` j left join cbt_soal s on s.XNomerSoal = j.XNomerSoal 
-left join cbt_ujian u on (u.XKodeSoal = s.XKodeSoal and u.XTokenUjian = j.XTokenUjian)
-WHERE j.XKodeSoal = '$var_soal' and  s.XKodeSoal = '$var_soal' and  j.XUserJawab = '$var_siswa' 
-and j.XJenisSoal = '2' and j.XTokenUjian = '$var_token' order by j.Urut");
+SELECT * FROM cbt_jawaban
+WHERE XKodeSoal = '$var_soal' AND XUserJawab = '$var_siswa'
+AND XTokenUjian = '$var_token' AND XJenisSoal = '2'
+ORDER BY Urut");
 
-while($r = mysql_fetch_array($sql)){
-$jumpil = $r['XJumPilihan'];
-$nosoal = $r['XNomerSoal'];
-$nil = $r['XNilaiEsai'];
+$soal_offset = array(); // track posisi per XNomerSoal untuk mendapatkan soal yang tepat
 
-echo "<tr><td width=50px>$nomer.</td><td>$r[XTanya] </td></tr>
+while ($r = mysql_fetch_array($sql)) {
+  $nosoal = $r['XNomerSoal'];
+  $nil    = $r['XNilaiEsai'];
+  $jumpil = 0;
+
+  // Ambil teks soal dari cbt_soal berdasarkan posisi (offset) dalam grup XNomerSoal
+  if (!isset($soal_offset[$nosoal])) $soal_offset[$nosoal] = 0;
+  $offset = $soal_offset[$nosoal];
+  $soal_offset[$nosoal]++;
+
+  $sqlsoal = mysql_query("SELECT XTanya, XGambarTanya FROM cbt_soal
+    WHERE XKodeSoal = '$var_soal' AND XNomerSoal = '$nosoal' AND XJenisSoal = '2'
+    ORDER BY Urut LIMIT 1 OFFSET $offset");
+  $rsoal = mysql_fetch_array($sqlsoal);
+  $r['XTanya']       = $rsoal ? $rsoal['XTanya']       : '(Soal tidak ditemukan)';
+  $r['XGambarTanya'] = $rsoal ? $rsoal['XGambarTanya'] : '';
+
+  echo "<tr><td width=50px>$nomer.</td><td>$r[XTanya] </td></tr>
 <tr><td width=50px colspan=2>&nbsp;</td></tr>
 ";
 
 ?>
 
 <?php
-if(str_replace("  ","",$r['XGambarTanya']!=="")){
-echo "
+  if (str_replace("  ", "", $r['XGambarTanya'] !== "")) {
+    echo "
 <tr><td width=30px colspan=2>&nbsp; </td></tr>
-<tr><td colspan=2><img src=../../pictures/$r[XGambarTanya] width=150px></td></tr>";}
-echo "<tr><td width=50px colspan=2>&nbsp;</td></tr>";
+<tr><td colspan=2><img src=../../pictures/$r[XGambarTanya] width=150px></td></tr>";
+  }
+  echo "<tr><td width=50px colspan=2>&nbsp;</td></tr>";
 
-$jawab = $r['XJawabanEsai'];
-echo "
+  $jawab = $r['XJawabanEsai'];
+  echo "
 <tr><td width=30px colspan=2><b>Jawaban : </b></td></tr>
 <tr><td colspan=2>$jawab</td></tr>
 
 <tr><td width=50px colspan=2>&nbsp;</td></tr>
 <tr><td colspan=2><b>Entry Nilai</b></td></tr>
-<tr><td colspan=2>";	
+<tr><td colspan=2>";
 ?>
 <script>
 $(document).ready(function(){
@@ -270,11 +297,11 @@ $(document).ready(function(){
 style="height:50px; width:60px; font-size:36px; padding-left:5px;color:#32689a" value="<?php echo "$nil"; ?>"/>
 <input type="hidden" id="nomere<?php echo "$nosoal"; ?>" name="nomere<?php echo "$nosoal"; ?>" value="<?php echo "$nosoal"; ?>" />
 <?php
-echo "</td></tr><tr><td colspan=2><hr></td></tr>";
+  echo "</td></tr><tr><td colspan=2><hr></td></tr>";
 
 
 
-$nomer++;
+  $nomer++;
 
 
 }

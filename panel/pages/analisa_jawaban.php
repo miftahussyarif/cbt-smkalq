@@ -170,17 +170,12 @@ while ($s = mysql_fetch_array($sql)) {
                                 <td align="center">
                                     <?php echo $nilaiawal; ?>
                                 </td>
-                                <td align="center"><a href=?modul=lks&soal=<?php echo $s['XKodeSoal']; ?>&siswa=
-                                        <?php echo $s['XNomerUjian']; ?>&token=
-                                        <?php echo $s['XTokenUjian']; ?>>
+                                <td align="center"><a href="?modul=lks&soal=<?php echo $s['XKodeSoal']; ?>&siswa=<?php echo $s['XNomerUjian']; ?>&token=<?php echo $s['XTokenUjian']; ?>">
                                         <button type="button" class="btn btn-info btn-small"><i
                                                 class="fa fa-file-text-o"></i></button>
                                     </a></td>
 
-                                <td align="center"><a href=?modul=jawabansiswa&soal=<?php echo $s['XKodeSoal'];
-                                        ?>&siswa=
-                                        <?php echo $s['XNomerUjian']; ?>&token=
-                                        <?php echo $s['XTokenUjian']; ?>>
+                                <td align="center"><a href="?modul=jawabansiswa&soal=<?php echo $s['XKodeSoal']; ?>&siswa=<?php echo $s['XNomerUjian']; ?>&token=<?php echo $s['XTokenUjian']; ?>">
                                         <button type="button" class="btn btn-success btn-small"><i
                                                 class="fa fa-edit"></i></button>
                                     </a></td>
