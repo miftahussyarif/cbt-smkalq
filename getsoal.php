@@ -36,13 +36,13 @@ if (isset($_REQUEST['assets'])) {
                 $xkodesoal = $s0['XKodeSoal'];
                 $xtokenujian = $s0['XTokenUjian'];
                 $savedIp = '';
-                if (!cbt_validate_single_ip_session($user, $xtokenujian, $xkodesoal, $user_ip, $savedIp)) {
+                if (!cbt_validate_single_ip_session($user, $xtokenujian, $xkodesoal, $cbt_session_lock_value, $savedIp)) {
                     if (function_exists('bee_log')) {
                         bee_log('WARN', 'MULTI_IP_BLOCK', 'Akses getsoal ditolak karena IP berbeda', array(
                             'user' => $user,
                             'token' => $xtokenujian,
                             'kodesoal' => $xkodesoal,
-                            'current_ip' => $user_ip,
+                            'current_ip' => $cbt_session_lock_value,
                             'saved_ip' => $savedIp
                         ));
                     }
@@ -60,9 +60,11 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
                 $sopil = $so['XJumPilihan'];
 
                 $sql = mysql_query("
-		SELECT j.Urut as Urut, j.XJawaban as XJawaban, j.XJawabanEsai as XJawabanEsai , c.XNomerSoal as XNomerSoal, j.XRagu as XRagu, c.XJenisSoal as XJenisSoal 
-		FROM  `cbt_soal` c LEFT JOIN cbt_jawaban j ON ( j.XNomerSoal = c.XNomerSoal AND j.XKodeSoal = c.XKodeSoal ) where c.XKodeSoal = '$xkodesoal' 
-		and j.XUserJawab = '$user' and j.XTokenUjian = '$xtokenujian' and j.XJenisSoal = '1' order by j.Urut");
+			SELECT j.Urut as Urut, j.XJawaban as XJawaban, j.XJawabanEsai as XJawabanEsai, j.XNomerSoal as XNomerSoal, j.XRagu as XRagu, j.XJenisSoal as XJenisSoal
+			FROM cbt_jawaban j
+			WHERE j.XKodeSoal = '$xkodesoal'
+			and j.XUserJawab = '$user' and j.XTokenUjian = '$xtokenujian' and j.XJenisSoal = '1'
+			order by j.Urut");
 
                 /*	echo "		SELECT j.Urut as Urut, j.XJawaban as XJawaban, j.XJawabanEsai as XJawabanEsai , c.XNomerSoal as XNomerSoal, j.XRagu as XRagu, c.XJenisSoal as XJenisSoal 
                         FROM  `cbt_soal` c LEFT JOIN cbt_jawaban j ON ( j.XNomerSoal = c.XNomerSoal AND j.XKodeSoal = c.XKodeSoal ) where c.XKodeSoal = '$xkodesoal' 
@@ -184,13 +186,13 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
                 $xkodesoal = $s0['XKodeSoal'];
                 $xtokenujian = $s0['XTokenUjian'];
                 $savedIp = '';
-                if (!cbt_validate_single_ip_session($user, $xtokenujian, $xkodesoal, $user_ip, $savedIp)) {
+                if (!cbt_validate_single_ip_session($user, $xtokenujian, $xkodesoal, $cbt_session_lock_value, $savedIp)) {
                     if (function_exists('bee_log')) {
                         bee_log('WARN', 'MULTI_IP_BLOCK', 'Akses getsoal ditolak karena IP berbeda', array(
                             'user' => $user,
                             'token' => $xtokenujian,
                             'kodesoal' => $xkodesoal,
-                            'current_ip' => $user_ip,
+                            'current_ip' => $cbt_session_lock_value,
                             'saved_ip' => $savedIp
                         ));
                     }
@@ -208,9 +210,11 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
                 $sopil = $so['XJumPilihan'];
 
                 $sql = mysql_query("
-		SELECT j.Urut as Urut, j.XJawaban as XJawaban, j.XJawabanEsai as XJawabanEsai , c.XNomerSoal as XNomerSoal, j.XRagu as XRagu, c.XJenisSoal as XJenisSoal 
-		FROM  `cbt_soal` c LEFT JOIN cbt_jawaban j ON ( j.XNomerSoal = c.XNomerSoal AND j.XKodeSoal = c.XKodeSoal ) where c.XKodeSoal = '$xkodesoal' 
-		and j.XUserJawab = '$user' and j.XTokenUjian = '$xtokenujian' and j.XJenisSoal = '2' order by j.Urut");
+			SELECT j.Urut as Urut, j.XJawaban as XJawaban, j.XJawabanEsai as XJawabanEsai, j.XNomerSoal as XNomerSoal, j.XRagu as XRagu, j.XJenisSoal as XJenisSoal
+			FROM cbt_jawaban j
+			WHERE j.XKodeSoal = '$xkodesoal'
+			and j.XUserJawab = '$user' and j.XTokenUjian = '$xtokenujian' and j.XJenisSoal = '2'
+			order by j.Urut");
 
                 /*	echo "		SELECT j.Urut as Urut, j.XJawaban as XJawaban, j.XJawabanEsai as XJawabanEsai , c.XNomerSoal as XNomerSoal, j.XRagu as XRagu, c.XJenisSoal as XJenisSoal 
                         FROM  `cbt_soal` c LEFT JOIN cbt_jawaban j ON ( j.XNomerSoal = c.XNomerSoal AND j.XKodeSoal = c.XKodeSoal ) where c.XKodeSoal = '$xkodesoal' 
@@ -1161,15 +1165,15 @@ if ($result) {
                     $str = str_replace("'<", "`<", $str);
 
                     echo "
-		
-		<p class=jawab>$str<br />";
+			
+			<div class='soal-teks jawab'>$str<br />";
                     if ($result['XGambarTanya'] == '') {
                     } else {
                         $imgTanyaSrc = cbt_resolve_soal_image_url($result['XGambarTanya']);
                         echo "<a href='#'  data-toggle='modal' data-target='#myModalP'>";
                         echo "<img src='$imgTanyaSrc' class='cbt-media-img'></a><br /><br />";
                     }
-                    echo "</p>";
+                    echo "</div>";
 
                     ?>
 

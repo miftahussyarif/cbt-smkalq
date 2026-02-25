@@ -1562,7 +1562,22 @@ $fotoSiswaUrl = 'fotosiswa/' . rawurlencode($fotoSiswaFile);
     <script type="text/javascript">
         $(document).ready(function () {
             var cbtStorageKey = 'cbt_last_soal_<?php echo $user; ?>_<?php echo $xtokenujian; ?>_<?php echo $xkodesoal; ?>';
+            var cbtFontStorageKey = 'cbt_font_soal_<?php echo $user; ?>_<?php echo $xtokenujian; ?>_<?php echo $xkodesoal; ?>';
             var initialSoal = 1;
+            var initialFontLevel = 'default';
+
+            function applySoalFont(level) {
+                var $target = $('#picture');
+                $target.removeClass('font-small font-default font-large').addClass('font-' + level);
+                $('#jfontsize-m2, #jfontsize-d2, #jfontsize-p2').css('font-weight', 'normal');
+                if (level === 'small') {
+                    $('#jfontsize-m2').css('font-weight', 'bold');
+                } else if (level === 'large') {
+                    $('#jfontsize-p2').css('font-weight', 'bold');
+                } else {
+                    $('#jfontsize-d2').css('font-weight', 'bold');
+                }
+            }
 
             try {
                 var savedSoal = localStorage.getItem(cbtStorageKey);
@@ -1576,10 +1591,42 @@ $fotoSiswaUrl = 'fotosiswa/' . rawurlencode($fotoSiswaFile);
                 initialSoal = 1;
             }
 
+            try {
+                var savedFont = localStorage.getItem(cbtFontStorageKey);
+                if (savedFont === 'small' || savedFont === 'default' || savedFont === 'large') {
+                    initialFontLevel = savedFont;
+                }
+            } catch (e) {
+                initialFontLevel = 'default';
+            }
+            applySoalFont(initialFontLevel);
+
+            $('#jfontsize-m2').on('click', function (e) {
+                e.preventDefault();
+                initialFontLevel = 'small';
+                applySoalFont('small');
+                try { localStorage.setItem(cbtFontStorageKey, 'small'); } catch (ex) {}
+            });
+
+            $('#jfontsize-d2').on('click', function (e) {
+                e.preventDefault();
+                initialFontLevel = 'default';
+                applySoalFont('default');
+                try { localStorage.setItem(cbtFontStorageKey, 'default'); } catch (ex) {}
+            });
+
+            $('#jfontsize-p2').on('click', function (e) {
+                e.preventDefault();
+                initialFontLevel = 'large';
+                applySoalFont('large');
+                try { localStorage.setItem(cbtFontStorageKey, 'large'); } catch (ex) {}
+            });
+
             $("#soal").html(initialSoal);
             $.post("getsoal.php?kode=<?php echo $xkodesoal; ?>&assets=1", { pic: String(initialSoal) }, function (data) {
                 $("#picture").html(data);
                 $("#soal").html(initialSoal);
+                applySoalFont(initialFontLevel);
             });
 
             $("#picture").on("click", ".get_pic", function (e) {
@@ -1596,6 +1643,7 @@ $fotoSiswaUrl = 'fotosiswa/' . rawurlencode($fotoSiswaFile);
                 }
                 $.post("getsoal.php?assets=0", { pic: picture_id }, function (data) {
                     $("#picture").html(data);
+                    applySoalFont(initialFontLevel);
                 });
                 return false;
             });
@@ -2170,6 +2218,21 @@ $fotoSiswaUrl = 'fotosiswa/' . rawurlencode($fotoSiswaFile);
         font-size: 12pt;
         border: solid;
         border-color: #ccc;
+    }
+
+    #picture.font-small .soal-teks,
+    #picture.font-small .soal-teks * {
+        font-size: 14px !important;
+    }
+
+    #picture.font-default .soal-teks,
+    #picture.font-default .soal-teks * {
+        font-size: 16px !important;
+    }
+
+    #picture.font-large .soal-teks,
+    #picture.font-large .soal-teks * {
+        font-size: 20px !important;
     }
 
     .jawab {

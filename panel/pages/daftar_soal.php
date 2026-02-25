@@ -136,17 +136,18 @@ $(document).ready(function(){
                         <div class="panel-body">
                             <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example">
                                 <thead>
-                                    <tr>
-	                                    <th width="6%">No.</th>
-                                        <th width="8%">Kode</th>
-                                        <th width="20%">Mata Pelajaran</th>
-                                        <th width="8%">Soal</th>	
-                                        <th width="8%">Kelas</th>
-                                        <th width="7%">Copy</th>                                        
-                                        <th width="7%">Upl</th>                                      
-                                        <th width="8%">Edit</th>                                            
-                                        <th width="8%">Status</th>                                        
-                                        <th width="8%">Del</th>                                                                                                                          
+	                                    <tr>
+		                                    <th width="6%">No.</th>
+	                                        <th width="8%">Kode</th>
+	                                        <th width="20%">Mata Pelajaran</th>
+	                                        <th width="8%">Soal</th>	
+	                                        <th width="8%">Kelas</th>
+	                                        <th width="7%">Setting</th>
+	                                        <th width="7%">Copy</th>                                        
+	                                        <th width="7%">Upl</th>                                      
+	                                        <th width="8%">Edit</th>                                            
+	                                        <th width="8%">Status</th>                                        
+	                                        <th width="8%">Del</th>                                                                                                                          
                                  </tr>
                                 </thead>
                                 <tbody>
@@ -158,23 +159,39 @@ $sql = mysql_query("select p.*,m.*,p.Urut as Urutan,p.XKodeKelas  as kokel from 
 }								
 								while($s = mysql_fetch_array($sql)){ 
 					$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$s[XKodeSoal]'"));
-					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$s[XKodeSoal]' and XStatusUjian = '1'"));
-					$sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$s[XKodeSoal]'"));
-					if($sqlsoal==0){$katakosong="disabled";}  else {$katakosong="";}	
-					if($sqlsudah>0||$sqlpakai>0){$katasudah="disabled";}  else {$katasudah="";}			
-					if($sqlpakai>0){$katapakai="disabled";}  else {$katapakai="";}			
-								?>
+						$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$s[XKodeSoal]' and XStatusUjian = '1'"));
+						$sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$s[XKodeSoal]'"));
+						if($sqlsoal==0){$katakosong="disabled";}  else {$katakosong="";}	
+						if($sqlsudah>0||$sqlpakai>0){$katasudah="disabled";}  else {$katasudah="";}			
+						if($sqlpakai>0){$katapakai="disabled";}  else {$katapakai="";}			
+						if($s['XStatusSoal']=="Y" || $sqlpakai>0){$kataSetting="disabled";} else {$kataSetting="";}
+									?>
                                 
                                     <tr class="odd gradeX">
-                                        <td><input type="hidden" value="<?php echo $s['Urutan']; ?>" id="txt_mapel<?php echo $s['Urutan']; ?>"><?php echo $s['Urutan']; ?></td><input type="hidden" value="<?php echo $s['XKodeSoal']; ?>" id="txt_soal<?php echo $s['Urutan']; ?>">
-                                        <td><?php echo $s['XKodeSoal']; ?></td>
-                                        <td><?php echo $s['XNamaMapel']; ?></td>
-                                        <td><?php echo "$sqlsoal (". $s['XJumPilihan']." opsi)"; ?></td>                                           
-                                        <td><?php echo $s['kokel']." | ".$s['XKodeJurusan']."."; ?></td> 
-										<td align="center">
-                                        <button type="button" class="btn btn-info btn-small"  data-toggle="modal" data-target="#myCopy<?php echo $s['Urutan']; ?>"><i class="fa fa-copy"></i></button>
-                                        
-                                        </td>                                          
+	                                        <td><input type="hidden" value="<?php echo $s['Urutan']; ?>" id="txt_mapel<?php echo $s['Urutan']; ?>"><input type="hidden" value="<?php echo $s['Urutan']; ?>" id="txt_urut<?php echo $s['Urutan']; ?>"><?php echo $s['Urutan']; ?></td><input type="hidden" value="<?php echo $s['XKodeSoal']; ?>" id="txt_soal<?php echo $s['Urutan']; ?>">
+	                                        <td><?php echo $s['XKodeSoal']; ?></td>
+	                                        <td><?php echo $s['XNamaMapel']; ?></td>
+	                                        <td><?php echo "$sqlsoal (". $s['XJumPilihan']." opsi)"; ?></td>                                           
+	                                        <td><?php echo $s['kokel']." | ".$s['XKodeJurusan']."."; ?></td> 
+											<td align="center">
+	                                        <button type="button" class="btn btn-default btn-small btnSettingSoal"
+	                                            data-urut="<?php echo $s['Urutan']; ?>"
+	                                            data-soal="<?php echo htmlspecialchars($s['XKodeSoal'], ENT_QUOTES, 'UTF-8'); ?>"
+	                                            data-kelas="<?php echo htmlspecialchars($s['kokel'], ENT_QUOTES, 'UTF-8'); ?>"
+	                                            data-jurusan="<?php echo htmlspecialchars($s['XKodeJurusan'], ENT_QUOTES, 'UTF-8'); ?>"
+	                                            data-jawab="<?php echo (int)$s['XJumPilihan']; ?>"
+	                                            data-pg="<?php echo (int)$s['XPilGanda']; ?>"
+	                                            data-bobot-pg="<?php echo (int)$s['XPersenPil']; ?>"
+	                                            data-esai="<?php echo (int)$s['XEsai']; ?>"
+	                                            data-bobot-esai="<?php echo (int)$s['XPersenEsai']; ?>"
+	                                            <?php echo $kataSetting; ?>>
+	                                            <i class="fa fa-cog"></i>
+	                                        </button>
+	                                        </td>
+											<td align="center">
+	                                        <button type="button" class="btn btn-info btn-small"  data-toggle="modal" data-target="#myCopy<?php echo $s['Urutan']; ?>"><i class="fa fa-copy"></i></button>
+	                                        
+	                                        </td>                                          
                                         
                                         <td align="center">
 										<!-- Tombol Mati kalau sudah ada yng ambil ujian / dipakai
@@ -236,6 +253,7 @@ $sql = mysql_query("select p.*,m.*,p.Urut as Urutan,p.XKodeKelas  as kokel from 
                                            
 <script>    
 $(document).ready(function(){
+$("#myCopy<?php echo $s['Urutan']; ?>").appendTo("body");
 $("#simpan<?php echo $s['Urutan']; ?>").click(function(){
 //alert("<?php echo $s['Urutan']; ?>");
  var txt_ujian = $("#txt_ujian").val();
@@ -413,9 +431,8 @@ $("#tambah<?php echo $s['Urutan']; ?>").click(function(){
 		tampilkan.fadeIn(100);
 	 tampildata();
 	 }
-	 });
-	 });
-
+		 });
+		 });
 
 function confirmDialog(message, onConfirm){
     var fClose = function(){
@@ -719,9 +736,58 @@ function confirmDialog2(message, onConfirm){
 </div>
 </div>
 
+<div class="modal fade" id="modalSetBankSoal" tabindex="-1" role="dialog" aria-labelledby="modalSetBankSoalLabel" style="z-index: 1050;">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="modalSetBankSoalLabel">Edit Setting Bank Soal</h4>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="set_txt_urut" value="">
+        <input type="hidden" id="set_txt_soal" value="">
+        <table width="100%">
+          <tr height="32px"><td width="45%">Kode Soal</td><td>: <span id="set_kode_soal_label">-</span></td></tr>
+          <tr height="32px"><td width="45%">Jurusan</td><td>:
+            <select id="set_txt_jurusan">
+              <option value="ALL">SEMUA</option>
+              <?php
+              $sqljurSetGlobal = mysql_query("select * from cbt_kelas group by XKodeJurusan");
+              while($jSetGlobal = mysql_fetch_array($sqljurSetGlobal)){
+                  echo "<option value='$jSetGlobal[XKodeJurusan]'>$jSetGlobal[XKodeJurusan]</option>";
+              }
+              ?>
+            </select>
+          </td></tr>
+          <tr height="32px"><td width="45%">Kelas</td><td>:
+            <select id="set_txt_kelas">
+              <option value="ALL">SEMUA</option>
+              <?php
+              $sqlkelasSetGlobal = mysql_query("select * from cbt_kelas group by XKodeKelas");
+              while($kSetGlobal = mysql_fetch_array($sqlkelasSetGlobal)){
+                  echo "<option value='$kSetGlobal[XKodeKelas]'>$kSetGlobal[XKodeKelas]</option>";
+              }
+              ?>
+            </select>
+          </td></tr>
+          <tr height="32px"><td width="45%">Opsi Pilihan Jawaban</td><td>: <input size="2" type="text" id="set_txt_jawab" value="5"/> * Default 5 Pilihan</td></tr>
+          <tr height="32px"><td width="45%">Pilihan Ganda</td><td>: <input size="2" type="text" id="set_txt_jumsoalz1" value="0"/> * Jml Ditampilkan</td></tr>
+          <tr height="32px"><td width="45%">Bobot Pilihan</td><td>: <input size="2" type="text" id="set_txt_bobotsoalz1" value="0"/> * %</td></tr>
+          <tr height="32px"><td width="45%">Essai</td><td>: <input size="2" type="text" id="set_txt_jumsoalz2" value="0"/> * Jml Ditampilkan</td></tr>
+          <tr height="32px"><td width="45%">Bobot Essai</td><td>: <input size="2" type="text" id="set_txt_bobotsoalz2" value="0"/> * %</td></tr>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
+        <button type="button" class="btn btn-primary" id="btnSimpanSettingSoal">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-	$('#myModal').on('shown.bs.modal', function () {
-	  $('#myInput').focus()
+		$('#myModal').on('shown.bs.modal', function () {
+		  $('#myInput').focus()
 	})
 	$('#myModal').on('hidden.bs.modal', function () {
 	  document.location.reload();
@@ -791,18 +857,71 @@ function confirmDialog2(message, onConfirm){
 			cbtUpdateConvertProgress(0, 'Siap diproses.');
 		});
 
-		$('#btnStartConvertImage').on('click', function() {
-			if (cbtConvertRun) {
-				return;
-			}
+			$('#btnStartConvertImage').on('click', function() {
+				if (cbtConvertRun) {
+					return;
+				}
 			var mode = $('input[name="convertMode"]:checked').val();
 			cbtConvertRun = true;
 			$('#btnStartConvertImage').prop('disabled', true);
 			$('#btnCloseConvert').prop('disabled', true);
 			cbtUpdateConvertProgress(1, 'Memulai proses convert...');
-			cbtRunConvertBatch(0, mode, { converted: 0, skipped: 0, failed: 0, source_missing: 0 });
-		});
-	</script>
+				cbtRunConvertBatch(0, mode, { converted: 0, skipped: 0, failed: 0, source_missing: 0 });
+			});
+
+			$(document).on('click', '.btnSettingSoal', function() {
+				$('#set_txt_urut').val($(this).data('urut'));
+				$('#set_txt_soal').val($(this).data('soal'));
+				$('#set_kode_soal_label').text($(this).data('soal'));
+				$('#set_txt_kelas').val(String($(this).data('kelas')));
+				$('#set_txt_jurusan').val(String($(this).data('jurusan')));
+				$('#set_txt_jawab').val($(this).data('jawab'));
+				$('#set_txt_jumsoalz1').val($(this).data('pg'));
+				$('#set_txt_bobotsoalz1').val($(this).data('bobot-pg'));
+				$('#set_txt_jumsoalz2').val($(this).data('esai'));
+				$('#set_txt_bobotsoalz2').val($(this).data('bobot-esai'));
+				$('#modalSetBankSoal').modal('show');
+			});
+
+			$('#btnSimpanSettingSoal').on('click', function() {
+				var txt_urut = $('#set_txt_urut').val();
+				var txt_soal = $('#set_txt_soal').val();
+				var txt_kelas = $('#set_txt_kelas').val();
+				var txt_jurusan = $('#set_txt_jurusan').val();
+				var txt_jawab = $('#set_txt_jawab').val();
+				var txt_jumsoalz1 = $('#set_txt_jumsoalz1').val();
+				var txt_jumsoalz2 = $('#set_txt_jumsoalz2').val();
+				var txt_bobotsoalz1 = $('#set_txt_bobotsoalz1').val();
+				var txt_bobotsoalz2 = $('#set_txt_bobotsoalz2').val();
+
+				$.ajax({
+					type: 'POST',
+					url: 'update_banksoal.php',
+					dataType: 'json',
+					data: 'aksi=update'
+						+ '&txt_urut=' + encodeURIComponent(txt_urut)
+						+ '&txt_soal=' + encodeURIComponent(txt_soal)
+						+ '&txt_kelas=' + encodeURIComponent(txt_kelas)
+						+ '&txt_jurusan=' + encodeURIComponent(txt_jurusan)
+						+ '&txt_jawab=' + encodeURIComponent(txt_jawab)
+						+ '&txt_jumsoalz1=' + encodeURIComponent(txt_jumsoalz1)
+						+ '&txt_jumsoalz2=' + encodeURIComponent(txt_jumsoalz2)
+						+ '&txt_bobotsoalz1=' + encodeURIComponent(txt_bobotsoalz1)
+						+ '&txt_bobotsoalz2=' + encodeURIComponent(txt_bobotsoalz2),
+					success: function(resp) {
+						if (resp && resp.ok) {
+							alert(resp.message);
+							document.location.reload();
+							return;
+						}
+						alert(resp && resp.message ? resp.message : 'Gagal menyimpan setting bank soal');
+					},
+					error: function() {
+						alert('Gagal menyimpan setting bank soal');
+					}
+				});
+			});
+		</script>
 
 </body>
 

@@ -14,6 +14,19 @@ Aplikasi CBT berbasis web untuk pelaksanaan ujian sekolah.
 - Cetak dokumen ujian (kartu, daftar hadir, berita acara, hasil).
 - Backup/restore database dan backup/restore file upload (pictures/audio/video/fotosiswa).
 
+## Requirement (Sesuai Server Saat Ini)
+- Web server: Apache `2.4.38` (XAMPP/LAMPP)
+- PHP: `5.6.40`
+- Database: MariaDB `10.1.38`
+- OS: Linux (Ubuntu/Debian) dengan XAMPP di `/opt/lampp`
+
+### PHP Extension yang Dibutuhkan
+- `mysql`
+- `gd`
+- `mbstring`
+- `zip`
+- `xml`
+
 ## Instalasi (Environment yang Dipakai Saat Ini)
 Panduan ini khusus untuk server lokal dengan XAMPP/LAMPP seperti setup saat ini:
 - OS Linux (Ubuntu/Debian desktop/server)
