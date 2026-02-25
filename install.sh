@@ -18,13 +18,52 @@ DB_USER="${DB_USER:-root}"
 DB_PASS="${DB_PASS:-}"
 DB_NAME="${DB_NAME:-beesmartv3}"
 
-# Keep ownership aligned with current project owner.
-OWNER_USER="${OWNER_USER:-$(stat -c '%U' "$BASE_DIR")}"
-OWNER_GROUP="${OWNER_GROUP:-$(stat -c '%G' "$BASE_DIR")}"
+detect_user() {
+  for candidate in "$@"; do
+    if id -u "$candidate" >/dev/null 2>&1; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+detect_group() {
+  for candidate in "$@"; do
+    if getent group "$candidate" >/dev/null 2>&1; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
 
 if [[ ! -d "$BASE_DIR" ]]; then
   echo "Base directory not found: $BASE_DIR"
   exit 1
+fi
+
+PROJECT_OWNER_USER="$(stat -c '%U' "$BASE_DIR")"
+PROJECT_OWNER_GROUP="$(stat -c '%G' "$BASE_DIR")"
+PREFERRED_WEB_USER="$(detect_user www-data daemon || true)"
+
+# Default owner is web user for new server deploy (www-data/daemon),
+# can be overridden via OWNER_USER/OWNER_GROUP env variables.
+if [[ -z "${OWNER_USER:-}" ]]; then
+  if [[ -n "$PREFERRED_WEB_USER" ]]; then
+    OWNER_USER="$PREFERRED_WEB_USER"
+  else
+    OWNER_USER="$PROJECT_OWNER_USER"
+  fi
+fi
+
+if [[ -z "${OWNER_GROUP:-}" ]]; then
+  if id -gn "$OWNER_USER" >/dev/null 2>&1; then
+    OWNER_GROUP="$(id -gn "$OWNER_USER")"
+  else
+    OWNER_GROUP="$(detect_group www-data daemon || true)"
+    OWNER_GROUP="${OWNER_GROUP:-$PROJECT_OWNER_GROUP}"
+  fi
 fi
 
 if [[ "$EUID" -eq 0 ]]; then
@@ -96,30 +135,28 @@ PROJECT_DIRS_755=(
   "css"
   "database"
   "dist"
-  "images"
   "js"
   "lib"
   "MathJax"
   "panel"
   "panel/pages"
   "file-excel"
+)
+
+PROJECT_DIRS_WRITABLE=(
+  "audio"
+  "video"
+  "pictures"
+  "images"
+  "pictures_webp"
+  "fotosiswa"
+  "output"
   "backup"
   "logs"
 )
 
-PROJECT_DIRS_777=(
-  "audio"
-  "video"
-  "pictures"
-)
-
-PROJECT_DIRS_757=(
-  "fotosiswa"
-  "output"
-)
-
 echo "==> Creating required project directories"
-for rel in "${PROJECT_DIRS_755[@]}" "${PROJECT_DIRS_777[@]}" "${PROJECT_DIRS_757[@]}"; do
+for rel in "${PROJECT_DIRS_755[@]}" "${PROJECT_DIRS_WRITABLE[@]}"; do
   run_cmd mkdir -p "$BASE_DIR/$rel"
 done
 
@@ -133,18 +170,15 @@ migrate_legacy_dir "$LEGACY_LOG_DIR" "$LOG_DIR" "log files"
 echo "==> Applying default directory/file modes in project"
 run_cmd find "$BASE_DIR" -type d -exec chmod 755 {} \;
 run_cmd find "$BASE_DIR" -type f -exec chmod 644 {} \;
-run_cmd chmod 755 "$BASE_DIR/install.sh"
+run_cmd find "$BASE_DIR" -type f -name '*.sh' -exec chmod 755 {} \;
 
-echo "==> Applying writable directory modes (matching current usage)"
-for rel in "${PROJECT_DIRS_777[@]}"; do
-  run_cmd chmod 777 "$BASE_DIR/$rel"
-done
-for rel in "${PROJECT_DIRS_757[@]}"; do
-  run_cmd chmod 757 "$BASE_DIR/$rel"
+echo "==> Applying writable directory modes (web-user friendly)"
+for rel in "${PROJECT_DIRS_WRITABLE[@]}"; do
+  run_cmd chmod 775 "$BASE_DIR/$rel"
 done
 
 # Keep internal storage dirs writable for service operations.
-run_cmd chmod 777 "$BACKUP_DIR" "$LOG_DIR"
+run_cmd chmod 775 "$BACKUP_DIR" "$LOG_DIR"
 
 echo "==> Initializing database tables"
 ensure_database_tables
@@ -154,8 +188,7 @@ echo "Done. Folder setup completed."
 echo
 echo "Summary:"
 echo "  Owner project : $OWNER_USER:$OWNER_GROUP"
-echo "  777 dirs      : ${PROJECT_DIRS_777[*]}"
-echo "  757 dirs      : ${PROJECT_DIRS_757[*]}"
+echo "  Writable dirs : ${PROJECT_DIRS_WRITABLE[*]}"
 echo "  755 dirs      : ${PROJECT_DIRS_755[*]}"
 echo "  Storage dirs  : $BACKUP_DIR, $LOG_DIR"
 echo "  Database      : $DB_NAME @ $DB_HOST:$DB_PORT"
@@ -165,6 +198,7 @@ ls -ld \
   "$BASE_DIR/audio" \
   "$BASE_DIR/video" \
   "$BASE_DIR/pictures" \
+  "$BASE_DIR/pictures_webp" \
   "$BASE_DIR/fotosiswa" \
   "$BASE_DIR/output" \
   "$BASE_DIR/file-excel" \

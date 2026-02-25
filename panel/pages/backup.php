@@ -152,72 +152,110 @@ if (!isset($_COOKIE['beeuser'])) {
                 $fileBackupMessage = "<div class=\"alert alert-success alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Backup file berhasil dibuat: <strong>$safeZip</strong> ($added file). Foto siswa dibackup: <strong>$fotosiswaCount</strong> file.</div>";
             }
         } elseif ($action === 'restore_files') {
-            $backupFile = isset($_POST['backup_file']) ? basename($_POST['backup_file']) : '';
-            if ($backupFile === '' || strpos($backupFile, 'dbee-files_') !== 0 || substr($backupFile, -4) !== '.zip') {
-                $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>File restore tidak valid.</div>";
-            } else {
-                $zipPath = $backupDir . '/' . $backupFile;
-                if (!is_file($zipPath)) {
-                    $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>File backup tidak ditemukan.</div>";
+            $zipPath = '';
+            $zipLabel = '';
+
+            $hasUpload = isset($_FILES['backup_zip']) && isset($_FILES['backup_zip']['error']) && $_FILES['backup_zip']['error'] !== UPLOAD_ERR_NO_FILE;
+            if ($hasUpload) {
+                if ($_FILES['backup_zip']['error'] !== UPLOAD_ERR_OK) {
+                    $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Upload file backup gagal (code " . intval($_FILES['backup_zip']['error']) . ").</div>";
                 } else {
-                    $zip = new ZipArchive();
-                    if ($zip->open($zipPath) !== true) {
-                        $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Gagal membuka file backup.</div>";
+                    $uploadName = basename($_FILES['backup_zip']['name']);
+                    $ext = strtolower(pathinfo($uploadName, PATHINFO_EXTENSION));
+                    if ($ext !== 'zip') {
+                        $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>File upload harus berformat .zip.</div>";
                     } else {
-                        $extracted = 0;
-                        $skipped = 0;
-                        for ($i = 0; $i < $zip->numFiles; $i++) {
-                            $entryName = $zip->getNameIndex($i);
-                            if ($entryName === false) {
-                                $skipped++;
-                                continue;
-                            }
-                            $entryName = str_replace('\\', '/', $entryName);
-                            if ($entryName === '' || strpos($entryName, "\0") !== false) {
-                                $skipped++;
-                                continue;
-                            }
-                            if ($entryName[0] === '/' || preg_match('/^[A-Za-z]:/', $entryName) || strpos($entryName, '../') !== false) {
-                                $skipped++;
-                                continue;
-                            }
-                            $parts = explode('/', $entryName, 2);
-                            $topDir = $parts[0];
-                            if (!in_array($topDir, $fileBackupDirs, true)) {
-                                $skipped++;
-                                continue;
-                            }
-                            $destPath = $baseDir . '/' . $entryName;
-                            if (substr($entryName, -1) === '/') {
-                                if (!is_dir($destPath)) {
-                                    mkdir($destPath, 0755, true);
-                                }
-                                continue;
-                            }
-                            $destDir = dirname($destPath);
-                            if (!is_dir($destDir)) {
-                                mkdir($destDir, 0755, true);
-                            }
-                            $in = $zip->getStream($entryName);
-                            if ($in === false) {
-                                $skipped++;
-                                continue;
-                            }
-                            $out = fopen($destPath, 'w');
-                            if ($out === false) {
-                                fclose($in);
-                                $skipped++;
-                                continue;
-                            }
-                            stream_copy_to_stream($in, $out);
-                            fclose($in);
-                            fclose($out);
-                            $extracted++;
+                        if (!is_dir($backupDir)) {
+                            mkdir($backupDir, 0777, true);
                         }
-                        $zip->close();
-                        $safeZip = htmlspecialchars($backupFile, ENT_QUOTES, 'UTF-8');
-                        $fileBackupMessage = "<div class=\"alert alert-success alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Restore file selesai dari <strong>$safeZip</strong> ($extracted file, $skipped dilewati).</div>";
+                        $safeBase = preg_replace('/[^A-Za-z0-9._-]/', '_', $uploadName);
+                        if ($safeBase === '' || $safeBase === '.' || $safeBase === '..') {
+                            $safeBase = 'dbee-files_upload_' . time() . '.zip';
+                        }
+                        $targetPath = $backupDir . '/' . $safeBase;
+                        if (file_exists($targetPath)) {
+                            $safeBase = pathinfo($safeBase, PATHINFO_FILENAME) . '_' . time() . '.zip';
+                            $targetPath = $backupDir . '/' . $safeBase;
+                        }
+                        if (!move_uploaded_file($_FILES['backup_zip']['tmp_name'], $targetPath)) {
+                            $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Gagal menyimpan file upload ke folder backup.</div>";
+                        } else {
+                            $zipPath = $targetPath;
+                            $zipLabel = $safeBase;
+                        }
                     }
+                }
+            } else {
+                $backupFile = isset($_POST['backup_file']) ? basename($_POST['backup_file']) : '';
+                if ($backupFile === '' || strpos($backupFile, 'dbee-files_') !== 0 || substr($backupFile, -4) !== '.zip') {
+                    $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>File restore tidak valid.</div>";
+                } else {
+                    $zipPath = $backupDir . '/' . $backupFile;
+                    $zipLabel = $backupFile;
+                    if (!is_file($zipPath)) {
+                        $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>File backup tidak ditemukan.</div>";
+                    }
+                }
+            }
+
+            if ($zipPath !== '' && $fileBackupMessage === '') {
+                $zip = new ZipArchive();
+                if ($zip->open($zipPath) !== true) {
+                    $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Gagal membuka file backup.</div>";
+                } else {
+                    $extracted = 0;
+                    $skipped = 0;
+                    for ($i = 0; $i < $zip->numFiles; $i++) {
+                        $entryName = $zip->getNameIndex($i);
+                        if ($entryName === false) {
+                            $skipped++;
+                            continue;
+                        }
+                        $entryName = str_replace('\\', '/', $entryName);
+                        if ($entryName === '' || strpos($entryName, "\0") !== false) {
+                            $skipped++;
+                            continue;
+                        }
+                        if ($entryName[0] === '/' || preg_match('/^[A-Za-z]:/', $entryName) || strpos($entryName, '../') !== false) {
+                            $skipped++;
+                            continue;
+                        }
+                        $parts = explode('/', $entryName, 2);
+                        $topDir = $parts[0];
+                        if (!in_array($topDir, $fileBackupDirs, true)) {
+                            $skipped++;
+                            continue;
+                        }
+                        $destPath = $baseDir . '/' . $entryName;
+                        if (substr($entryName, -1) === '/') {
+                            if (!is_dir($destPath)) {
+                                mkdir($destPath, 0755, true);
+                            }
+                            continue;
+                        }
+                        $destDir = dirname($destPath);
+                        if (!is_dir($destDir)) {
+                            mkdir($destDir, 0755, true);
+                        }
+                        $in = $zip->getStream($entryName);
+                        if ($in === false) {
+                            $skipped++;
+                            continue;
+                        }
+                        $out = fopen($destPath, 'w');
+                        if ($out === false) {
+                            fclose($in);
+                            $skipped++;
+                            continue;
+                        }
+                        stream_copy_to_stream($in, $out);
+                        fclose($in);
+                        fclose($out);
+                        $extracted++;
+                    }
+                    $zip->close();
+                    $safeZip = htmlspecialchars($zipLabel, ENT_QUOTES, 'UTF-8');
+                    $fileBackupMessage = "<div class=\"alert alert-success alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Restore file selesai dari <strong>$safeZip</strong> ($extracted file, $skipped dilewati).</div>";
                 }
             }
         }
@@ -421,8 +459,13 @@ if (!isset($_COOKIE['beeuser'])) {
                                         </button>
                                     </form>
                                     <hr />
-                                    <form method="post">
+                                    <form method="post" enctype="multipart/form-data">
                                         <input type="hidden" name="file_action" value="restore_files">
+                                        <label for="backup_zip">Upload file backup ZIP (opsional)</label>
+                                        <input type="file" name="backup_zip" id="backup_zip" class="form-control"
+                                            accept=".zip">
+                                        <p style="margin:6px 0 10px 0;color:#777;">Jika diisi, file upload akan dipakai
+                                            langsung untuk restore.</p>
                                         <label for="backup_file">Pilih file backup</label>
                                         <select name="backup_file" id="backup_file" class="form-control">
                                             <?php
