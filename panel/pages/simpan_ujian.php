@@ -1,7 +1,8 @@
 							  <?php 
 include "../../config/server.php";					  	
  //$sqlubah = mysql_query("insert into cbt_tes (tes) values ('$_REQUEST[txt_waktu]')");
- $sqlubah2 = mysql_query("update cbt_ujian set XStatusUjian = '0'");
+ // REMOVED: Query tanpa WHERE clause yang mengubah semua ujian - menyebabkan ujian sesi lain hilang
+ // $sqlubah2 = mysql_query("update cbt_ujian set XStatusUjian = '0'");
  
 							  $tgl = substr($_REQUEST['txt_waktu'],0,10);
 							  $jam = substr($_REQUEST['txt_waktu'],11,5);

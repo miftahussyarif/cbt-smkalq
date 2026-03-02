@@ -13,8 +13,9 @@ $sqlselesai = mysql_query("update cbt_ujian set XStatusUjian = '9' where Urut = 
 
 
 <?php						  	
- $sqlubah = mysql_query("insert into cbt_tes (tes) values ('cuk')");
- $sqlubah = mysql_query("update cbt_ujian set XStatusUjian = '0'");
+ // REMOVED: Query tanpa WHERE clause yang mengubah semua ujian
+ // $sqlubah = mysql_query("insert into cbt_tes (tes) values ('cuk')");
+ // $sqlubah = mysql_query("update cbt_ujian set XStatusUjian = '0'");
 								$sqlujian = mysql_query("select * from cbt_ujian where XKodeSoal = '$_REQUEST[txt_ujian]'");
 								$am = mysql_fetch_array($sqlujian);
 								$jamujiane = str_replace(" ","",$am['XJamUjian']);
