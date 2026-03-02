@@ -1,6 +1,7 @@
 <?php
 	if(!isset($_COOKIE['beeuser'])){
 	header("Location: login.php");}
+	include "../../config/server.php";
 ?>
 
 <!DOCTYPE html>
@@ -56,8 +57,21 @@ $jamx = date("H:i:s");
 <script src="date/jquery.js"></script>
 <script src="jquery.datetimepicker.full.js"></script>
 <?php
-$sql = mysql_query("select p.*,m.*,p.Urut as Urutan,p.XKodeKelas  as kokel from cbt_paketsoal p left join cbt_mapel m on m.XKodeMapel = p.XKodeMapel where p.XStatusSoal='Y' and p.Urut = '$_REQUEST[idtes]'");
-$s = mysql_fetch_array($sql);
+// Query ujian dulu berdasarkan idtes (ujian ID dari daftar_tesbaru)
+$idtes = isset($_REQUEST['idtes']) ? (int)$_REQUEST['idtes'] : 0;
+$sqlUjian = mysql_query("select * from cbt_ujian where Urut = '$idtes'");
+$ujian = mysql_fetch_array($sqlUjian);
+
+if ($ujian) {
+    // Ujian ditemukan, sekarang query paket soal berdasarkan XKodeSoal dari ujian
+    $kodeSoal = $ujian['XKodeSoal'];
+    $sql = mysql_query("select p.*,m.*,p.Urut as Urutan,p.XKodeKelas as kokel from cbt_paketsoal p left join cbt_mapel m on m.XKodeMapel = p.XKodeMapel where p.XStatusSoal='Y' and p.XKodeSoal = '$kodeSoal'");
+    $s = mysql_fetch_array($sql);
+} else {
+    // Ujian tidak ditemukan, direct query paket (fallback untuk backward compatibility)
+    $sql = mysql_query("select p.*,m.*,p.Urut as Urutan,p.XKodeKelas as kokel from cbt_paketsoal p left join cbt_mapel m on m.XKodeMapel = p.XKodeMapel where p.XStatusSoal='Y' and p.Urut = '$idtes'");
+    $s = mysql_fetch_array($sql);
+}
 ?>
 
 <body>
@@ -215,7 +229,7 @@ function myFunction() {
 		 <p> <span class="asd" class="asd">
                                     Maksimum Keterlambatan </span><span>: <input type="text" size="3" id="txt_telat<?php echo $s['Urutan']; ?>">
                                     <input type="hidden" size="3" id="txt_kodesoal<?php echo $s['Urutan']; ?>" value="<?php echo $s['XKodeSoal']; ?>">
-                                    <input type="hidden" size="3" id="txt_idtes<?php echo $s['Urutan']; ?>" value="<?php echo $s['Urutan']; ?>">
+                                    <input type="hidden" size="3" id="txt_idtes<?php echo $s['Urutan']; ?>" value="<?php echo $idtes; ?>">
                                      menit </span><font color="#cd0202">*</font></p>
  		 <p> <span class="asd" class="asd">Token </span><span>: <input type="text" size="10" id="txt_token<?php echo $s['Urutan']; ?>"></span></p>
           <p><button type="button" class="btn btn-info btn-small" id="kirim<?php echo $s['Urutan']; ?>"> Rilis Token </i></button> <a href="?modul=daftar_tesbaru">

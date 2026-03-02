@@ -1,6 +1,7 @@
 <?php
 	if(!isset($_COOKIE['beeuser'])){
 	header("Location: login.php");}
+	include "../../config/server.php";
 ?>
 
 <!DOCTYPE html>
@@ -120,50 +121,92 @@ $jamx = date("H:i:s");
                                 </thead>
                                 <tbody>
                                 <?php 
-$sql = mysql_query("select p.*,m.*,p.Urut as Urutan,p.XKodeKelas  as kokel from cbt_paketsoal p left join cbt_mapel m on m.XKodeMapel = p.XKodeMapel where p.XStatusSoal='Y' order by p.Urut desc");
-//$sql = mysql_query("select u.*,m.*,u.Urut as Urutan,u.XKodeKelas as kokel from cbt_ujian u left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel left join cbt_paketsoal p on p.XKodeSoal = u.XKodeSoal where u.XStatusUjian='1'");
+// Query data paket soal yang aktif
+$sql = mysql_query("select p.*,m.*,p.Urut as Urutan,p.XKodeKelas as kokel from cbt_paketsoal p left join cbt_mapel m on m.XKodeMapel = p.XKodeMapel where p.XStatusSoal='Y' order by p.Urut desc");
 
-					while($s = mysql_fetch_array($sql)){ 
-					$sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$s[XKodeSoal]'"));
-					$sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$s[XKodeSoal]' and XStatusUjian = '1'"));
-					$sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$s[XKodeSoal]'"));
-					if($sqlsoal<1){$kata="disabled";}  else {$kata="";}	
-					if($sqlsudah>0||$sqlpakai>0){$kata="disabled";}  else {$kata="";}			
-					if($sqlpakai>0){$katapakai="disabled";}  else {$katapakai="";}			
+// Debug: Cek outer query
+if (!$sql) {
+    echo "<!-- OUTER QUERY ERROR: " . htmlspecialchars(mysql_error()) . " -->";
+} else {
+    $paket_count = mysql_num_rows($sql);
+    echo "<!-- PAKET FOUND: $paket_count -->";
+}
+
+while($s = mysql_fetch_array($sql)){ 
+    // Safely access array elements
+    $kodeSoal = isset($s['XKodeSoal']) ? $s['XKodeSoal'] : '';
+    $kodeMapel = isset($s['XKodeMapel']) ? $s['XKodeMapel'] : '';
+    $kodeJurusan = isset($s['XKodeJurusan']) ? $s['XKodeJurusan'] : '';
+    $kokel = isset($s['kokel']) ? $s['kokel'] : '';
+    
+    $sqlsoal = mysql_num_rows(mysql_query("select * from cbt_soal where XKodeSoal = '$kodeSoal'"));
+    $sqlpakai = mysql_num_rows(mysql_query("select * from cbt_siswa_ujian where XKodeSoal = '$kodeSoal' and XStatusUjian = '1'"));
+    $sqlsudah = mysql_num_rows(mysql_query("select * from cbt_jawaban where XKodeSoal = '$kodeSoal'"));
+    if($sqlsudah>0||$sqlpakai>0){$kata="disabled";}  else {$kata="";}			
+    if($sqlpakai>0){$katapakai="disabled";}  else {$katapakai="";}			
 							
-								
-$sqltes = mysql_query("select XJamUjian,XTglUjian,XStatusUjian,XSesi from cbt_ujian where XKodeSoal = '$s[XKodeSoal]' and  XKodeMapel = '$s[XKodeMapel]' and  XKodeJurusan = '$s[XKodeJurusan]' and  XKodeKelas = '$s[kokel]' and XStatusUjian='1'");		
- $stu = mysql_fetch_array($sqltes);
- $tjamujian = $stu['XJamUjian'];
- $ttglujian = $stu['XTglUjian'];
- $sttsujian = $stu['XStatusUjian'];
+// Query semua ujian AKTIF untuk paket soal ini, grouped by sesi
+$sqltes = mysql_query("select u.*, m.* from cbt_ujian u left join cbt_mapel m on m.XKodeMapel = u.XKodeMapel where u.XKodeSoal = '$kodeSoal' and u.XKodeMapel = '$kodeMapel' and u.XKodeJurusan = '$kodeJurusan' and u.XKodeKelas = '$kokel' and u.XStatusUjian='1' order by u.XSesi asc");
+
+// Debug: Cek inner query
+if (!$sqltes) {
+    echo "<!-- UJIAN QUERY ERROR for $kodeSoal: " . htmlspecialchars(mysql_error()) . " -->";
+} else {
+    $ujian_count = mysql_num_rows($sqltes);
+    echo "<!-- UJIAN FOUND for $kodeSoal: $ujian_count -->";
+}
+
+// Loop SETIAP UJIAN, tampilkan sebagai row terpisah
+$row_count = 0;
+$has_ujian = false;
+while($stu = mysql_fetch_array($sqltes)){
+$has_ujian = true;
+$row_count++;
+$tjamujian = $stu['XJamUjian'];
+$ttglujian = $stu['XTglUjian'];
+$sttsujian = $stu['XStatusUjian'];
+$ststsesi = $stu['XSesi'];
+$ururut = $stu['Urut'];
+$tttoken = $stu['XTokenUjian'];
 								?>
                                 
+                                    <tr class="odd gradeX">
+                                        <td><input type="hidden" value="<?php echo $s['Urutan']; ?>" id="txt_mapel<?php echo $ururut; ?>"><?php echo $s['Urutan']; ?></td>
+                                        <td><?php echo $s['XKodeSoal']; ?></td>
+                                        <td><?php echo  $s['XKodeMapel']." ".$s['XNamaMapel']; ?></td>
+                                        <td><?php echo "$sqlsoal (". $s['XJumPilihan']." opsi)"; ?></td>                                           
+                                        <td><?php echo $s['kokel']." | ".$s['XKodeJurusan']."."; ?></td> 
+                                        <td><?php echo "$ttglujian $tjamujian"; ?></td>
+                                        <td><?php echo $ststsesi; ?></td>
+                                        <td>													
+                                        <?php if($sttsujian=="1"){ ?>
+                                        <input type="button" id="simpan<?php echo $ururut; ?>" class="btn btn-success" value="Aktif"  <?php echo $katapakai; ?> disabled>
+                                        <?php } else { ?>
+                                        <input type="button" id="simpan<?php echo $ururut; ?>" class="btn btn-default" value="Non Aktif">                                        <?php } ?>
+                                        </td>     
+                                        
+                                        <td>					
+                                        <a href="?modul=edit_tes&idtes=<?php echo $ururut; ?>">
+                                       <button type="button" class="btn btn-info btn-small">
+                                        <i class="fa fa-clock-o  ">&nbsp;Set</i></button></a>
+                                        
+                                        </td>     
+                                                                                                              
+                                    </tr>
+<?php } // close ujian/sesi loop
+
+// Jika paket soal tidak punya ujian aktif, tetap tampilkan 1 row dengan info paket soal
+if(!$has_ujian) { ?>
                                     <tr class="odd gradeX">
                                         <td><input type="hidden" value="<?php echo $s['Urutan']; ?>" id="txt_mapel<?php echo $s['Urutan']; ?>"><?php echo $s['Urutan']; ?></td>
                                         <td><?php echo $s['XKodeSoal']; ?></td>
                                         <td><?php echo  $s['XKodeMapel']." ".$s['XNamaMapel']; ?></td>
                                         <td><?php echo "$sqlsoal (". $s['XJumPilihan']." opsi)"; ?></td>                                           
                                         <td><?php echo $s['kokel']." | ".$s['XKodeJurusan']."."; ?></td> 
-                                        <td><?php echo "$ttglujian $tjamujian"; ?></td>
-                                        <td align="center">
-                                        <!--
-                                        <?php if($s['XAcakSoal']=="Y"){ ?>
-                                        <input type="button" class="btn btn-success btn-small" id="acak<?php echo $s['Urutan']; ?>"  <?php echo $kata; ?>
-                                         value="Acak">
-                                         <?php } else { ?>
-                                         <input type="button" class="btn btn-warning btn-small" id="acak<?php echo $s['Urutan']; ?>"  <?php echo $kata; ?>
-                                         value="Tidak">
-                                         <?php } ?>
-                                         !-->
-                                         
-                                         <?php echo "$stu[XSesi]"; ?>
-                                        </td>
+                                        <td>-</td>
+                                        <td>-</td>
                                         <td>													
-                                        <?php if($sttsujian=="1"){ ?>
-                                        <input type="button" id="simpan<?php echo $s['Urutan']; ?>" class="btn btn-success" value="Aktif"  <?php echo $katapakai; ?> disabled>
-                                        <?php } else { ?>
-                                        <input type="button" id="simpan<?php echo $s['Urutan']; ?>" class="btn btn-default" value="Non Aktif">                                        <?php } ?>
+                                        <input type="button" id="simpan<?php echo $s['Urutan']; ?>" class="btn btn-default" value="Non Aktif">
                                         </td>     
                                         
                                         <td>					
@@ -171,13 +214,10 @@ $sqltes = mysql_query("select XJamUjian,XTglUjian,XStatusUjian,XSesi from cbt_uj
                                        <button type="button" class="btn btn-info btn-small">
                                         <i class="fa fa-clock-o  ">&nbsp;Set</i></button></a>
                                         
-<!--                                        <button type="button" class="btn btn-info btn-small"  data-toggle="modal" 
-                                        data-target="#myJadwal<?php echo $s['Urutan']; ?>" id="jadwal<?php echo $s['Urutan']; ?>">
-                                        <i class="fa fa-clock-o  ">&nbsp;Set</i></button>!-->								
-                                      
                                         </td>     
                                                                                                               
                                     </tr>
+<?php } ?>
 <script>/*
 window.onerror = function(errorMsg) {
 	$('#console').html($('#console').html()+'<br>'+errorMsg)

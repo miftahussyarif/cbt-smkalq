@@ -87,9 +87,18 @@ $telatujian = "$tjam:$tmnt:$tdtk";
 //=========================
 // Ambil Paket Soal
 //=========================
-$wherePaket = $requestIdTes > 0
-    ? "XStatusSoal ='Y' and Urut = '$requestIdTes'"
-    : "XStatusSoal ='Y' and XKodeSoal = '$requestKodeSoal'";
+// Jika idtes ada, itu ujian ID (dari edit_tes.php), perlu query ujian dulu untuk ambil XKodeSoal
+if ($requestIdTes > 0) {
+    // Query ujian untuk ambil XKodeSoal
+    $ujianQuery = mysql_query("select XKodeSoal from cbt_ujian where Urut = '$requestIdTes'");
+    if ($ujianQuery && mysql_num_rows($ujianQuery) > 0) {
+        $ujianRow = mysql_fetch_array($ujianQuery);
+        $requestKodeSoal = $ujianRow['XKodeSoal'];
+    }
+    $wherePaket = "XStatusSoal ='Y' and XKodeSoal = '$requestKodeSoal'";
+} else {
+    $wherePaket = "XStatusSoal ='Y' and XKodeSoal = '$requestKodeSoal'";
+}
 
 $loop = mysql_query("select * from cbt_paketsoal where $wherePaket");
 $msg = array();
@@ -111,16 +120,16 @@ $jumlahDiproses++;
 $val_jumsoal = $s['XJumSoal'];
 $val_pilganda = $s['XPilGanda'];
 $val_esai = $s['XEsai'];
-$urutUjian = (int) $s['Urut'];
 
-	$sqlubah = mysql_num_rows(mysql_query("select * from cbt_ujian where XKodeSoal = '$requestKodeSoal' and  XKodeUjian = '$requestKodeUjian' and XSemester = '$requestSemester' and XKodeKelas = '$s[XKodeKelas]' and XKodeJurusan = '$s[XKodeJurusan]' and XKodeMapel = '$s[XKodeMapel]' and XSetId = '$_COOKIE[beetahun]' "));
+	// Cek apakah ujian untuk paket+sesi+mapel+kelas+jurusan+semester ini sudah ada
+	$sqlubah = mysql_num_rows(mysql_query("select * from cbt_ujian where XKodeSoal = '{$s['XKodeSoal']}' and XKodeUjian = '$requestKodeUjian' and XSemester = '$requestSemester' and XKodeKelas = '{$s['XKodeKelas']}' and XKodeJurusan = '{$s['XKodeJurusan']}' and XKodeMapel = '{$s['XKodeMapel']}' and XSetId = '$_COOKIE[beetahun]' and XSesi = '$requestSesi' "));
 
-	$cekNilai = mysql_num_rows(mysql_query("select 1 from cbt_nilai where XKodeKelas = '$s[XKodeKelas]' and XKodeMapel = '$s[XKodeMapel]' and XKodeUjian = '$requestKodeUjian' and XSemester = '$requestSemester' and XSetId = '$_COOKIE[beetahun]' limit 1"));
+	$cekNilai = mysql_num_rows(mysql_query("select 1 from cbt_nilai where XKodeKelas = '{$s['XKodeKelas']}' and XKodeMapel = '{$s['XKodeMapel']}' and XKodeUjian = '$requestKodeUjian' and XSemester = '$requestSemester' and XSetId = '$_COOKIE[beetahun]' limit 1"));
 	if($cekNilai>0){
         $msgClass = "danger";
-        $msg[] = "Data hasil ujian lama untuk Mapel <b>$s[XKodeMapel]</b> Kelas <b>$s[XKodeKelas]</b> Jenis Ujian <b>$requestKodeUjian</b> masih ada. Hapus dulu melalui menu <b>Status Tes</b> (tab Selesai) dengan tombol <b>Hapus Data</b>.";
+        $msg[] = "Data hasil ujian lama untuk Mapel <b>{$s['XKodeMapel']}</b> Kelas <b>{$s['XKodeKelas']}</b> Jenis Ujian <b>$requestKodeUjian</b> masih ada. Hapus dulu melalui menu <b>Status Tes</b> (tab Selesai) dengan tombol <b>Hapus Data</b>.";
         bee_log('WARN', 'TEST_SCHEDULE_BLOCKED_BY_SCORE', 'Rilis token ditolak karena nilai lama masih ada', array(
-            'idtes' => $urutUjian,
+            'idtes' => $s['Urut'],
             'kodesoal' => $s['XKodeSoal'],
             'kodeujian' => $requestKodeUjian,
             'semester' => $requestSemester,
@@ -166,35 +175,50 @@ $tglsekarang = date("Y-m-d");
 $tglujian = "$ss[XTglUjian]";	
 		}
 	
-$sqlcek = mysql_num_rows(mysql_query("select * from cbt_ujian where XTokenUjian = '$requestToken' and Urut <> '$urutUjian'"));
+$sqlcek = mysql_num_rows(mysql_query("select * from cbt_ujian where XTokenUjian = '$requestToken' and XKodeSoal <> '{$s['XKodeSoal']}'"));
 	if($sqlcek>0){
         $msgClass = "danger";
-        $msg[] = "Simpan Data Gagal Token sudah ada.";
-        bee_log('WARN', 'TEST_SCHEDULE_TOKEN_EXISTS', 'Rilis token ditolak karena token sudah dipakai', array(
-            'idtes' => $urutUjian,
+        $msg[] = "Simpan Data Gagal Token sudah ada di paket soal lain.";
+        bee_log('WARN', 'TEST_SCHEDULE_TOKEN_EXISTS', 'Rilis token ditolak karena token sudah dipakai di paket lain', array(
+            'idtes' => $s['Urut'],
             'token' => $requestToken
         ));
 	} else {
-        $cekUjianById = mysql_num_rows(mysql_query("select 1 from cbt_ujian where Urut = '$urutUjian' limit 1"));
-        if ($cekUjianById > 0) {
-            $sqlinsert = mysql_query("update cbt_ujian set 
-                XKodeKelas='$s[XKodeKelas]', XKodeUjian='$requestKodeUjian', XSemester='$requestSemester',
-                XKodeJurusan='$s[XKodeJurusan]', XJumPilihan='$s[XJumPilihan]', XAcakSoal='$s[XAcakSoal]',
-                XKodeMapel='$s[XKodeMapel]', XTokenUjian='$requestToken', XTglUjian='$tgl', XJamUjian='$jam',
-                XLamaUjian='$jame', XBatasMasuk='$telatujian', XJumSoal='$ambilsoal', XKodeSoal='$s[XKodeSoal]',
-                XStatusUjian='1', XGuru='$s[XGuru]', XSetId='$_COOKIE[beetahun]', XSesi='$requestSesi',
+        // Cek apakah ujian untuk kombinasi paket+sesi ini sudah ada
+        $urutUjian = 0;
+        $cekUjianExisting = mysql_num_rows(mysql_query("select 1 from cbt_ujian where XKodeSoal = '{$s['XKodeSoal']}' and XKodeUjian = '$requestKodeUjian' and XSemester = '$requestSemester' and XKodeKelas = '{$s['XKodeKelas']}' and XKodeJurusan = '{$s['XKodeJurusan']}' and XKodeMapel = '{$s['XKodeMapel']}' and XSetId = '$_COOKIE[beetahun]' and XSesi = '$requestSesi' limit 1"));
+        
+        if ($cekUjianExisting > 0) {
+            $ambilUrut = mysql_query("select Urut from cbt_ujian where XKodeSoal = '{$s['XKodeSoal']}' and XKodeUjian = '$requestKodeUjian' and XSemester = '$requestSemester' and XKodeKelas = '{$s['XKodeKelas']}' and XKodeJurusan = '{$s['XKodeJurusan']}' and XKodeMapel = '{$s['XKodeMapel']}' and XSetId = '$_COOKIE[beetahun]' and XSesi = '$requestSesi' limit 1");
+            if ($ambilUrut && mysql_num_rows($ambilUrut) > 0) {
+                $rowUrut = mysql_fetch_array($ambilUrut);
+                $urutUjian = (int)$rowUrut['Urut'];
+            }
+
+            // UPDATE ujian yang sudah ada
+            $ujianUpdateQuery = mysql_query("update cbt_ujian set 
+                XTokenUjian='$requestToken', XTglUjian='$tgl', XJamUjian='$jam',
+                XLamaUjian='$jame', XBatasMasuk='$telatujian', XJumSoal='$ambilsoal',
+                XStatusUjian='1', XGuru='{$s['XGuru']}', XSetId='$_COOKIE[beetahun]',
                 XPilGanda='$val_pilganda', XEsai='$val_esai', XLambat='$xlambat'
-                where Urut = '$urutUjian'");
+                where XKodeSoal = '{$s['XKodeSoal']}' and XKodeUjian = '$requestKodeUjian' and XSemester = '$requestSemester' 
+                and XKodeKelas = '{$s['XKodeKelas']}' and XKodeJurusan = '{$s['XKodeJurusan']}' 
+                and XKodeMapel = '{$s['XKodeMapel']}' and XSetId = '$_COOKIE[beetahun]' and XSesi = '$requestSesi'");
+            $sqlinsert = $ujianUpdateQuery;
             $aksiLog = 'TEST_EDIT_SUCCESS';
             $pesanLog = 'Edit tes/rilis token berhasil disimpan';
         } else {
+            // INSERT ujian baru untuk sesi ini
             $sqlinsert = mysql_query("insert into cbt_ujian 						  
-                (Urut,XKodeKelas,XKodeUjian,XSemester,XKodeJurusan,XJumPilihan,XAcakSoal,XKodeMapel,
+                (XKodeKelas,XKodeUjian,XSemester,XKodeJurusan,XJumPilihan,XAcakSoal,XKodeMapel,
                  XTokenUjian,XTglUjian,XJamUjian,XLamaUjian,XBatasMasuk,XJumSoal
                 ,XKodeSoal,XStatusUjian,XGuru,XSetId,XSesi,XPilGanda,XEsai,XLambat) values 		
-                ('$urutUjian','$s[XKodeKelas]','$requestKodeUjian','$requestSemester','$s[XKodeJurusan]','$s[XJumPilihan]',
-                '$s[XAcakSoal]','$s[XKodeMapel]','$requestToken','$tgl','$jam','$jame','$telatujian','$ambilsoal',
-                '$s[XKodeSoal]','1','$s[XGuru]','$_COOKIE[beetahun]','$requestSesi','$val_pilganda','$val_esai','$xlambat')");
+                ('{$s['XKodeKelas']}','$requestKodeUjian','$requestSemester','{$s['XKodeJurusan']}','{$s['XJumPilihan']}',
+                '{$s['XAcakSoal']}','{$s['XKodeMapel']}','$requestToken','$tgl','$jam','$jame','$telatujian','$ambilsoal',
+                '{$s['XKodeSoal']}','1','{$s['XGuru']}','$_COOKIE[beetahun]','$requestSesi','$val_pilganda','$val_esai','$xlambat')");
+            if ($sqlinsert) {
+                $urutUjian = (int) mysql_insert_id();
+            }
             $aksiLog = 'TEST_CREATE_SUCCESS';
             $pesanLog = 'Buat tes/rilis token berhasil disimpan';
         }
