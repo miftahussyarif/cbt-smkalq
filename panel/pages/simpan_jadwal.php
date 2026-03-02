@@ -11,6 +11,9 @@ $requestDurasi = isset($_REQUEST['txt_durasi']) ? $_REQUEST['txt_durasi'] : '';
 $requestTelat = isset($_REQUEST['txt_telat']) ? $_REQUEST['txt_telat'] : '';
 $requestWaktu = isset($_REQUEST['txt_waktu']) ? $_REQUEST['txt_waktu'] : '';
 $setId = isset($_COOKIE['beetahun']) ? mysql_real_escape_string($_COOKIE['beetahun']) : '';
+$requestKodeMapelRef = '';
+$requestKodeKelasRef = '';
+$requestKodeJurusanRef = '';
 
 $requestKodeSoal = trim((string)$requestKodeSoal);
 $requestKodeUjian = trim((string)$requestKodeUjian);
@@ -97,22 +100,36 @@ $telatujian = "$tjam:$tmnt:$tdtk";
 //=========================
 // Jika idtes ada, itu ujian ID (dari edit_tes.php), perlu query ujian dulu untuk ambil XKodeSoal
 if ($requestIdTes > 0) {
-    // Query ujian untuk ambil XKodeSoal
-    $ujianQuery = mysql_query("select XKodeSoal from cbt_ujian where Urut = '$requestIdTes'");
+    // Query ujian referensi supaya sesi baru tetap konsisten mapel/kelas/jurusan.
+    $ujianQuery = mysql_query("select XKodeSoal, XKodeMapel, XKodeKelas, XKodeJurusan from cbt_ujian where Urut = '$requestIdTes'");
     if ($ujianQuery && mysql_num_rows($ujianQuery) > 0) {
         $ujianRow = mysql_fetch_array($ujianQuery);
         $requestKodeSoal = $ujianRow['XKodeSoal'];
+        $requestKodeMapelRef = isset($ujianRow['XKodeMapel']) ? trim($ujianRow['XKodeMapel']) : '';
+        $requestKodeKelasRef = isset($ujianRow['XKodeKelas']) ? trim($ujianRow['XKodeKelas']) : '';
+        $requestKodeJurusanRef = isset($ujianRow['XKodeJurusan']) ? trim($ujianRow['XKodeJurusan']) : '';
     } else {
         // Fallback kompatibilitas: beberapa halaman lama mengirim Urut dari cbt_paketsoal.
-        $paketQuery = mysql_query("select XKodeSoal from cbt_paketsoal where Urut = '$requestIdTes' limit 1");
+        $paketQuery = mysql_query("select XKodeSoal, XKodeMapel, XKodeKelas, XKodeJurusan from cbt_paketsoal where Urut = '$requestIdTes' limit 1");
         if ($paketQuery && mysql_num_rows($paketQuery) > 0) {
             $paketRow = mysql_fetch_array($paketQuery);
             $requestKodeSoal = $paketRow['XKodeSoal'];
+            $requestKodeMapelRef = isset($paketRow['XKodeMapel']) ? trim($paketRow['XKodeMapel']) : '';
+            $requestKodeKelasRef = isset($paketRow['XKodeKelas']) ? trim($paketRow['XKodeKelas']) : '';
+            $requestKodeJurusanRef = isset($paketRow['XKodeJurusan']) ? trim($paketRow['XKodeJurusan']) : '';
         }
     }
 }
 
 $wherePaketAktif = "XStatusSoal ='Y' and XKodeSoal = '$requestKodeSoal'";
+$wherePaketRef = '';
+if ($requestIdTes > 0 && $requestKodeMapelRef !== '' && $requestKodeKelasRef !== '' && $requestKodeJurusanRef !== '') {
+    $requestKodeMapelRefEsc = mysql_real_escape_string($requestKodeMapelRef);
+    $requestKodeKelasRefEsc = mysql_real_escape_string($requestKodeKelasRef);
+    $requestKodeJurusanRefEsc = mysql_real_escape_string($requestKodeJurusanRef);
+    $wherePaketRef = " and XKodeMapel = '$requestKodeMapelRefEsc' and XKodeKelas = '$requestKodeKelasRefEsc' and XKodeJurusan = '$requestKodeJurusanRefEsc'";
+}
+$wherePaketAktif .= $wherePaketRef;
 $loop = mysql_query("select * from cbt_paketsoal where $wherePaketAktif");
 $msg = array();
 $msgClass = "success";
@@ -130,7 +147,7 @@ if (!$loop) {
 
 // Mode edit/rilis sesi dari ujian existing: tetap izinkan proses walau paket tidak berstatus aktif.
 if ($requestIdTes > 0 && mysql_num_rows($loop) < 1) {
-    $wherePaketSemuaStatus = "XKodeSoal = '$requestKodeSoal'";
+    $wherePaketSemuaStatus = "XKodeSoal = '$requestKodeSoal'" . $wherePaketRef;
     $loopFallback = mysql_query("select * from cbt_paketsoal where $wherePaketSemuaStatus");
     if ($loopFallback) {
         $loop = $loopFallback;
