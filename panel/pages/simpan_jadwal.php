@@ -94,6 +94,13 @@ if ($requestIdTes > 0) {
     if ($ujianQuery && mysql_num_rows($ujianQuery) > 0) {
         $ujianRow = mysql_fetch_array($ujianQuery);
         $requestKodeSoal = $ujianRow['XKodeSoal'];
+    } else {
+        // Fallback kompatibilitas: beberapa halaman lama mengirim Urut dari cbt_paketsoal.
+        $paketQuery = mysql_query("select XKodeSoal from cbt_paketsoal where Urut = '$requestIdTes' limit 1");
+        if ($paketQuery && mysql_num_rows($paketQuery) > 0) {
+            $paketRow = mysql_fetch_array($paketQuery);
+            $requestKodeSoal = $paketRow['XKodeSoal'];
+        }
     }
 }
 
