@@ -95,12 +95,10 @@ if ($requestIdTes > 0) {
         $ujianRow = mysql_fetch_array($ujianQuery);
         $requestKodeSoal = $ujianRow['XKodeSoal'];
     }
-    $wherePaket = "XStatusSoal ='Y' and XKodeSoal = '$requestKodeSoal'";
-} else {
-    $wherePaket = "XStatusSoal ='Y' and XKodeSoal = '$requestKodeSoal'";
 }
 
-$loop = mysql_query("select * from cbt_paketsoal where $wherePaket");
+$wherePaketAktif = "XStatusSoal ='Y' and XKodeSoal = '$requestKodeSoal'";
+$loop = mysql_query("select * from cbt_paketsoal where $wherePaketAktif");
 $msg = array();
 $msgClass = "success";
 $jumlahDiproses = 0;
@@ -113,6 +111,19 @@ if (!$loop) {
     ));
     echo "<div class='alert alert-danger alert-dismissable' id='ndelik'>Gagal membaca data paket soal.</div>";
     exit;
+}
+
+// Mode edit/rilis sesi dari ujian existing: tetap izinkan proses walau paket tidak berstatus aktif.
+if ($requestIdTes > 0 && mysql_num_rows($loop) < 1) {
+    $wherePaketSemuaStatus = "XKodeSoal = '$requestKodeSoal'";
+    $loopFallback = mysql_query("select * from cbt_paketsoal where $wherePaketSemuaStatus");
+    if ($loopFallback) {
+        $loop = $loopFallback;
+        bee_log('WARN', 'TEST_SCHEDULE_USE_INACTIVE_PACKAGE', 'Paket aktif tidak ditemukan, memakai paket lintas status untuk edit/rilis sesi', array(
+            'idtes' => $requestIdTes,
+            'kodesoal' => $requestKodeSoal
+        ));
+    }
 }
 
 while($s = mysql_fetch_array($loop)){

@@ -75,7 +75,7 @@ $telatujian = "$tjam:$tmnt:$tdtk";
 //=========================
 $loop = mysql_query("select * from cbt_paketsoal where XStatusSoal ='Y'");
 while($s = mysql_fetch_array($loop)){
-$val_jumsoal = $s['XJumSoal']);
+$val_jumsoal = $s['XJumSoal'];
 
 //=========================
 // Ambil Bank Soal
