@@ -185,12 +185,12 @@ $tttoken = $stu['XTokenUjian'];
                                         <input type="button" id="simpan<?php echo $ururut; ?>" class="btn btn-default" value="Non Aktif">                                        <?php } ?>
                                         </td>     
                                         
-                                        <td>					
                                         <a href="?modul=edit_tes&idtes=<?php echo $ururut; ?>">
                                        <button type="button" class="btn btn-info btn-small">
-                                        <i class="fa fa-clock-o  ">&nbsp;Set</i></button></a>
-                                        
-                                        </td>     
+                                        <i class="fa fa-clock-o  ">&nbsp;Edit</i></button></a>
+                                        <a href="?modul=edit_tes&idpaket=<?php echo $s['Urutan']; ?>">
+                                       <button type="button" class="btn btn-warning btn-small">
+                                        <i class="fa fa-plus  ">&nbsp;+Sesi</i></button></a>
                                                                                                               
                                     </tr>
 <?php } // close ujian/sesi loop
