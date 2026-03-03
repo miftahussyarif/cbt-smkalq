@@ -1,0 +1,45 @@
+*** Begin Patch
+*** Update File: panel/pages/daftarpeserta.php
+@@
+-$sqlAktif = mysql_query("SELECT COUNT(*) AS jml FROM cbt_ujian u
+-WHERE u.XStatusUjian='1'
+-AND (
+-ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian) > NOW()
+-OR EXISTS (
+-	select 1
+-	from cbt_siswa_ujian su
+-	where su.XStatusUjian='1'
+-	and su.XKodeSoal = u.XKodeSoal
+-	and su.XTokenUjian = u.XTokenUjian
+-)
+-)");
++$sqlAktif = mysql_query("SELECT COUNT(*) AS jml FROM cbt_ujian u
++WHERE u.XStatusUjian='1'
++AND NOW() BETWEEN CONCAT(u.XTglUjian,' ',u.XJamUjian)
++AND ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian)");
+@@
+-$sql = mysql_query("SELECT
+-u.*,
+-u.XStatusUjian as ujsta,
+-s.XNamaSiswa,
+-s.XKodeJurusan,
+-s.XKodeKelas as XKelasSiswa,
+-s.XNIK
+-FROM cbt_siswa_ujian u
+-LEFT JOIN cbt_siswa s ON TRIM(s.XNomerUjian) = TRIM(u.XNomerUjian)
+-ORDER BY u.Urut DESC"); 
++$sql = mysql_query("SELECT
++u.*,
++u.XStatusUjian as ujsta,
++s.XNamaSiswa,
++s.XKodeJurusan,
++s.XKodeKelas as XKelasSiswa,
++s.XNIK
++FROM cbt_siswa_ujian u
++INNER JOIN cbt_ujian uj ON TRIM(uj.XKodeSoal) = TRIM(u.XKodeSoal) AND TRIM(uj.XTokenUjian) = TRIM(u.XTokenUjian)
++LEFT JOIN cbt_siswa s ON TRIM(s.XNomerUjian) = TRIM(u.XNomerUjian)
++WHERE uj.XStatusUjian='1'
++AND NOW() BETWEEN CONCAT(uj.XTglUjian,' ',uj.XJamUjian)
++AND ADDTIME(CONCAT(uj.XTglUjian,' ',uj.XJamUjian),uj.XLamaUjian)
++ORDER BY u.Urut DESC"); 
+*** End Patch

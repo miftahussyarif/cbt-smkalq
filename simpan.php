@@ -10,6 +10,7 @@
 <?php include "config/server.php";
 include "config/pengawasan.php";
 include "ip.php";
+include_once "cbt_exam_context.php";
 mysql_query("SET NAMES utf8");
 $sql = false;
 $user = '';
@@ -24,10 +25,16 @@ if ($user === '') {
     exit;
 }
 //  setcookie('PESERTA',$user);
-	  $sqluser = mysql_query("SELECT * FROM  `cbt_siswa` s LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') 
-	  and (s.XKodeJurusan = u.XKodeJurusan or u.XKodeJurusan = 'ALL') WHERE XNomerUjian = 
-	  '$user' and u.XStatusUjian = '1'");
-    if (!$sqluser || mysql_num_rows($sqluser) < 1) {
+    $preferToken = isset($_COOKIE['CBT_TOKEN']) ? $_COOKIE['CBT_TOKEN'] : '';
+    $preferKode = isset($_COOKIE['CBT_KODESOAL']) ? $_COOKIE['CBT_KODESOAL'] : '';
+    $ctx = cbt_get_attempt_context_for_student($user, $preferToken, $preferKode);
+    if (!$ctx) {
+        $ctx = cbt_get_attempt_context_for_student($user);
+    }
+    if (!$ctx) {
+        $ctx = cbt_get_schedule_context_for_student($user, $preferToken);
+    }
+    if (!$ctx) {
         if (function_exists('bee_log')) {
             bee_log('ERROR', 'SIMPAN_NO_ACTIVE_EXAM', 'Simpan jawaban gagal: data ujian aktif tidak ditemukan', array(
                 'user' => $user,
@@ -37,12 +44,8 @@ if ($user === '') {
         echo "failed!";
         exit;
     }
-	  $s = mysql_fetch_array($sqluser);
-//  $xkodesoal = "BAS1";//$s['XKodeSoal'];
-//  $xtokenujian = "ZQIFG"; // $s['XTokenUjian'];
-    $xkodesoal = $s['XKodeSoal'];
-    $xtokenujian = $s['XTokenUjian'];
-
+    $xkodesoal = $ctx['XKodeSoal'];
+    $xtokenujian = $ctx['XTokenUjian'];
 $savedIp = '';
 if (!cbt_validate_single_ip_session($user, $xtokenujian, $xkodesoal, $cbt_session_lock_value, $savedIp)) {
     if (function_exists('bee_log')) {
@@ -83,12 +86,29 @@ if (!isset($soalnja) || $soalnja === '') {
     echo "failed!";
     exit;
 }
- $cek = mysql_num_rows(mysql_query("select * from cbt_jawaban where Urut='$soalnja' and XKodeSoal = '$xkodesoal' and XUserJawab = '$user'"));
- if($cek>0){
+$sqlcekjawab = mysql_query("select * from cbt_jawaban where Urut='$soalnja' and XKodeSoal = '$xkodesoal' and XUserJawab = '$user' and XTokenUjian = '$xtokenujian' limit 1");
+if (!$sqlcekjawab || mysql_num_rows($sqlcekjawab) < 1) {
+    $sqlcekjawab = mysql_query("select * from cbt_jawaban where Urut='$soalnja' and XKodeSoal = '$xkodesoal' and XUserJawab = '$user' order by XTglJawab desc, XJamJawab desc limit 1");
+    if ($sqlcekjawab && mysql_num_rows($sqlcekjawab) > 0) {
+        $ujiFallback = mysql_fetch_array($sqlcekjawab);
+        $xtokenujian = $ujiFallback['XTokenUjian'];
+        if (function_exists('bee_log')) {
+            bee_log('WARN', 'SIMPAN_TOKEN_FALLBACK', 'Token aktif tidak cocok, memakai token jawaban yang ditemukan', array(
+                'user' => $user,
+                'kodesoal' => $xkodesoal,
+                'soal' => $soalnja,
+                'token_fallback' => $xtokenujian
+            ));
+        }
+        mysql_data_seek($sqlcekjawab, 0);
+    }
+}
+$cek = ($sqlcekjawab && mysql_num_rows($sqlcekjawab) > 0) ? 1 : 0;
+if($cek>0){
 // $sql = mysql_query("update cbt_jawaban set XJawaban = '$_REQUEST[nama]' where XNomerSoal='$_REQUEST[soale]' and XKodeSoal = '$xkodesoal' and XUserJawab = '$user'");
 $tgl = date("Y-m-d");
 $jam = date("H:i:s");
-	
+
 $nomber = '';
 $jawab_esai = '';
 if(isset($_REQUEST['nama'])){
@@ -96,21 +116,7 @@ $nomber = str_replace(" ","",$_REQUEST['nama']);
 $jawab_esai = str_replace("  ","",mysql_real_escape_string($_REQUEST['nama']));
 }
 
-$sqljenis = mysql_query("select * from cbt_jawaban where Urut='$soalnja' and XKodeSoal = '$xkodesoal' and XUserJawab = '$user' and XTokenUjian = '$xtokenujian'");
-if (!$sqljenis || mysql_num_rows($sqljenis) < 1) {
-    if (function_exists('bee_log')) {
-        bee_log('ERROR', 'SIMPAN_JENIS_QUERY_FAILED', 'Simpan jawaban gagal: data jawaban tidak ditemukan', array(
-            'user' => $user,
-            'kodesoal' => $xkodesoal,
-            'token' => $xtokenujian,
-            'soal' => $soalnja,
-            'mysql_error' => mysql_error()
-        ));
-    }
-    echo "failed!";
-    exit;
-}
-$uji = mysql_fetch_array($sqljenis);
+$uji = mysql_fetch_array($sqlcekjawab);
 $jenis = $uji['XJenisSoal'];
 $tkn = $uji['XTokenUjian'];
 $knc = $uji['XKunciJawaban'];
@@ -156,21 +162,13 @@ if($jenis==2){
 }
 
 if(isset($jam)){
-$lockClause = '';
-if (cbt_is_ip_lock_enabled() && $cbt_session_lock_value !== '') {
-    $lockEsc = mysql_real_escape_string($cbt_session_lock_value);
-    $lockClause = " and XGetIP = '$lockEsc'";
-}
-$sql2 = mysql_query("Update cbt_siswa_ujian set XLastUpdate = '$jam'
-where XNomerUjian = '$user'
-and XStatusUjian = '1'
-and XTokenUjian = '$xtokenujian'
-and XKodeSoal = '$xkodesoal'
-$lockClause");
-}
+    $sql2 = mysql_query("Update cbt_siswa_ujian set XLastUpdate = '$jam'
+    where XNomerUjian = '$user'
+    and XTokenUjian = '$xtokenujian'
+    and XKodeSoal = '$xkodesoal'");
 
- 
-	 } 
+	 
+		 } 
 
     if($sql){
      echo "success!";
@@ -186,6 +184,17 @@ $lockClause");
     }
     echo "failed!";
   	}
+} else {
+    if (function_exists('bee_log')) {
+        bee_log('WARN', 'SIMPAN_NO_JAWAB_ROW', 'Simpan jawaban gagal: baris jawaban tidak ditemukan', array(
+            'user' => $user,
+            'kodesoal' => $xkodesoal,
+            'token' => $xtokenujian,
+            'soal' => $soalnja
+        ));
+    }
+    echo "failed!";
+}
  
 ?>  
 </body>

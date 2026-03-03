@@ -57,17 +57,24 @@ if (!$isDoneByStatus && !$isDoneByTime) {
     exit;
 }
 
-$token = mysql_real_escape_string($uj['XTokenUjian']);
-$kodesoal = mysql_real_escape_string($uj['XKodeSoal']);
+$tokenRaw = isset($uj['XTokenUjian']) ? $uj['XTokenUjian'] : '';
+$kodesoalRaw = isset($uj['XKodeSoal']) ? $uj['XKodeSoal'] : '';
+$token = mysql_real_escape_string(trim($tokenRaw));
+$kodesoal = mysql_real_escape_string(trim($kodesoalRaw));
 
-mysql_query("DELETE FROM cbt_jawaban WHERE XTokenUjian = '$token' AND XKodeSoal = '$kodesoal'");
-mysql_query("DELETE FROM cbt_nilai WHERE XTokenUjian = '$token' AND XKodeSoal = '$kodesoal'");
-mysql_query("DELETE FROM cbt_siswa_ujian WHERE XTokenUjian = '$token' AND XKodeSoal = '$kodesoal'");
-mysql_query("DELETE FROM cbt_audio WHERE XTokenUjian = '$token' AND XKodeSoal = '$kodesoal'");
+// Gunakan normalisasi TRIM/REPLACE agar data dengan spasi tersembunyi juga ikut terhapus.
+mysql_query("DELETE FROM cbt_jawaban WHERE (TRIM(XTokenUjian) = '$token' OR REPLACE(XTokenUjian,' ','') = REPLACE('$token',' ','')) AND (TRIM(XKodeSoal) = '$kodesoal' OR REPLACE(XKodeSoal,' ','') = REPLACE('$kodesoal',' ',''))");
+$deletedJawaban = mysql_affected_rows();
+mysql_query("DELETE FROM cbt_nilai WHERE (TRIM(XTokenUjian) = '$token' OR REPLACE(XTokenUjian,' ','') = REPLACE('$token',' ','')) AND (TRIM(XKodeSoal) = '$kodesoal' OR REPLACE(XKodeSoal,' ','') = REPLACE('$kodesoal',' ',''))");
+$deletedNilai = mysql_affected_rows();
+mysql_query("DELETE FROM cbt_siswa_ujian WHERE (TRIM(XTokenUjian) = '$token' OR REPLACE(XTokenUjian,' ','') = REPLACE('$token',' ','')) AND (TRIM(XKodeSoal) = '$kodesoal' OR REPLACE(XKodeSoal,' ','') = REPLACE('$kodesoal',' ',''))");
+$deletedSiswaUjian = mysql_affected_rows();
+mysql_query("DELETE FROM cbt_audio WHERE (TRIM(XTokenUjian) = '$token' OR REPLACE(XTokenUjian,' ','') = REPLACE('$token',' ','')) AND (TRIM(XKodeSoal) = '$kodesoal' OR REPLACE(XKodeSoal,' ','') = REPLACE('$kodesoal',' ',''))");
+$deletedAudio = mysql_affected_rows();
 
 $cekPengawasan = mysql_query("SHOW TABLES LIKE 'cbt_pengawasan'");
 if ($cekPengawasan && mysql_num_rows($cekPengawasan) > 0) {
-    mysql_query("DELETE FROM cbt_pengawasan WHERE XTokenUjian = '$token' AND XKodeSoal = '$kodesoal'");
+    mysql_query("DELETE FROM cbt_pengawasan WHERE (TRIM(XTokenUjian) = '$token' OR REPLACE(XTokenUjian,' ','') = REPLACE('$token',' ','')) AND (TRIM(XKodeSoal) = '$kodesoal' OR REPLACE(XKodeSoal,' ','') = REPLACE('$kodesoal',' ',''))");
 }
 
 if ($aksi == 'hapus_jadwal') {
@@ -75,13 +82,21 @@ if ($aksi == 'hapus_jadwal') {
     bee_log('INFO', 'TEST_DELETE_SCHEDULE_OK', 'Hapus data dan jadwal tes selesai', array(
         'urut' => $urut,
         'token' => $token,
-        'kodesoal' => $kodesoal
+        'kodesoal' => $kodesoal,
+        'deleted_jawaban' => $deletedJawaban,
+        'deleted_nilai' => $deletedNilai,
+        'deleted_siswa_ujian' => $deletedSiswaUjian,
+        'deleted_audio' => $deletedAudio
     ));
 } else {
     bee_log('INFO', 'TEST_DELETE_DATA_OK', 'Hapus data hasil tes selesai', array(
         'urut' => $urut,
         'token' => $token,
-        'kodesoal' => $kodesoal
+        'kodesoal' => $kodesoal,
+        'deleted_jawaban' => $deletedJawaban,
+        'deleted_nilai' => $deletedNilai,
+        'deleted_siswa_ujian' => $deletedSiswaUjian,
+        'deleted_audio' => $deletedAudio
     ));
 }
 

@@ -1,5 +1,6 @@
 <?php
 include "config/server.php";
+include_once "cbt_exam_context.php";
 
 $txtuser = '';
 $user = '';
@@ -33,6 +34,7 @@ if (isset($_REQUEST['KodeNik'])) {
     $xkelz = $sis['XKodeKelas'];
     $xjurz = $sis['XKodeJurusan'];
 
+    $xsesi = $sis['XSesi'];
     if ($xjeniskelamin == "L") {
         $jekel = "LAKI-LAKI";
     } else {
@@ -43,11 +45,18 @@ if (isset($_REQUEST['KodeNik'])) {
     $xjam1 = date("H:i:s");
     $user = isset($_COOKIE['PESERTA']) ? $_COOKIE['PESERTA'] : $txtuser;
 
-    $sqluser = mysql_query("SELECT u.*,m.XNamaMapel FROM `cbt_ujian` u LEFT JOIN cbt_paketsoal p on p.XKodeKelas = u.XKodeKelas and p.XKodeMapel = u.XKodeMapel
-left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE (u.XKodeKelas = '$xkelz' or u.XKodeKelas = 'ALL') and (u.XKodeJurusan = '$xjurz' or u.XKodeJurusan = 'ALL')   and u.XTglUjian = '$tglujian' and u.XJamUjian <= '$xjam1'
-and u.XStatusUjian = '1'");
-
-    $s = mysql_fetch_array($sqluser);
+    $request_token = isset($_REQUEST['KodeToken']) ? trim((string) $_REQUEST['KodeToken']) : '';
+    if ($request_token === '' && isset($_COOKIE['CBT_TOKEN'])) {
+        $request_token = trim((string) $_COOKIE['CBT_TOKEN']);
+    }
+    $s = cbt_get_schedule_context_for_student($txtuser, $request_token);
+    if (!$s && $request_token !== '') {
+        header('Location:konfirm.php?salah=1');
+        exit;
+    }
+    if (!$s) {
+        $s = cbt_get_schedule_context_for_student($txtuser, '');
+    }
     $xkodesoal = isset($s['XKodeSoal']) ? $s['XKodeSoal'] : '';
     $xkodekelas = isset($s['XKodeKelas']) ? $s['XKodeKelas'] : '';
     $xtglujian = isset($s['XTglUjian']) ? $s['XTglUjian'] : '';
@@ -58,11 +67,14 @@ and u.XStatusUjian = '1'");
     $xjamujian = isset($s['XJamUjian']) ? $s['XJamUjian'] : '';
     $xbatasmasuk = isset($s['XBatasMasuk']) ? $s['XBatasMasuk'] : '';
     $xnamamapel = isset($s['XNamaMapel']) ? $s['XNamaMapel'] : '';
+    $xsesi = isset($s['XSesi']) ? $s['XSesi'] : $xsesi;
 
-    $request_token = isset($_REQUEST['KodeToken']) ? $_REQUEST['KodeToken'] : '';
-    if ($request_token !== $xtokenujian) {
+    if ($request_token === '' || $request_token !== $xtokenujian) {
         header('Location:konfirm.php?salah=1');
-        echo "Token Salah";
+        exit;
+    }
+    if ($xkodesoal !== '' && $xtokenujian !== '') {
+        cbt_set_exam_context_cookies($xtokenujian, $xkodesoal, $xsesi);
     }
 }
 

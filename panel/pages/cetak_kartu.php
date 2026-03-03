@@ -45,7 +45,7 @@ if(str_replace(" ","",$a['XFoto'])==""){$pic = "nouser.png";}else{$pic="$a[XFoto
 							<tbody><tr>
 								<td><img src="../../images/<?php echo $logsek; ?>" height="50"></td>
 								<td align="center" style="font-weight:bold">
-									KARTU PESERTA UBK <br>UJIAN BERBASIS KOMPUTER <BR /> 
+									KARTU LOGIN PESERTA <br>UJIAN BERBASIS KOMPUTER <BR /> 
 							  </td>
 							</tr>
 							</tbody></table>

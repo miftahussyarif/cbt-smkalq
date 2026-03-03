@@ -6,6 +6,7 @@ if (!isset($_COOKIE['PESERTA'])) {
 include "config/server.php";
 include "config/fungsi_jam.php";
 include "ip.php";
+include_once "cbt_exam_context.php";
 
 $tglbuat = date("Y-m-d");
 $xtgl1 = date("Y-m-d");
@@ -13,32 +14,64 @@ $xjam1 = date("H:i:s");
 
 $user = $_COOKIE['PESERTA'];
 
+$preferToken = isset($_COOKIE['CBT_TOKEN']) ? mysql_real_escape_string($_COOKIE['CBT_TOKEN']) : '';
+$tokenFilter = $preferToken !== '' ? " and TRIM(u.XTokenUjian) = TRIM('$preferToken')" : "";
 $sqluser = mysql_query("
-  SELECT * , u.XKodeKelas AS kelaz, s.XKodeKelas AS kelasx, s.XKodeJurusan AS jurusx, u.XKodeSoal AS soalz, u.XKodeUjian AS ujianz,s.XSesi as sesiz,
+  SELECT * , u.XKodeKelas AS kelaz, s.XKodeKelas AS kelasx, s.XKodeJurusan AS jurusx, u.XKodeSoal AS soalz, u.XKodeUjian AS ujianz,u.XSesi as sesiz,
   s.XSetId as setidx,u.XKodeMapel as mapelx,u.XSemester as semex,s.XNIK as nik_siswa,s.XKodeSekolah as sekolah_siswa,u.XKodeSekolah as sekolah_ujian FROM cbt_siswa s 
 LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') 
 and (s.XKodeJurusan = u.XKodeJurusan or u.XKodeJurusan = 'ALL')
+and s.XSesi = u.XSesi
 LEFT JOIN cbt_mapel m on m.XKodeMapel = u.XKodeMapel
 WHERE s.XNomerUjian = '$_COOKIE[PESERTA]'
   and u.XStatusUjian = '1'
-  and u.XSesi = s.XSesi
+  $tokenFilter
   and NOW() between CONCAT(u.XTglUjian,' ',u.XJamUjian) and ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian)
 ORDER BY CONCAT(u.XTglUjian,' ',u.XJamUjian) DESC
 LIMIT 1");
 
 if (mysql_num_rows($sqluser) < 1) {
     $sqluser = mysql_query("
-      SELECT * , u.XKodeKelas AS kelaz, s.XKodeKelas AS kelasx, s.XKodeJurusan AS jurusx, u.XKodeSoal AS soalz, u.XKodeUjian AS ujianz,s.XSesi as sesiz,
+      SELECT * , u.XKodeKelas AS kelaz, s.XKodeKelas AS kelasx, s.XKodeJurusan AS jurusx, u.XKodeSoal AS soalz, u.XKodeUjian AS ujianz,u.XSesi as sesiz,
       s.XSetId as setidx,u.XKodeMapel as mapelx,u.XSemester as semex,s.XNIK as nik_siswa,s.XKodeSekolah as sekolah_siswa,u.XKodeSekolah as sekolah_ujian FROM cbt_siswa s 
     LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') 
     and (s.XKodeJurusan = u.XKodeJurusan or u.XKodeJurusan = 'ALL')
+    and s.XSesi = u.XSesi
     LEFT JOIN cbt_mapel m on m.XKodeMapel = u.XKodeMapel
     WHERE s.XNomerUjian = '$_COOKIE[PESERTA]'
       and u.XStatusUjian = '1'
-      and u.XSesi = s.XSesi
+      $tokenFilter
       and CONCAT(u.XTglUjian,' ',u.XJamUjian) > NOW()
     ORDER BY CONCAT(u.XTglUjian,' ',u.XJamUjian) ASC
     LIMIT 1");
+}
+if (mysql_num_rows($sqluser) < 1 && $tokenFilter !== '') {
+    $sqluser = mysql_query("
+      SELECT * , u.XKodeKelas AS kelaz, s.XKodeKelas AS kelasx, s.XKodeJurusan AS jurusx, u.XKodeSoal AS soalz, u.XKodeUjian AS ujianz,u.XSesi as sesiz,
+      s.XSetId as setidx,u.XKodeMapel as mapelx,u.XSemester as semex,s.XNIK as nik_siswa,s.XKodeSekolah as sekolah_siswa,u.XKodeSekolah as sekolah_ujian FROM cbt_siswa s 
+    LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') 
+    and (s.XKodeJurusan = u.XKodeJurusan or u.XKodeJurusan = 'ALL')
+    and s.XSesi = u.XSesi
+    LEFT JOIN cbt_mapel m on m.XKodeMapel = u.XKodeMapel
+    WHERE s.XNomerUjian = '$_COOKIE[PESERTA]'
+      and u.XStatusUjian = '1'
+      and NOW() between CONCAT(u.XTglUjian,' ',u.XJamUjian) and ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian)
+    ORDER BY CONCAT(u.XTglUjian,' ',u.XJamUjian) DESC
+    LIMIT 1");
+    if (mysql_num_rows($sqluser) < 1) {
+        $sqluser = mysql_query("
+          SELECT * , u.XKodeKelas AS kelaz, s.XKodeKelas AS kelasx, s.XKodeJurusan AS jurusx, u.XKodeSoal AS soalz, u.XKodeUjian AS ujianz,u.XSesi as sesiz,
+          s.XSetId as setidx,u.XKodeMapel as mapelx,u.XSemester as semex,s.XNIK as nik_siswa,s.XKodeSekolah as sekolah_siswa,u.XKodeSekolah as sekolah_ujian FROM cbt_siswa s 
+        LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') 
+        and (s.XKodeJurusan = u.XKodeJurusan or u.XKodeJurusan = 'ALL')
+        and s.XSesi = u.XSesi
+        LEFT JOIN cbt_mapel m on m.XKodeMapel = u.XKodeMapel
+        WHERE s.XNomerUjian = '$_COOKIE[PESERTA]'
+          and u.XStatusUjian = '1'
+          and CONCAT(u.XTglUjian,' ',u.XJamUjian) > NOW()
+        ORDER BY CONCAT(u.XTglUjian,' ',u.XJamUjian) ASC
+        LIMIT 1");
+    }
 }
 
 
@@ -74,6 +107,7 @@ $xmapelagama = $s['XMapelAgama'];
 $xpilih = $s['XPilihan'];
 $xniksiswa = $s['nik_siswa'];
 $xkodesekolah = $s['sekolah_siswa'] !== '' ? $s['sekolah_siswa'] : $s['sekolah_ujian'];
+cbt_set_exam_context_cookies($xtokenujian, $xkodesoal, $xsesi);
 
 $xjumlahpilganda = $s['XPilGanda'];
 $xjumlahesai = $s['XEsai'];
@@ -109,17 +143,19 @@ if ($xmulai_ts > 0 && $xlamaujian !== '') {
 }
 
 
-$sqlIP = mysql_query("SELECT * FROM  `cbt_siswa_ujian` WHERE XNomerUjian = '$user' and XTokenUjian = '$xtokenujian'");
+$sqlIP = mysql_query("SELECT * FROM  `cbt_siswa_ujian` WHERE XNomerUjian = '$user' and XTokenUjian = '$xtokenujian' and XKodeSoal = '$xkodesoal' and XSesi = '$xsesi' ORDER BY (XStatusUjian='1') DESC, Urut DESC LIMIT 1");
 $ad0 = mysql_fetch_array($sqlIP);
 $user_ip2 = str_replace(" ", "", $ad0['XGetIP']);
 if (cbt_is_ip_lock_enabled() && $cbt_session_lock_value !== '') {
-    $sqlIP1 = mysql_query("update `cbt_siswa_ujian` set XGetIP = '$cbt_session_lock_value' WHERE XNomerUjian = '$user' and XTokenUjian = '$xtokenujian' and (XGetIP = '' or XGetIP is null)");
+    $sqlIP1 = mysql_query("update `cbt_siswa_ujian` set XGetIP = '$cbt_session_lock_value' WHERE XNomerUjian = '$user' and XTokenUjian = '$xtokenujian' and XSesi = '$xsesi' and (XGetIP = '' or XGetIP is null)");
 }
 
 
 
-if ($xtglujian <> $xtgl1) {
+// Jangan kunci berdasarkan tanggal saja; ujian bisa lintas tengah malam.
+if ($xmulai_ts <= 0 || $xnow_ts < $xmulai_ts) {
     header('Location:index.php');
+    exit;
 }
 
 //********************* JIKA TERLAMBAT MASIH DIKASIH WAKTU YANG SAMA ***************
@@ -256,7 +292,7 @@ if ($jumsqlceksiswa < 1) { // jika siswa belum pernah login
     $tglbalik = date("H:i:s");
     if (isset($_COOKIE['PESERTA'])) {
         $user = $_COOKIE['PESERTA'];
-        $sql = mysql_query("Update cbt_siswa_ujian set XLastUpdate = '$tglbalik'  where XNomerUjian = '$user' and XStatusUjian = '1' ");
+        $sql = mysql_query("Update cbt_siswa_ujian set XLastUpdate = '$tglbalik'  where XNomerUjian = '$user' and XStatusUjian = '1' and XTokenUjian = '$xtokenujian' and XKodeSoal = '$xkodesoal'");
     }
 
     $j1 = substr($s2['XMulaiUjian'], 0, 2);

@@ -1,4 +1,5 @@
 <?php include "config/server.php";
+include_once "cbt_exam_context.php";
 // ===============================
 // Status Ujian XStatusUjian = 1 Aktif
 // Status Ujian XStatusUjian = 0 BelumAktif
@@ -13,22 +14,18 @@ if (isset($_COOKIE['PESERTA'])) {
 $tgl = date("H:i:s");
 $tgl2 = date("Y-m-d");
 
-$sqltoken = mysql_query("SELECT * FROM `cbt_siswa_ujian` s left join cbt_ujian u on u.XKodeSoal = s.XKodeSoal
-		WHERE s.XNomerUjian = '$user' and s.XStatusUjian = '1'");
-$st = mysql_fetch_array($sqltoken);
-// $xtokenujian = $st['XTokenUjian']; // Redundant, fetched below
-
-
-$sqlgabung = mysql_query("
-		SELECT s.*, s1.XNIK, s1.XNamaSiswa, s1.XKodeJurusan, u.XSemester FROM `cbt_siswa_ujian` s 
-        LEFT JOIN cbt_siswa s1 on s1.XNomerUjian = s.XNomerUjian 
-        LEFT JOIN cbt_ujian u on u.XKodeSoal = s.XKodeSoal
-        WHERE s.XNomerUjian = '$user'
-        ORDER BY (s.XStatusUjian='1') DESC, s.Urut DESC
-        LIMIT 1");
-
-//=======================
-$s0 = mysql_fetch_array($sqlgabung);
+$preferToken = isset($_COOKIE['CBT_TOKEN']) ? $_COOKIE['CBT_TOKEN'] : '';
+$preferKode = isset($_COOKIE['CBT_KODESOAL']) ? $_COOKIE['CBT_KODESOAL'] : '';
+$s0 = cbt_get_attempt_context_for_student($user, $preferToken, $preferKode);
+if (!$s0) {
+    $s0 = cbt_get_attempt_context_for_student($user);
+}
+if (!$s0) {
+    $s0 = cbt_get_schedule_context_for_student($user, $preferToken);
+}
+if (!$s0) {
+    $s0 = array();
+}
 $xkodesoal = isset($s0['XKodeSoal']) ? $s0['XKodeSoal'] : '';
 $xtokenujian = isset($s0['XTokenUjian']) ? $s0['XTokenUjian'] : '';
 $xnomerujian = isset($s0['XNomerUjian']) ? $s0['XNomerUjian'] : $user;
@@ -37,19 +34,25 @@ $xkodeujian = isset($s0['XKodeUjian']) ? $s0['XKodeUjian'] : '';
 $xkodemapel = isset($s0['XKodeMapel']) ? $s0['XKodeMapel'] : '';
 $xkodekelas = isset($s0['XKodeKelas']) ? $s0['XKodeKelas'] : '';
 $xkodejurusan = isset($s0['XKodeJurusan']) ? $s0['XKodeJurusan'] : '';
-$xsemester = isset($s0['XSemester']) ? $s0['XSemester'] : '';
+$xsesi = isset($s0['XSesi']) ? $s0['XSesi'] : '';
+$xsemester = '';
 
 // Update Status Ujian to 9 (Selesai) IMMEDIATELY once we confirm the user and token
 // This ensures that even if scoring fails, the user is marked as finished.
 if (isset($xtokenujian) && $xtokenujian != "") {
-    $sql_update_status = mysql_query("Update cbt_siswa_ujian set XStatusUjian = '9', XLastUpdate = '$tgl' where XNomerUjian = '$user' and XStatusUjian = '1' and XTokenUjian = '$xtokenujian'");
+    $sql_update_status = mysql_query("Update cbt_siswa_ujian set XStatusUjian = '9', XLastUpdate = '$tgl' where XNomerUjian = '$user' and XStatusUjian = '1' and XTokenUjian = '$xtokenujian' and XKodeSoal = '$xkodesoal' and XSesi = '$xsesi'");
 } else {
     // Fallback if token is missing but user has active exam
     $sql_update_status = mysql_query("Update cbt_siswa_ujian set XStatusUjian = '9', XLastUpdate = '$tgl' where XNomerUjian = '$user' and XStatusUjian = '1'");
 }
 
-$sqlsoal = mysql_query("SELECT * FROM cbt_ujian  WHERE XKodeSoal = '$xkodesoal'");
+$sqlsoal = mysql_query("SELECT * FROM cbt_ujian WHERE XKodeSoal = '$xkodesoal' and XTokenUjian = '$xtokenujian' and XSesi = '$xsesi' ORDER BY Urut DESC LIMIT 1");
 $sa = mysql_fetch_array($sqlsoal);
+if (!$sa) {
+    $sqlsoal = mysql_query("SELECT * FROM cbt_ujian WHERE XKodeSoal = '$xkodesoal' and XTokenUjian = '$xtokenujian' ORDER BY Urut DESC LIMIT 1");
+    $sa = mysql_fetch_array($sqlsoal);
+}
+$xsemester = isset($sa['XSemester']) ? $sa['XSemester'] : $xsemester;
 //$xkodeujian = $sa['XKodeUjian'];
 $xjumsoal = isset($sa['XJumSoal']) ? (int)$sa['XJumSoal'] : 0;
 $xjumpil = isset($sa['XPilGanda']) ? (int)$sa['XPilGanda'] : 0;

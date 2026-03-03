@@ -74,6 +74,28 @@ $(document).ready(function() {
 <br />
 <?php
 include "../../config/server.php";
+if (!function_exists('cbt_resolve_panel_media_url')) {
+    function cbt_resolve_panel_media_url($filename)
+    {
+        $clean = trim((string) $filename);
+        if ($clean === '') {
+            return '';
+        }
+
+        $clean = str_replace('\\', '/', $clean);
+        $clean = basename($clean);
+        $base = pathinfo($clean, PATHINFO_FILENAME);
+        $webp = $base . '.webp';
+
+        if (file_exists(__DIR__ . '/../../pictures_webp/' . $webp)) {
+            return '../../pictures_webp/' . rawurlencode($webp);
+        }
+        if (file_exists(__DIR__ . '/../../pictures/' . $clean)) {
+            return '../../pictures/' . rawurlencode($clean);
+        }
+        return '../../pictures/' . rawurlencode($clean);
+    }
+}
 ?>
 <?php
 if ($req_soal === '' || $req_siswa === '') {
@@ -340,10 +362,11 @@ echo "<tr><td width=50px>$nomer.</td><td colspan=2>$r[XTanya] </td></tr>
 
 
 <?php
-if(str_replace("  ","",$r['XGambarTanya']!=="")){
+if(trim((string)$r['XGambarTanya']) !== ''){
+$imgTanya = cbt_resolve_panel_media_url($r['XGambarTanya']);
 echo "
 <tr><td width=50px colspan=3>&nbsp; </td></tr>
-<tr><td colspan=3><img src=../../pictures/$r[XGambarTanya] width=50%></td></tr>";}
+<tr><td colspan=3><img src='$imgTanya' width=50%></td></tr>";}
 
 echo "<tr><td width=50px colspan=3>&nbsp;</td></tr>";
 
@@ -351,7 +374,7 @@ echo "<tr><td width=50px colspan=3>&nbsp;</td></tr>";
 	$PilJwb = "XJawab$PilA";
 	$GbrJwb = "XGambarJawab$PilJwb";	
 	$FileGbr = "XGambarJawab$PilA";	
-	if($r[$FileGbr]==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='../../pictures/$r[$FileGbr]' width=80px>"; $lebar = "width=90px";}	
+	if(trim((string)$r[$FileGbr])==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='" . cbt_resolve_panel_media_url($r[$FileGbr]) . "' width=80px>"; $lebar = "width=90px";}	
 	echo "<tr><td width=50px align=center> A. </td>"; 
 	$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '$r[XNomerSoal]'");
 	$jwb = mysql_fetch_array($sqlpil);
@@ -362,7 +385,7 @@ echo "<tr><td width=50px colspan=3>&nbsp;</td></tr>";
 	$PilJwb = "XJawab$PilB";
 	$GbrJwb = "XGambarJawab$PilJwb";	
 	$FileGbr = "XGambarJawab$PilB";	
-	if($r[$FileGbr]==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='../../pictures/$r[$FileGbr]' width=80px>"; $lebar = "width=90px";}	
+	if(trim((string)$r[$FileGbr])==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='" . cbt_resolve_panel_media_url($r[$FileGbr]) . "' width=80px>"; $lebar = "width=90px";}	
 	echo "<tr><td width=50px align=center> B. </td>"; 
 	$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '$r[XNomerSoal]'");
 	$jwb = mysql_fetch_array($sqlpil);
@@ -373,7 +396,7 @@ echo "<tr><td width=50px colspan=3>&nbsp;</td></tr>";
 	$PilJwb = "XJawab$PilC";
 	$GbrJwb = "XGambarJawab$PilJwb";
 	$FileGbr = "XGambarJawab$PilC";	
-	if($r[$FileGbr]==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='../../pictures/$r[$FileGbr]' width=80px>"; $lebar = "width=90px";}	
+	if(trim((string)$r[$FileGbr])==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='" . cbt_resolve_panel_media_url($r[$FileGbr]) . "' width=80px>"; $lebar = "width=90px";}	
 	echo "<tr><td width=50px align=center> C. </td>"; 
 		$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '$r[XNomerSoal]'");
 		$jwb = mysql_fetch_array($sqlpil);
@@ -385,7 +408,7 @@ echo "<tr><td width=50px colspan=3>&nbsp;</td></tr>";
 	$PilJwb = "XJawab$PilD";
 	$GbrJwb = "XGambarJawab$PilJwb";
 	$FileGbr = "XGambarJawab$PilD";	
-	if($r[$FileGbr]==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='../../pictures/$r[$FileGbr]' width=80px>"; $lebar = "width=90px";}	
+	if(trim((string)$r[$FileGbr])==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='" . cbt_resolve_panel_media_url($r[$FileGbr]) . "' width=80px>"; $lebar = "width=90px";}	
 	echo "<tr><td width=50px align=center> D. </td>"; 
 		$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '$r[XNomerSoal]'");
 		$jwb = mysql_fetch_array($sqlpil);
@@ -397,7 +420,7 @@ echo "<tr><td width=50px colspan=3>&nbsp;</td></tr>";
 	$PilJwb = "XJawab$PilE";
 	$GbrJwb = "XGambarJawab$PilJwb";
 	$FileGbr = "XGambarJawab$PilE";	
-	if($r[$FileGbr]==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='../../pictures/$r[$FileGbr]' width=80px>"; $lebar = "width=90px";}	
+	if(trim((string)$r[$FileGbr])==""){$GbrJwb=""; $lebar = "width=0px";}else{$GbrJwb = "<img src='" . cbt_resolve_panel_media_url($r[$FileGbr]) . "' width=80px>"; $lebar = "width=90px";}	
 	echo "<tr><td width=50px align=center> E. </td>"; 
 		$sqlpil = mysql_query("SELECT $PilJwb as pilsoal FROM `cbt_soal` WHERE XKodeSoal = '$var_soal' and XNomerSoal = '$r[XNomerSoal]'");
 		$jwb = mysql_fetch_array($sqlpil);
@@ -470,10 +493,11 @@ echo "<tr><td width=50px>$nomer.</td><td>$r[XTanya] </td></tr>
 ?>
 
 <?php
-if(str_replace("  ","",$r['XGambarTanya']!=="")){
+if(trim((string)$r['XGambarTanya']) !== ''){
+$imgTanya = cbt_resolve_panel_media_url($r['XGambarTanya']);
 echo "
 <tr><td width=30px colspan=2>&nbsp; </td></tr>
-<tr><td colspan=2><img src=../../pictures/$r[XGambarTanya] width=150px></td></tr>";}
+<tr><td colspan=2><img src='$imgTanya' width=150px></td></tr>";}
 echo "<tr><td width=50px colspan=2>&nbsp;</td></tr>";
 
 $jawab = $r['XJawabanEsai'];

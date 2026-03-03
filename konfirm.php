@@ -1,6 +1,7 @@
 <?php
 include "config/server.php";
 include "ip.php";
+include_once "cbt_exam_context.php";
 
 $sqlcekdb = mysql_query("SELECT * FROM `cbt_siswa` limit 1");
 if (!$sqlcekdb) {
@@ -44,29 +45,16 @@ if ($jmlsqllogin < 1) {
 $tglujian = date("Y-m-d");
 $xjam1 = date("H:i:s");
 
-$sqluser = mysql_query("
-SELECT u.*,m.XNamaMapel FROM `cbt_ujian` u LEFT JOIN cbt_paketsoal p on p.XKodeKelas = u.XKodeKelas and p.XKodeMapel = u.XKodeMapel
-left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel
-WHERE (u.XKodeKelas = '$xkelz' or u.XKodeKelas = 'ALL')
-  and (u.XKodeJurusan = '$xjurz' or u.XKodeJurusan = 'ALL')
-  and u.XSesi = '$xsesi'
-  and u.XStatusUjian = '1'
-  and NOW() between CONCAT(u.XTglUjian,' ',u.XJamUjian) and ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian)
-ORDER BY CONCAT(u.XTglUjian,' ',u.XJamUjian) DESC LIMIT 1");
-
-if (mysql_num_rows($sqluser) < 1) {
-    $sqluser = mysql_query("
-    SELECT u.*,m.XNamaMapel FROM `cbt_ujian` u LEFT JOIN cbt_paketsoal p on p.XKodeKelas = u.XKodeKelas and p.XKodeMapel = u.XKodeMapel
-    left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel
-    WHERE (u.XKodeKelas = '$xkelz' or u.XKodeKelas = 'ALL')
-      and (u.XKodeJurusan = '$xjurz' or u.XKodeJurusan = 'ALL')
-      and u.XSesi = '$xsesi'
-      and u.XStatusUjian = '1'
-      and CONCAT(u.XTglUjian,' ',u.XJamUjian) > NOW()
-    ORDER BY CONCAT(u.XTglUjian,' ',u.XJamUjian) ASC LIMIT 1");
+$preferToken = '';
+if (isset($_REQUEST['KodeToken'])) {
+    $preferToken = trim((string) $_REQUEST['KodeToken']);
+} elseif (isset($_COOKIE['CBT_TOKEN'])) {
+    $preferToken = trim((string) $_COOKIE['CBT_TOKEN']);
 }
-
-$s = mysql_fetch_array($sqluser);
+$s = cbt_get_schedule_context_for_student($txtuser, $preferToken);
+if (!$s && $preferToken !== '') {
+    $s = cbt_get_schedule_context_for_student($txtuser, '');
+}
 $xkodesoal = isset($s['XKodeSoal']) ? $s['XKodeSoal'] : '';
 $xkodekelas = isset($s['XKodeKelas']) ? $s['XKodeKelas'] : '';
 $xtglujian = isset($s['XTglUjian']) ? $s['XTglUjian'] : '';
@@ -79,6 +67,7 @@ $xbatasmasuk = isset($s['XBatasMasuk']) ? $s['XBatasMasuk'] : '';
 $xkodeujian = isset($s['XKodeUjian']) ? $s['XKodeUjian'] : '';
 $xmaxlambat = isset($s['XLambat']) ? $s['XLambat'] : '';
 $xnamamapel = isset($s['XNamaMapel']) ? $s['XNamaMapel'] : '';
+$xsesi = isset($s['XSesi']) ? $s['XSesi'] : $xsesi;
 $kelas_label = $xkodekelas !== '' ? $xkodekelas : $xkelz;
 
 $xnow_ts = time();
@@ -112,7 +101,7 @@ if ($xmulai_ts > 0 && $xlamaujian !== '') {
 }
 $xsedang_berlangsung = ($xmulai_ts > 0 && $xbatasmasuk_efektif_ts > 0 && $xnow_ts >= $xmulai_ts && $xnow_ts <= $xbatasmasuk_efektif_ts);
 
-$sqlada0 = mysql_query("SELECT * FROM  `cbt_siswa_ujian` WHERE XNomerUjian = '$txtuser' and XTokenUjian = '$xtokenujian'");
+$sqlada0 = mysql_query("SELECT * FROM cbt_siswa_ujian WHERE XNomerUjian = '$txtuser' and XTokenUjian = '$xtokenujian' and XKodeSoal = '$xkodesoal'");
 $ad0 = mysql_fetch_array($sqlada0);
 $savedIp = '';
 if ($xkodesoal !== '' && $xtokenujian !== '' && !cbt_validate_single_ip_session($txtuser, $xtokenujian, $xkodesoal, $cbt_session_lock_value, $savedIp)) {
@@ -585,7 +574,7 @@ $token_error = isset($_REQUEST['salah']) && $_REQUEST['salah'] == 1;
                         </div>
 
                         <?php
-                        $sqlada = mysql_query("SELECT * FROM  `cbt_siswa_ujian` WHERE XNomerUjian = '$txtuser' and XTokenUjian = '$xtokenujian'");
+                        $sqlada = mysql_query("SELECT * FROM cbt_siswa_ujian WHERE XNomerUjian = '$txtuser' and XTokenUjian = '$xtokenujian' and XKodeSoal = '$xkodesoal'");
                         $ad = mysql_fetch_array($sqlada);
                         $jumsis = $ad['XStatusUjian'];
 

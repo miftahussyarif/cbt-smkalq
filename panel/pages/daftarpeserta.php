@@ -52,16 +52,8 @@ $(document).ready(function(){
 include "../../config/server.php";
 $sqlAktif = mysql_query("SELECT COUNT(*) AS jml FROM cbt_ujian u
 WHERE u.XStatusUjian='1'
-AND (
-ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian) > NOW()
-OR EXISTS (
-	select 1
-	from cbt_siswa_ujian su
-	where su.XStatusUjian='1'
-	and su.XKodeSoal = u.XKodeSoal
-	and su.XTokenUjian = u.XTokenUjian
-)
-)");
+AND NOW() BETWEEN CONCAT(u.XTglUjian,' ',u.XJamUjian)
+AND ADDTIME(CONCAT(u.XTglUjian,' ',u.XJamUjian),u.XLamaUjian)");
 $rowAktif = $sqlAktif ? mysql_fetch_array($sqlAktif) : array('jml' => 0);
 $jmlTesAktif = isset($rowAktif['jml']) ? (int)$rowAktif['jml'] : 0;
 
@@ -94,7 +86,13 @@ s.XKodeJurusan,
 s.XKodeKelas as XKelasSiswa,
 s.XNIK
 FROM cbt_siswa_ujian u
+INNER JOIN cbt_ujian uj ON TRIM(uj.XKodeSoal) = TRIM(u.XKodeSoal)
+AND TRIM(uj.XTokenUjian) = TRIM(u.XTokenUjian)
+AND TRIM(uj.XSesi) = TRIM(u.XSesi)
 LEFT JOIN cbt_siswa s ON TRIM(s.XNomerUjian) = TRIM(u.XNomerUjian)
+WHERE uj.XStatusUjian='1'
+AND NOW() BETWEEN CONCAT(uj.XTglUjian,' ',uj.XJamUjian)
+AND ADDTIME(CONCAT(uj.XTglUjian,' ',uj.XJamUjian),uj.XLamaUjian)
 ORDER BY u.Urut DESC"); 
 $nom = 1;								
 while($s= mysql_fetch_array($sql)){ 
@@ -103,10 +101,11 @@ $nouji = str_replace("  ","",$s['XNomerUjian']);
 $kodekelas = str_replace("  ","",($s['XKelasSiswa'] <> '' ? $s['XKelasSiswa'] : $s['XKodeKelas'])); 
 $kodeNIK = str_replace("  ","",$s['XNIK']); 
 $kodeJUR = str_replace("  ","",$s['XKodeJurusan']); 
-$staujian = str_replace("  ","",$s['ujsta']); 
-if($staujian =='0'){$staujian = "Belum Login";}
-elseif($staujian =='1'){$staujian = "<font color='#629ad8'> Masih Dikerjakan </font>";}
-elseif($staujian =='9'){$staujian = "<font color='#be425f'> Tes SELESAI </font>";}
+$staujian_raw = trim((string)$s['ujsta']);
+if($staujian_raw === '0'){$staujian = "Belum Login";}
+elseif($staujian_raw === '1'){$staujian = "<font color='#629ad8'> Masih Dikerjakan </font>";}
+elseif($staujian_raw === '9'){$staujian = "<font color='#be425f'> Tes SELESAI </font>";}
+else {$staujian = "<font color='#777'>Status Tidak Dikenal ($staujian_raw)</font>";}
 ?>
                                 <tr height="40px">
                                     <td width="5%">&nbsp;<?php echo $nom ; ?></td>

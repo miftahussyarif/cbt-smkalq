@@ -119,7 +119,45 @@ if (!isset($_COOKIE['beeuser'])) {
         return is_writable($dir);
     }
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['file_action'])) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['exam_reset_action']) && $_POST['exam_reset_action'] === 'reset_exam_data') {
+        $role = isset($_COOKIE['beelogin']) ? $_COOKIE['beelogin'] : '';
+        if ($role !== 'admin') {
+            $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Akses ditolak. Reset data tes hanya untuk admin.</div>";
+        } else {
+            $deleted = array(
+                'cbt_jawaban' => 0,
+                'cbt_nilai' => 0,
+                'cbt_siswa_ujian' => 0,
+                'cbt_audio' => 0,
+                'cbt_pengawasan' => 0,
+                'cbt_ujian' => 0
+            );
+
+            mysql_query("DELETE FROM cbt_jawaban");
+            $deleted['cbt_jawaban'] = mysql_affected_rows();
+            mysql_query("DELETE FROM cbt_nilai");
+            $deleted['cbt_nilai'] = mysql_affected_rows();
+            mysql_query("DELETE FROM cbt_siswa_ujian");
+            $deleted['cbt_siswa_ujian'] = mysql_affected_rows();
+            mysql_query("DELETE FROM cbt_audio");
+            $deleted['cbt_audio'] = mysql_affected_rows();
+
+            $cekPengawasan = mysql_query("SHOW TABLES LIKE 'cbt_pengawasan'");
+            if ($cekPengawasan && mysql_num_rows($cekPengawasan) > 0) {
+                mysql_query("DELETE FROM cbt_pengawasan");
+                $deleted['cbt_pengawasan'] = mysql_affected_rows();
+            }
+
+            mysql_query("DELETE FROM cbt_ujian");
+            $deleted['cbt_ujian'] = mysql_affected_rows();
+
+            if (function_exists('bee_log')) {
+                bee_log('WARN', 'RESET_EXAM_DATA_ALL', 'Reset total data tes/ujian dari menu database', $deleted);
+            }
+
+            $fileBackupMessage = "<div class=\"alert alert-warning alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Reset data tes/ujian selesai. Terhapus: Jawaban <strong>" . intval($deleted['cbt_jawaban']) . "</strong>, Nilai <strong>" . intval($deleted['cbt_nilai']) . "</strong>, Peserta Ujian <strong>" . intval($deleted['cbt_siswa_ujian']) . "</strong>, Audio <strong>" . intval($deleted['cbt_audio']) . "</strong>, Pengawasan <strong>" . intval($deleted['cbt_pengawasan']) . "</strong>, Jadwal Ujian <strong>" . intval($deleted['cbt_ujian']) . "</strong>.</div>";
+        }
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['file_action'])) {
         $action = $_POST['file_action'];
         if (!class_exists('ZipArchive')) {
             $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>ZipArchive tidak tersedia pada server.</div>";
@@ -388,6 +426,18 @@ if (!isset($_COOKIE['beeuser'])) {
                                         data-target="#fileBackupModal"><i class="fa fa-archive"></i></button>
                                 </td>
                                 <td align="center">-</td>
+                            </tr>
+                            <tr class="odd gradeX">
+                                <td>5</td>
+                                <td><strong>Reset Data Tes &amp; Ujian</strong><br><small>Menghapus seluruh jawaban siswa, nilai, peserta ujian, audio, pengawasan, dan jadwal ujian. Tidak menghapus bank soal, data siswa, mapel, kelas, maupun konfigurasi sistem.</small></td>
+                                <td>-</td>
+                                <td align="center">-</td>
+                                <td align="center">
+                                    <form method="post" onsubmit="return confirm('Yakin reset SEMUA data tes dan ujian?\\n\\nData yang dihapus: jawaban, nilai, peserta ujian, audio, pengawasan, dan jadwal ujian.\\n\\nData yang TIDAK dihapus: bank soal, data siswa, mapel/kelas, dan konfigurasi sistem.');" style="margin:0;">
+                                        <input type="hidden" name="exam_reset_action" value="reset_exam_data">
+                                        <button type="submit" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i> Reset Data Tes</button>
+                                    </form>
+                                </td>
                             </tr>
 
 

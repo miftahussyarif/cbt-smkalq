@@ -14,27 +14,35 @@ if (isset($_REQUEST['assets'])) {
             <div id="container" style="text-align:center; height:300px;">
                 <?php include "config/server.php";
                 include_once "ip.php";
+                include_once "cbt_exam_context.php";
                 $xkodemapel = "GAL1";
                 //$xkodesoal = "XGAL1SOAL1";
                 //$user = "P090100000";
                 $user = "$_COOKIE[PESERTA]";
-                $sqluser = mysql_query("SELECT * FROM  `cbt_siswa` WHERE XNomerUjian = '$user'");
-                $su = mysql_fetch_array($sqluser);
-                $xkelz = $su['XKodeKelas'];
-                $xjurz = $su['XKodeJurusan'];
-
-
-                $sqlgabung = mysql_query("SELECT * FROM  `cbt_siswa` s LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') WHERE XNomerUjian = 
-  '$user' and (u.XKodeJurusan = '$xjurz' or u.XKodeJurusan = 'ALL') and (u.XKodeKelas = '$xkelz' or u.XKodeKelas = 'ALL') and u.XStatusUjian = '1'");
+                $preferToken = isset($_COOKIE['CBT_TOKEN']) ? $_COOKIE['CBT_TOKEN'] : '';
+                $preferKode = isset($_COOKIE['CBT_KODESOAL']) ? $_COOKIE['CBT_KODESOAL'] : '';
+                $s0 = cbt_get_attempt_context_for_student($user, $preferToken, $preferKode);
+                if (!$s0) {
+                    $s0 = cbt_get_attempt_context_for_student($user);
+                }
+                if (!$s0) {
+                    $s0 = cbt_get_schedule_context_for_student($user, $preferToken);
+                }
+                if (!$s0) {
+                    $s0 = cbt_get_schedule_context_for_student($user, '');
+                }
 
                 /* $sqlgabung = mysql_query("SELECT * FROM  `cbt_siswa` s LEFT JOIN cbt_ujian u ON s.XKodeKelas = u.XKodeKelas WHERE XNomerUjian = 
                   '$user' and u.XKodeJurusan = '$xjurz' and u.XKodeKelas = '$xkelz' and u.XStatusUjian = '1'");
 
                     $sqlgabung = mysql_query("SELECT * FROM  cbt_ujian where XStatusUjian = '1'");  */
 
-                $s0 = mysql_fetch_array($sqlgabung);
-                $xkodesoal = $s0['XKodeSoal'];
-                $xtokenujian = $s0['XTokenUjian'];
+                $xkodesoal = isset($s0['XKodeSoal']) ? $s0['XKodeSoal'] : '';
+                $xtokenujian = isset($s0['XTokenUjian']) ? $s0['XTokenUjian'] : '';
+                if ($xkodesoal === '' || $xtokenujian === '') {
+                    echo "UJIAN_TIDAK_DITEMUKAN";
+                    exit;
+                }
                 $savedIp = '';
                 if (!cbt_validate_single_ip_session($user, $xtokenujian, $xkodesoal, $cbt_session_lock_value, $savedIp)) {
                     if (function_exists('bee_log')) {
@@ -163,28 +171,33 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
             <div style="padding-bottom:20px; font-size:14px; color:#0066CC"> Soal Esai </div>
             <div id="container2" style="text-align:center; height:300px;">
                 <?php include "config/server.php";
-                include_once "ip.php";
-                $xkodemapel = "GAL1";
-                //$xkodesoal = "XGAL1SOAL1";
-                //$user = "P090100000";
                 $user = "$_COOKIE[PESERTA]";
-                $sqluser = mysql_query("SELECT * FROM  `cbt_siswa` WHERE XNomerUjian = '$user'");
-                $su = mysql_fetch_array($sqluser);
-                $xkelz = $su['XKodeKelas'];
-                $xjurz = $su['XKodeJurusan'];
+                $preferToken = isset($_COOKIE['CBT_TOKEN']) ? $_COOKIE['CBT_TOKEN'] : '';
+                $preferKode = isset($_COOKIE['CBT_KODESOAL']) ? $_COOKIE['CBT_KODESOAL'] : '';
+                $s0 = cbt_get_attempt_context_for_student($user, $preferToken, $preferKode);
+                if (!$s0) {
+                    $s0 = cbt_get_attempt_context_for_student($user);
+                }
+                if (!$s0) {
+                    $s0 = cbt_get_schedule_context_for_student($user, $preferToken);
+                }
+                if (!$s0) {
+                    $s0 = cbt_get_schedule_context_for_student($user, '');
+                }
 
 
-                $sqlgabung = mysql_query("SELECT * FROM  `cbt_siswa` s LEFT JOIN cbt_ujian u ON (s.XKodeKelas = u.XKodeKelas or u.XKodeKelas = 'ALL') WHERE XNomerUjian = 
-  '$user' and (u.XKodeJurusan = '$xjurz' or u.XKodeJurusan = 'ALL') and (u.XKodeKelas = '$xkelz' or u.XKodeKelas = 'ALL') and u.XStatusUjian = '1'");
 
                 /* $sqlgabung = mysql_query("SELECT * FROM  `cbt_siswa` s LEFT JOIN cbt_ujian u ON s.XKodeKelas = u.XKodeKelas WHERE XNomerUjian = 
                   '$user' and u.XKodeJurusan = '$xjurz' and u.XKodeKelas = '$xkelz' and u.XStatusUjian = '1'");
 
                     $sqlgabung = mysql_query("SELECT * FROM  cbt_ujian where XStatusUjian = '1'");  */
 
-                $s0 = mysql_fetch_array($sqlgabung);
-                $xkodesoal = $s0['XKodeSoal'];
-                $xtokenujian = $s0['XTokenUjian'];
+                $xkodesoal = isset($s0['XKodeSoal']) ? $s0['XKodeSoal'] : '';
+                $xtokenujian = isset($s0['XTokenUjian']) ? $s0['XTokenUjian'] : '';
+                if ($xkodesoal === '' || $xtokenujian === '') {
+                    echo "UJIAN_TIDAK_DITEMUKAN";
+                    exit;
+                }
                 $savedIp = '';
                 if (!cbt_validate_single_ip_session($user, $xtokenujian, $xkodesoal, $cbt_session_lock_value, $savedIp)) {
                     if (function_exists('bee_log')) {
@@ -498,10 +511,10 @@ left join cbt_mapel m on u.XKodeMapel = m.XKodeMapel WHERE u.XKodeSoal='$xkodeso
 
                 $("#tkn").html(tekan + ' ' + soale);
                 var putar = $('#anu').val();
-                var data = 'nama=' + tekan + '& soale=' + soale;
+                var data = 'nama=' + tekan + '&soale=' + soale;
                 $.ajax({
                     type: 'POST',
-                    url: "simpan.php?kode=<?php echo $xkodesoal; ?> &putar=" + putar,
+                    url: "simpan.php?kode=<?php echo $xkodesoal; ?>&putar=" + putar,
                     data: data,
                     success: function () {
                         //$('#tampil').load("lihat.php");
@@ -1230,10 +1243,10 @@ if ($result) {
                                 var putar = $('#anu').val();
                                 var A = $('#rules').val();
                                 var soale = $jnoc('#soale').val();
-                                var data = 'nama=' + A + '& soale=' + soale;
+                                var data = 'nama=' + A + '&soale=' + soale;
                                 $jnoc.ajax({
                                     type: 'POST',
-                                    url: "simpan.php?kode=<?php echo $xkodesoal; ?> &putar=" + putar,
+                                    url: "simpan.php?kode=<?php echo $xkodesoal; ?>&putar=" + putar,
                                     data: data,
                                     success: function () {
                                         //alert("sudah tersimpan");
@@ -1281,10 +1294,10 @@ if ($result) {
                                 var putar = $('#anu').val();
                                 var A = $('#A').val();
                                 var soale = $('#soale').val();
-                                var data = 'nama=' + A + '& soale=' + soale;
+                                var data = 'nama=' + A + '&soale=' + soale;
                                 $.ajax({
                                     type: 'POST',
-                                    url: "simpan.php?kode=<?php echo $xkodesoal; ?> &putar=" + putar,
+                                    url: "simpan.php?kode=<?php echo $xkodesoal; ?>&putar=" + putar,
                                     data: data,
                                     success: function () {
                                         //$('#tampil').load("lihat.php");
@@ -1298,10 +1311,10 @@ if ($result) {
                                 var putar = $('#anu').val();
                                 var B = $('#B').val();
                                 var soale = $('#soale').val();
-                                var data = 'nama=' + B + '& soale=' + soale;
+                                var data = 'nama=' + B + '&soale=' + soale;
                                 $.ajax({
                                     type: 'POST',
-                                    url: "simpan.php?kode=<?php echo $xkodesoal; ?> &putar=" + putar,
+                                    url: "simpan.php?kode=<?php echo $xkodesoal; ?>&putar=" + putar,
                                     data: data,
                                     success: function () {
                                         //$('#tampil').load("lihat.php");
@@ -1315,10 +1328,10 @@ if ($result) {
                                 var putar = $('#anu').val();
                                 var C = $('#C').val();
                                 var soale = $('#soale').val();
-                                var data = 'nama=' + C + '& soale=' + soale;
+                                var data = 'nama=' + C + '&soale=' + soale;
                                 $.ajax({
                                     type: 'POST',
-                                    url: "simpan.php?kode=<?php echo $xkodesoal; ?> &putar=" + putar,
+                                    url: "simpan.php?kode=<?php echo $xkodesoal; ?>&putar=" + putar,
                                     data: data,
                                     success: function () {
                                         //$('#tampil').load("lihat.php");
@@ -1332,10 +1345,10 @@ if ($result) {
                                 var putar = $('#anu').val();
                                 var D = $('#D').val();
                                 var soale = $('#soale').val();
-                                var data = 'nama=' + D + '& soale=' + soale;
+                                var data = 'nama=' + D + '&soale=' + soale;
                                 $.ajax({
                                     type: 'POST',
-                                    url: "simpan.php?kode=<?php echo $xkodesoal; ?> &putar=" + putar,
+                                    url: "simpan.php?kode=<?php echo $xkodesoal; ?>&putar=" + putar,
                                     data: data,
                                     success: function () {
                                         //$('#tampil').load("lihat.php");
@@ -1349,10 +1362,10 @@ if ($result) {
                                 var putar = $('#anu').val();
                                 var E = $('#E').val();
                                 var soale = $('#soale').val();
-                                var data = 'nama=' + E + '& soale=' + soale;
+                                var data = 'nama=' + E + '&soale=' + soale;
                                 $.ajax({
                                     type: 'POST',
-                                    url: "simpan.php?kode=<?php echo $xkodesoal; ?> &putar=" + putar,
+                                    url: "simpan.php?kode=<?php echo $xkodesoal; ?>&putar=" + putar,
                                     data: data,
                                     success: function () {
                                         //$('#tampil').load("lihat.php");

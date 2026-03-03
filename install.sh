@@ -155,6 +155,18 @@ PROJECT_DIRS_WRITABLE=(
   "logs"
 )
 
+RUNTIME_WRITE_DIRS=(
+  "$BASE_DIR/pictures"
+  "$BASE_DIR/pictures_webp"
+  "$BASE_DIR/images"
+  "$BASE_DIR/audio"
+  "$BASE_DIR/video"
+  "$BASE_DIR/output"
+  "$BASE_DIR/fotosiswa"
+  "$BACKUP_DIR"
+  "$LOG_DIR"
+)
+
 echo "==> Creating required project directories"
 for rel in "${PROJECT_DIRS_755[@]}" "${PROJECT_DIRS_WRITABLE[@]}"; do
   run_cmd mkdir -p "$BASE_DIR/$rel"
@@ -188,35 +200,14 @@ for rel in "${PROJECT_DIRS_WRITABLE[@]}"; do
   run_cmd chmod 775 "$BASE_DIR/$rel"
 done
 
-# Keep internal storage dirs writable for service operations.
-run_cmd chmod 775 "$BACKUP_DIR" "$LOG_DIR"
-
-# Ensure backup/media storage can be overwritten during restore operations.
-echo "==> Applying recursive writable modes for backup/media storage"
-STORAGE_WRITE_DIRS=(
-  "$BASE_DIR/pictures"
-  "$BASE_DIR/audio"
-  "$BASE_DIR/video"
-  "$BASE_DIR/output"
-  "$BASE_DIR/logs"
-)
-run_cmd chown -R "$OWNER_USER:$OWNER_GROUP" "${STORAGE_WRITE_DIRS[@]}"
-for storage_dir in "${STORAGE_WRITE_DIRS[@]}"; do
-  run_cmd find "$storage_dir" -type d -exec chmod 777 {} \;
-  run_cmd find "$storage_dir" -type f -exec chmod 666 {} \;
+# Keep runtime directories writable for ujian flow, upload, backup, and logging.
+# Use 775/664 (not 777/666) so app stays writable without opening world-write access.
+echo "==> Applying recursive runtime permission modes (775 dirs / 664 files)"
+run_cmd chown -R "$OWNER_USER:$OWNER_GROUP" "${RUNTIME_WRITE_DIRS[@]}"
+for runtime_dir in "${RUNTIME_WRITE_DIRS[@]}"; do
+  run_cmd find "$runtime_dir" -type d -exec chmod 2775 {} \;
+  run_cmd find "$runtime_dir" -type f -exec chmod 664 {} \;
 done
-
-# Student-photo upload folder must stay fully writable on fresh servers.
-echo "==> Applying recursive writable modes for fotosiswa storage"
-run_cmd chown -R "$OWNER_USER:$OWNER_GROUP" "$BASE_DIR/fotosiswa"
-run_cmd find "$BASE_DIR/fotosiswa" -type d -exec chmod 777 {} \;
-run_cmd find "$BASE_DIR/fotosiswa" -type f -exec chmod 666 {} \;
-
-# Backup directory must stay fully writable for backup/restore flow in legacy PHP modules.
-echo "==> Applying recursive writable modes for backup storage"
-run_cmd chown -R "$OWNER_USER:$OWNER_GROUP" "$BACKUP_DIR"
-run_cmd find "$BACKUP_DIR" -type d -exec chmod 777 {} \;
-run_cmd find "$BACKUP_DIR" -type f -exec chmod 666 {} \;
 
 echo "==> Initializing database tables"
 ensure_database_tables

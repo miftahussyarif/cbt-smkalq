@@ -1,6 +1,7 @@
 <?php
 include "config/server.php";
 include "config/pengawasan.php";
+include_once "cbt_exam_context.php";
 
 header('Content-Type: application/json');
 
@@ -26,23 +27,25 @@ if (!in_array($event, $allowed, true)) {
 
 cbt_ensure_pengawasan_table();
 
-$sqlUjian = mysql_query("SELECT XTokenUjian, XKodeSoal FROM cbt_siswa_ujian WHERE XNomerUjian = '$user' AND XStatusUjian = '1' ORDER BY XTglUjian DESC, XMulaiUjian DESC LIMIT 1");
-if (!$sqlUjian || mysql_num_rows($sqlUjian) < 1) {
-    // Fallback: on fast page close/submit race, status may already change from active.
-    $sqlUjian = mysql_query("SELECT XTokenUjian, XKodeSoal, XStatusUjian FROM cbt_siswa_ujian WHERE XNomerUjian = '$user' ORDER BY XTglUjian DESC, XMulaiUjian DESC LIMIT 1");
-    if (!$sqlUjian || mysql_num_rows($sqlUjian) < 1) {
-        if (function_exists('bee_log')) {
-            bee_log('WARN', 'MONITOR_EVENT_NO_EXAM', 'Event pengawasan tidak menemukan data ujian siswa', array(
-                'event' => $event,
-                'user' => $user
-            ));
-        }
-        echo json_encode(array('ok' => false, 'error' => 'no_active_exam'));
-        exit;
-    }
+$preferToken = isset($_COOKIE['CBT_TOKEN']) ? $_COOKIE['CBT_TOKEN'] : '';
+$preferKode = isset($_COOKIE['CBT_KODESOAL']) ? $_COOKIE['CBT_KODESOAL'] : '';
+$uj = cbt_get_attempt_context_for_student($user, $preferToken, $preferKode);
+if (!$uj) {
+    $uj = cbt_get_attempt_context_for_student($user);
 }
-
-$uj = mysql_fetch_array($sqlUjian);
+if (!$uj) {
+    $uj = cbt_get_schedule_context_for_student($user, $preferToken);
+}
+if (!$uj) {
+    if (function_exists('bee_log')) {
+        bee_log('WARN', 'MONITOR_EVENT_NO_EXAM', 'Event pengawasan tidak menemukan data ujian siswa', array(
+            'event' => $event,
+            'user' => $user
+        ));
+    }
+    echo json_encode(array('ok' => false, 'error' => 'no_active_exam'));
+    exit;
+}
 $token = mysql_real_escape_string($uj['XTokenUjian']);
 $kodesoal = mysql_real_escape_string($uj['XKodeSoal']);
 $now = date("Y-m-d H:i:s");
