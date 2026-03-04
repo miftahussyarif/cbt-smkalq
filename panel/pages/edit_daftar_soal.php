@@ -223,20 +223,17 @@ echo "
 					if($sqlsudah>0||$sqlpakai>0){$katasudah="disabled";}  else {$katasudah="";}			
 					if($sqlpakai>0){$katapakai="disabled";}  else {$katapakai="";}	
  
-if($sqlpakai>0||$sqlsudah1>0){ 
-echo "
-<button type='button' class='btn btn-info' disabled><i class='fa fa-edit'></i></button></a>&nbsp;
-</td>
-<td align=center>
-<button type='button' class='btn btn-danger' disabled><i class='fa fa-times'></i></button></a>
-"; 
-
-} else {
 echo "
 $ling
 <button type='button' class='btn btn-info'><i class='fa fa-edit'></i></button></a>&nbsp;
 </td>
-<td align=center><a href=?modul=edit_soal&aksi=hapus&jum=$_REQUEST[jum]&soal=$xadm[XKodeSoal]&nomer=$xadm[Urut]>
+<td align=center>";
+if($sqlpakai>0||$sqlsudah1>0){ 
+echo "
+<button type='button' class='btn btn-danger' disabled><i class='fa fa-times'></i></button>
+"; 
+} else {
+echo "<a href=?modul=edit_soal&aksi=hapus&jum=$_REQUEST[jum]&soal=$xadm[XKodeSoal]&nomer=$xadm[Urut]>
 <button type='button' class='btn btn-danger'><i class='fa fa-times'></i></button></a>
 "; 
 }
@@ -481,13 +478,49 @@ $no++;
     <!-- Page-Level Demo Scripts - Tables - Use for reference -->
     <script>
     $(document).ready(function() {
-        $('#dataTables-example').DataTable({
+        var table = $('#dataTables-example').DataTable({
             responsive: true
         });
-    
-	
-	
-	});
+
+        var storageKey = 'edit_soal_page_<?php echo isset($_REQUEST['soal']) ? preg_replace('/[^A-Za-z0-9_-]/', '_', $_REQUEST['soal']) : 'default'; ?>';
+
+        function parsePageParam() {
+            var match = window.location.search.match(/[?&]page=(\d+)/);
+            if (!match) {
+                return 0;
+            }
+            var n = parseInt(match[1], 10);
+            return isNaN(n) ? 0 : n;
+        }
+
+        function appendOrReplacePage(url, page) {
+            if (/[?&]page=\d+/.test(url)) {
+                return url.replace(/([?&]page=)\d+/, '$1' + page);
+            }
+            return url + (url.indexOf('?') === -1 ? '?' : '&') + 'page=' + page;
+        }
+
+        var savedPage = parseInt(localStorage.getItem(storageKey) || '1', 10);
+        if (isNaN(savedPage) || savedPage < 1) {
+            savedPage = 1;
+        }
+
+        var queryPage = parsePageParam();
+        var startPage = queryPage > 0 ? queryPage : savedPage;
+        if (startPage > 1) {
+            table.page(startPage - 1).draw('page');
+        }
+
+        table.on('page.dt', function () {
+            localStorage.setItem(storageKey, String(table.page() + 1));
+        });
+
+        $('a[href*="modul=edit_data_soal"], a[href*="modul=edit_soal_esai"], a[href*="modul=edit_soal&aksi=hapus"]').on('click', function () {
+            var currentPage = table.page() + 1;
+            localStorage.setItem(storageKey, String(currentPage));
+            this.href = appendOrReplacePage(this.href, currentPage);
+        });
+    });
     </script>
     <script>$(document).ready(function() {
     var table = $('#example').DataTable();

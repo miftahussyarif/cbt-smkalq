@@ -176,7 +176,8 @@ MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
 .left { float: left; width: 79%; }
 .right { float: right; width: 20%; }
 .group:after { content:""; display: table; clear: both; }
-img { max-width: 50%; height: auto; }
+img { max-width: 100%; height: auto; }
+.kop-logo { max-width: 70%; height: auto; }
 html {
     -webkit-background-size: cover;
     -moz-background-size: cover;
@@ -199,7 +200,7 @@ html {
                     <tr>
                         <td rowspan="7" width="150">
                             <?php if ($logoUrl !== '') { ?>
-                                <img src="<?php echo $logoUrl; ?>" width="70%" />
+                                <img class="kop-logo" src="<?php echo $logoUrl; ?>" width="70%" />
                             <?php } ?>
                         </td>
                         <td width="30%">Nomer Ujian</td><td width="50%">: <?php echo "$var_siswa [$xtokenujian]"; ?></td>
@@ -259,7 +260,7 @@ while($r = mysql_fetch_array($sql)){
     if(trim((string)$r['XGambarTanya']) !== ''){
         $imgTanya = cbt_resolve_panel_media_url($r['XGambarTanya']);
         echo "<tr><td width=50px colspan=3>&nbsp;</td></tr>
-        <tr><td colspan=3><img src='$imgTanya' width=200px></td></tr>";
+        <tr><td colspan=3><img src='$imgTanya' width='50%'></td></tr>";
     }
     echo "<tr><td width=50px colspan=3>&nbsp;</td></tr>";
 

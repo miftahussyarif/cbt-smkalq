@@ -157,6 +157,121 @@ if (!isset($_COOKIE['beeuser'])) {
 
             $fileBackupMessage = "<div class=\"alert alert-warning alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Reset data tes/ujian selesai. Terhapus: Jawaban <strong>" . intval($deleted['cbt_jawaban']) . "</strong>, Nilai <strong>" . intval($deleted['cbt_nilai']) . "</strong>, Peserta Ujian <strong>" . intval($deleted['cbt_siswa_ujian']) . "</strong>, Audio <strong>" . intval($deleted['cbt_audio']) . "</strong>, Pengawasan <strong>" . intval($deleted['cbt_pengawasan']) . "</strong>, Jadwal Ujian <strong>" . intval($deleted['cbt_ujian']) . "</strong>.</div>";
         }
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['exam_sync_action']) && $_POST['exam_sync_action'] === 'recalc_exam_scores') {
+        $role = isset($_COOKIE['beelogin']) ? $_COOKIE['beelogin'] : '';
+        if ($role !== 'admin') {
+            $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Akses ditolak. Sinkronisasi nilai hanya untuk admin.</div>";
+        } else {
+            @set_time_limit(0);
+
+            $sqlUpdateJawaban = "
+                UPDATE cbt_jawaban j
+                INNER JOIN cbt_soal s
+                    ON s.XKodeSoal = j.XKodeSoal
+                    AND s.XNomerSoal = j.XNomerSoal
+                SET
+                    j.XKunciJawaban = CASE
+                        WHEN s.XKunciJawaban = 'A' OR s.XKunciJawaban = j.XA THEN 'A'
+                        WHEN s.XKunciJawaban = 'B' OR s.XKunciJawaban = j.XB THEN 'B'
+                        WHEN s.XKunciJawaban = 'C' OR s.XKunciJawaban = j.XC THEN 'C'
+                        WHEN s.XKunciJawaban = 'D' OR s.XKunciJawaban = j.XD THEN 'D'
+                        WHEN s.XKunciJawaban = 'E' OR s.XKunciJawaban = j.XE THEN 'E'
+                        ELSE ''
+                    END,
+                    j.XNilai = CASE
+                        WHEN j.XJenisSoal = 1 THEN
+                            CASE
+                                WHEN j.XJawaban = '' THEN 0
+                                WHEN ((s.XKunciJawaban = 'A' OR s.XKunciJawaban = j.XA) AND j.XJawaban = 'A')
+                                  OR ((s.XKunciJawaban = 'B' OR s.XKunciJawaban = j.XB) AND j.XJawaban = 'B')
+                                  OR ((s.XKunciJawaban = 'C' OR s.XKunciJawaban = j.XC) AND j.XJawaban = 'C')
+                                  OR ((s.XKunciJawaban = 'D' OR s.XKunciJawaban = j.XD) AND j.XJawaban = 'D')
+                                  OR ((s.XKunciJawaban = 'E' OR s.XKunciJawaban = j.XE) AND j.XJawaban = 'E')
+                                THEN 1
+                                ELSE 0
+                            END
+                        ELSE j.XNilai
+                    END
+                WHERE j.XJenisSoal = 1
+            ";
+
+            $okUpdate = mysql_query($sqlUpdateJawaban);
+            if (!$okUpdate) {
+                $safeErr = htmlspecialchars(mysql_error(), ENT_QUOTES, 'UTF-8');
+                $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Sinkronisasi gagal saat update nilai jawaban: <strong>$safeErr</strong></div>";
+            } else {
+                $updatedJawaban = mysql_affected_rows();
+
+                $okDeleteNilai = mysql_query("DELETE FROM cbt_nilai");
+                if (!$okDeleteNilai) {
+                    $safeErr = htmlspecialchars(mysql_error(), ENT_QUOTES, 'UTF-8');
+                    $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Sinkronisasi gagal saat reset rekap nilai: <strong>$safeErr</strong></div>";
+                } else {
+                    $sqlInsertNilai = "
+                        INSERT INTO cbt_nilai
+                        (
+                            XNomerUjian, XNIK, XKodeUjian, XTokenUjian, XTgl, XJumSoal, XBenar, XSalah, XNilai,
+                            XPersenPil, XPersenEsai, XEsai, XTotalNilai, XKodeMapel, XKodeKelas, XKodeSoal, XSetId, XSemester
+                        )
+                        SELECT
+                            j.XUserJawab AS XNomerUjian,
+                            COALESCE(sis.XNIK, '') AS XNIK,
+                            COALESCE(u.XKodeUjian, '') AS XKodeUjian,
+                            j.XTokenUjian AS XTokenUjian,
+                            CURDATE() AS XTgl,
+                            (COALESCE(p.XPilGanda, 0) + COALESCE(p.XEsai, 0)) AS XJumSoal,
+                            SUM(CASE WHEN j.XJenisSoal = 1 AND j.XNilai = 1 THEN 1 ELSE 0 END) AS XBenar,
+                            GREATEST(
+                                COALESCE(p.XPilGanda, 0) - SUM(CASE WHEN j.XJenisSoal = 1 AND j.XNilai = 1 THEN 1 ELSE 0 END),
+                                0
+                            ) AS XSalah,
+                            SUM(CASE WHEN j.XJenisSoal = 1 AND j.XNilai = 1 THEN 1 ELSE 0 END) AS XNilai,
+                            COALESCE(p.XPersenPil, 0) AS XPersenPil,
+                            COALESCE(p.XPersenEsai, 0) AS XPersenEsai,
+                            SUM(CASE WHEN j.XJenisSoal = 2 THEN IFNULL(j.XNilaiEsai, 0) ELSE 0 END) AS XEsai,
+                            (
+                                CASE
+                                    WHEN COALESCE(p.XPilGanda, 0) > 0 THEN
+                                        (SUM(CASE WHEN j.XJenisSoal = 1 AND j.XNilai = 1 THEN 1 ELSE 0 END) / COALESCE(p.XPilGanda, 1)) * COALESCE(p.XPersenPil, 0)
+                                    ELSE 0
+                                END
+                                +
+                                SUM(CASE WHEN j.XJenisSoal = 2 THEN IFNULL(j.XNilaiEsai, 0) ELSE 0 END) * (COALESCE(p.XPersenEsai, 0) / 100)
+                            ) AS XTotalNilai,
+                            COALESCE(u.XKodeMapel, '') AS XKodeMapel,
+                            COALESCE(sis.XKodeKelas, u.XKodeKelas, '') AS XKodeKelas,
+                            j.XKodeSoal AS XKodeSoal,
+                            COALESCE(u.XSetId, j.XSetId, '') AS XSetId,
+                            COALESCE(u.XSemester, j.XSemester, 1) AS XSemester
+                        FROM cbt_jawaban j
+                        LEFT JOIN cbt_ujian u
+                            ON u.XKodeSoal = j.XKodeSoal
+                            AND u.XTokenUjian = j.XTokenUjian
+                        LEFT JOIN cbt_paketsoal p
+                            ON p.XKodeSoal = j.XKodeSoal
+                        LEFT JOIN cbt_siswa sis
+                            ON sis.XNomerUjian = j.XUserJawab
+                        WHERE j.XUserJawab <> ''
+                        GROUP BY j.XUserJawab, j.XKodeSoal, j.XTokenUjian
+                    ";
+
+                    $okInsertNilai = mysql_query($sqlInsertNilai);
+                    if (!$okInsertNilai) {
+                        $safeErr = htmlspecialchars(mysql_error(), ENT_QUOTES, 'UTF-8');
+                        $fileBackupMessage = "<div class=\"alert alert-danger alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Sinkronisasi gagal saat membangun ulang rekap nilai: <strong>$safeErr</strong></div>";
+                    } else {
+                        $insertedNilai = mysql_affected_rows();
+                        if (function_exists('bee_log')) {
+                            bee_log('INFO', 'RECALC_EXAM_SCORE', 'Sinkronisasi hitung ulang hasil ujian dari menu backup', array(
+                                'updated_jawaban' => (int) $updatedJawaban,
+                                'inserted_nilai' => (int) $insertedNilai
+                            ));
+                        }
+                        $fileBackupMessage = "<div class=\"alert alert-success alert-dismissable\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-hidden=\"true\">&times;</button>Sinkronisasi selesai. Jawaban diperbarui: <strong>" . intval($updatedJawaban) . "</strong> baris. Rekap nilai dibangun ulang: <strong>" . intval($insertedNilai) . "</strong> baris.</div>";
+                    }
+                }
+            }
+        }
     } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['file_action'])) {
         $action = $_POST['file_action'];
         if (!class_exists('ZipArchive')) {
@@ -438,6 +553,18 @@ if (!isset($_COOKIE['beeuser'])) {
                                         <button type="submit" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i> Reset Data Tes</button>
                                     </form>
                                 </td>
+                            </tr>
+                            <tr class="odd gradeX">
+                                <td>6</td>
+                                <td><strong>Sinkronisasi Hitung Ulang Hasil Ujian</strong><br><small>Memperbarui nilai benar/salah berdasarkan kunci jawaban terbaru di bank soal, lalu membangun ulang rekap nilai siswa untuk analisa.</small></td>
+                                <td>-</td>
+                                <td align="center">
+                                    <form method="post" onsubmit="return confirm('Yakin sinkronisasi hitung ulang hasil ujian?\\n\\nProses ini akan memperbarui nilai jawaban pilihan ganda dan membangun ulang tabel rekap nilai siswa.');" style="margin:0;">
+                                        <input type="hidden" name="exam_sync_action" value="recalc_exam_scores">
+                                        <button type="submit" class="btn btn-warning btn-sm"><i class="fa fa-refresh"></i> Sinkronisasi Nilai</button>
+                                    </form>
+                                </td>
+                                <td align="center">-</td>
                             </tr>
 
 
