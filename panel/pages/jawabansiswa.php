@@ -63,7 +63,7 @@ $(document).ready(function() {
   MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
 </script>
 <!-- script untuk refresh/reload mathjax setiap content baru !-->
-<iframe src="<?php echo "print_jawaban.php?soal=$req_soal&siswa=$req_siswa"; ?>" style="display:none;" name="frame"></iframe>
+<iframe src="<?php echo "print_jawaban.php?soal=$req_soal&siswa=$req_siswa&token=$req_token"; ?>" style="display:none;" name="frame"></iframe>
 <a href=?modul=analisajawaban&soal=<?php echo $req_soal; ?>>
                                         <button type="button" class="btn btn-success btn-small" style="margin-top:5px; margin-bottom:5px"><i class="glyphicon glyphicon-th-list"></i> Kembali ke Daftar</i></button></a>
 <button type="button" class="btn btn-default btn-small" onClick="frames['frame'].print()" style="margin-top:5px; margin-bottom:5px"><i class="glyphicon glyphicon-print"></i> Cetak Hasil Ujian
@@ -248,11 +248,20 @@ $sqlujian = mysql_query("select * from cbt_ujian c left join cbt_mapel m on m.XK
 $u = mysql_fetch_array($sqlujian);
 $namamapel = isset($u['XNamaMapel']) ? $u['XNamaMapel'] : '';
 $kodeujian = isset($u['XKodeUjian']) ? $u['XKodeUjian'] : '';
-
-if($kodeujian == "UH"){ $kodeujian = "Harian";} 
-elseif($kodeujian == "UTS"){ $kodeujian = "UTS";} 
-elseif($kodeujian == "UAS"){ $kodeujian = "UAS";} 
-else {$kodeujian = "TRY OUT";}
+$namaUjianTampil = $kodeujian;
+if ($kodeujian !== '') {
+	$kodeUjianSafe = mysql_real_escape_string($kodeujian);
+	$sqltes = mysql_query("select XNamaUjian from cbt_tes where XKodeUjian = '$kodeUjianSafe' limit 1");
+	if ($sqltes && mysql_num_rows($sqltes) > 0) {
+		$rtes = mysql_fetch_array($sqltes);
+		if (trim((string)$rtes['XNamaUjian']) !== '') {
+			$namaUjianTampil = $rtes['XNamaUjian'];
+		}
+	}
+}
+if ($namaUjianTampil === '') {
+	$namaUjianTampil = ($var_soal !== '') ? $var_soal : 'TRY OUT';
+}
 //$xtokenujian = $u['XTokenUjian'];
 
 $nom = 1;			
@@ -309,7 +318,7 @@ $foto = "nouser.png";} else { $foto = "$fotsis";}
                          </div>
       					<div class="panel panel-default">
       									  <div class="panel-body">
-                                           <h3 class="panel-title"><?php echo "Ujian : $kodeujian"; ?></h3>
+                                           <h3 class="panel-title"><?php echo "Ujian : $namaUjianTampil"; ?></h3>
                                           </div>
                          </div>
 
